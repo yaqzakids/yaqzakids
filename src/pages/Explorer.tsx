@@ -1,29 +1,34 @@
-import { ExplorerNavbar } from '../components/layout/Navbar'
-import Footer from '../components/layout/Footer'
-import HeroSection from '../components/home/HeroSection'
-import CategoryStrip from '../components/home/CategoryStrip'
-import FeaturedStory from '../components/home/FeaturedStory'
-import HowItWorks from '../components/home/HowItWorks'
-import Gamification from '../components/home/Gamification'
-import ArticleGrid from '../components/home/ArticleGrid'
-import FaithSection from '../components/home/FaithSection'
-import Pricing from '../components/home/Pricing'
-import CTABand from '../components/home/CTABand'
+import { AgeHomepage } from '@/components/AgeHomepage'
 
 export default function Explorer() {
   return (
     <div className="page-transition">
-      <ExplorerNavbar />
-      <HeroSection variant="explorer" />
-      <CategoryStrip />
-      <FeaturedStory />
-      <HowItWorks variant="explorer" />
-      <Gamification variant="explorer" />
-      <ArticleGrid variant="explorer" />
-      <FaithSection />
-      <Pricing variant="explorer" />
-      <CTABand variant="explorer" />
-      <Footer />
+      <AgeHomepage
+        variant="explorer"
+        pageBg="bg-cream"
+        heroBg="https://i.ibb.co/bj7FdD4Z/Chat-GPT-Image-Jun-3-2026-11-34-07-PM.png"
+        heroOverlay="linear-gradient(to right, rgba(255,251,240,0.97) 0%, rgba(255,251,240,0.92) 40%, transparent 100%)"
+        pillText="🌟 Stories • Activities • Faith • Fun"
+        headlineParts={[
+          { text: 'Learn About', color: 'text-navy' },
+          { text: 'Your Amazing', color: 'text-gold' },
+          { text: 'World! 🚀', color: 'text-navy' },
+        ]}
+        subtitle="Super fun stories about science, animals, news and Islam — just for you! Earn stars and badges as you learn!"
+        primaryCta={{ label: '⭐ Start My Adventure!', cls: 'bg-gold text-white hover:bg-gold-dark' }}
+        secondaryCta={{ label: 'Watch a Story', cls: 'border-2 border-gold text-gold-dark hover:bg-gold hover:text-white' }}
+        trustText="🎯 Easy to Read · 🎨 Fun Activities · 🏆 Earn Badges · ☪️ Islamic Values"
+        features={[
+          { icon: '📖', title: 'Short fun stories' },
+          { icon: '🎨', title: 'Drawing activities' },
+          { icon: '⭐', title: 'Earn gold stars' },
+          { icon: '☪️', title: 'Islamic lessons' },
+        ]}
+        storiesLabel="Today's Adventures"
+        storiesHeadline="What shall we learn today? 🌟"
+        storyXp="+10 XP"
+        storyMeta="Easy · 3 min"
+      />
     </div>
   )
 }

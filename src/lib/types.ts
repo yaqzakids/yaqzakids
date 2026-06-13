@@ -1,3 +1,5 @@
+import type { AvatarConfig } from './avatar/avatarConfig'
+
 export type AgeGroup = 'explorer' | 'discoverer' | 'thinker'
 export type Language = 'en' | 'fr' | 'ar'
 export type UserRole = 'parent' | 'admin'
@@ -5,12 +7,55 @@ export type ArticleStatus = 'draft' | 'published'
 export type SubscriptionPlan = 'free' | 'family_monthly' | 'family_yearly' | 'homeschool' | 'school'
 export type SubscriptionStatus = 'active' | 'cancelled' | 'expired'
 
+export type UsulTheme =
+  | 'tawhid'
+  | 'revelation'
+  | 'purpose'
+  | 'akhlaq'
+  | 'akhirah'
+  | 'stewardship'
+  | 'justice'
+  | 'knowledge'
+
+export interface ArticleFunFact {
+  emoji: string
+  fact: string
+}
+
+export interface ArticleVocabEntry {
+  word: string
+  definition: string
+}
+
+export interface Certificate {
+  id: string
+  child_profile_id: string
+  path_id: string | null
+  child_name: string
+  path_name: string
+  completed_at: string
+  certificate_url?: string | null
+}
+
+export interface ReflectionResponse {
+  id: string
+  child_profile_id: string
+  article_id: string
+  response: string
+  created_at: string
+}
+
+export type { AvatarConfig }
+
 export interface Profile {
   id: string
   full_name: string
-  role: UserRole
-  language: Language
+  role: string
+  language: string
   created_at: string
+  avatar_url?: string | null
+  avatar_id?: string | null
+  avatar_config?: AvatarConfig | null
 }
 
 export interface ChildProfile {
@@ -19,8 +64,12 @@ export interface ChildProfile {
   name: string
   age_group: AgeGroup
   avatar: string | null
+  avatar_url?: string | null
+  avatar_id?: string | null
+  avatar_config?: AvatarConfig | null
   language: Language
   xp_points: number
+  points?: number
   level: number
   streak_days: number
   last_active_date: string | null
