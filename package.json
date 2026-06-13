@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:cloudflare": "npm run build && wrangler pages deploy dist --project-name=yaqza-kids"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
@@ -25,6 +26,7 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
     "typescript": "^5.6.3",
-    "vite": "^6.0.3"
+    "vite": "^6.0.3",
+    "wrangler": "^4.20.0"
   }
 }
