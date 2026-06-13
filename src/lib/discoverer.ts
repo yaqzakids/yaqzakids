@@ -298,8 +298,7 @@ export async function fetchParentReport(
     reflectionsAnswered: reflectionsRes.count ?? 0,
     starsEarned: analytics.totalStars,
     themesExplored: [...themes],
-    discussionPrompt:
-      'How can we show gratitude for the amazing things Allah created in nature?',
+    discussionPrompt: 'How can knowledge help us serve others?',
     certificates: certs,
   }
 }
@@ -326,14 +325,195 @@ export function pickLocalizedThinkAbout(
   return base?.filter(Boolean) ?? []
 }
 
-export const DISCOVERER_BADGE_DISPLAY = [
-  { slug: 'curious-explorer', name: 'Curious Explorer', icon: '🔬', color: '#F5A623' },
-  { slug: 'star-reader', name: 'Star Reader', icon: '⭐', color: '#2AAFA0' },
-  { slug: 'nature-helper', name: 'Nature Helper', icon: '🌿', color: '#4AAE8A' },
-  { slug: 'quiz-whiz', name: 'Quiz Whiz', icon: '❓', color: '#8B6BB1' },
-  { slug: 'reflection-thinker', name: 'Reflection Thinker', icon: '💭', color: '#E85D4A' },
-  { slug: 'mission-master', name: 'Mission Master', icon: '🎯', color: '#1B2F5E' },
+export function nextStarMilestone(stars: number): number {
+  const milestones = [100, 200, 300, 400, 500, 600, 750, 1000, 1500, 2000]
+  return milestones.find((m) => m > stars) ?? stars + 100
+}
+
+export interface LastUnfinishedArticle {
+  title: string
+  url: string
+  statusLabel: string
+}
+
+function unwrapJoin<T>(value: T | T[] | null | undefined): T | null {
+  if (value == null) return null
+  return Array.isArray(value) ? value[0] ?? null : value
+}
+
+export async function fetchLastUnfinishedArticle(
+  childProfileId: string
+): Promise<LastUnfinishedArticle | null> {
+  const { data, error } = await supabase
+    .from('article_progress')
+    .select('read_completed, quiz_passed, updated_at, article:articles(id, title, slug, published)')
+    .eq('child_profile_id', childProfileId)
+    .or('read_completed.eq.false,quiz_passed.eq.false')
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const article = unwrapJoin(data?.article as { id: string; title: string; published?: boolean } | { id: string; title: string; published?: boolean }[] | null)
+  if (error || !article) return null
+  if (!article.published) return null
+
+  const url = await resolveArticleUrl(article.id)
+  if (!url) return null
+
+  const statusLabel = !data!.read_completed ? 'Story in progress' : 'Quiz remaining'
+  return { title: article.title, url, statusLabel }
+}
+
+export async function fetchSampleDiscovererArticles(): Promise<
+  { article: AdventureArticle; url: string | null; pathName: string }[]
+> {
+  const { data: freePaths } = await supabase
+    .from('adventure_paths')
+    .select('id, title')
+    .eq('is_free', true)
+    .order('sort_order')
+
+  const pathIds = (freePaths ?? []).map((p) => p.id)
+  const pathTitleById = Object.fromEntries((freePaths ?? []).map((p) => [p.id, p.title]))
+
+  if (pathIds.length === 0) {
+    const articles = await fetchPublishedArticles(6)
+    return articles
+      .filter((a) => a.content_discoverer?.trim())
+      .map((article) => ({ article, url: null, pathName: 'Discoverer' }))
+  }
+
+  const { data: rows, error } = await supabase
+    .from('path_articles')
+    .select('adventure_path_id, article:articles(*), path:adventure_paths(slug)')
+    .in('adventure_path_id', pathIds)
+    .order('sort_order')
+
+  if (error) throw error
+
+  const seen = new Set<string>()
+  const results: { article: AdventureArticle; url: string | null; pathName: string }[] = []
+
+  for (const row of rows ?? []) {
+    const article = unwrapJoin(row.article as AdventureArticle | AdventureArticle[] | null)
+    if (!article?.published || !article.content_discoverer?.trim() || seen.has(article.id)) continue
+    seen.add(article.id)
+
+    const path = unwrapJoin(row.path as { slug?: string } | { slug?: string }[] | null)
+    const url =
+      path?.slug && article.slug
+        ? `/adventures/${path.slug}/${article.slug}`
+        : await resolveArticleUrl(article.id)
+
+    results.push({
+      article,
+      url,
+      pathName: pathTitleById[row.adventure_path_id as string] ?? 'Sample',
+    })
+    if (results.length >= 9) break
+  }
+
+  return results
+}
+
+export async function resolveArticleUrl(articleId: string): Promise<string | null> {
+  const { data } = await supabase
+    .from('path_articles')
+    .select('article:articles(slug), path:adventure_paths(slug)')
+    .eq('article_id', articleId)
+    .limit(1)
+    .maybeSingle()
+  if (!data) return null
+  const article = data.article as { slug?: string } | null
+  const path = data.path as { slug?: string } | null
+  if (!article?.slug || !path?.slug) return null
+  return `/adventures/${path.slug}/${article.slug}`
+}
+
+export async function fetchRelatedDiscovererArticles(
+  articleId: string,
+  limit = 4
+): Promise<AdventureArticle[]> {
+  const { data, error } = await supabase
+    .from('articles')
+    .select('*')
+    .eq('published', true)
+    .neq('id', articleId)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  return (data ?? []) as AdventureArticle[]
+}
+
+export const FAITH_CARDS = [
+  { icon: '🌟', title: 'Wonder at Creation', text: "Science helps us discover Allah's signs." },
+  { icon: '📖', title: 'Guided by Revelation', text: 'The Quran helps us understand life.' },
+  { icon: '⚡', title: 'Character in Action', text: 'Knowledge should make us better people.' },
+  { icon: '🎯', title: 'Purposeful Learning', text: 'Learning is a trust and a way to serve others.' },
 ] as const
+
+export const LEARNING_PATHS_HOME = [
+  { emoji: '🔬', name: 'Science & Nature', border: 'border-teal', articles: 5, slug: 'science-nature' },
+  { emoji: '🏛️', name: 'History & Civilization', border: 'border-[#F5A623]', articles: 5, slug: 'history' },
+  { emoji: '📰', name: 'Current Events', border: 'border-[#E85D4A]', articles: 5, slug: 'current-events' },
+  { emoji: '🤖', name: 'Technology & AI', border: 'border-[#8B6BB1]', articles: 5, slug: 'technology' },
+  { emoji: '🌍', name: 'Geography & Cultures', border: 'border-[#1B2F5E]', articles: 5, slug: 'geography' },
+  { emoji: '🌱', name: 'Environment', border: 'border-green-500', articles: 5, slug: 'environment' },
+  { emoji: '✨', name: 'Foundations of Faith', border: 'border-[#F5A623]', articles: 5, slug: 'faith' },
+] as const
+
+export const DISCOVERER_BADGE_DISPLAY = [
+  {
+    slug: 'curious-explorer',
+    name: 'Curious Explorer',
+    icon: '🔬',
+    color: '#F5A623',
+    description: 'You love asking questions and exploring new topics.',
+    requirement: 'Read 10 stories across different paths.',
+  },
+  {
+    slug: 'star-reader',
+    name: 'Star Reader',
+    icon: '⭐',
+    color: '#2AAFA0',
+    description: 'Reading is your superpower — keep turning pages!',
+    requirement: 'Earn 500 stars from reading articles.',
+  },
+  {
+    slug: 'nature-helper',
+    name: 'Nature Helper',
+    icon: '🌿',
+    color: '#4AAE8A',
+    description: 'You care for Allah\'s creation and learn from nature.',
+    requirement: 'Complete 3 Science & Nature path articles.',
+  },
+  {
+    slug: 'quiz-whiz',
+    name: 'Quiz Whiz',
+    icon: '❓',
+    color: '#8B6BB1',
+    description: 'You ace quizzes and love testing what you know.',
+    requirement: 'Pass 5 quizzes with 80% or higher.',
+  },
+  {
+    slug: 'reflection-thinker',
+    name: 'Reflection Thinker',
+    icon: '💭',
+    color: '#E85D4A',
+    description: 'You think deeply about faith and the world around you.',
+    requirement: 'Answer 5 reflection questions.',
+  },
+  {
+    slug: 'mission-master',
+    name: 'Mission Master',
+    icon: '🎯',
+    color: '#1B2F5E',
+    description: 'You complete daily missions like a champion!',
+    requirement: 'Finish 7 daily missions in a row.',
+  },
+] as const
+
+export type DiscovererBadgeDisplay = (typeof DISCOVERER_BADGE_DISPLAY)[number]
 
 export const DISCOVERER_PATH_FILTERS = [
   { id: 'all', label: 'All' },

@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useEffect, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
+import { authUrl, currentPathWithSearch } from '@/lib/navigation'
 import type { User } from '@supabase/supabase-js'
 
 interface ProtectedRouteProps {
@@ -32,7 +33,12 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return (
+      <Navigate
+        to={authUrl('/login', currentPathWithSearch(location))}
+        replace
+      />
+    )
   }
 
   return <>{children}</>

@@ -53,7 +53,7 @@ export default function DailyMission() {
 
   if (childLoading || loading) {
     return (
-      <DiscovererPageShell>
+      <DiscovererPageShell backFallback="/discoverer">
         <div className="py-24 flex justify-center">
           <LoadingSpinner size="lg" />
         </div>
@@ -61,19 +61,14 @@ export default function DailyMission() {
     )
   }
 
-  if (!selectedChild) {
-    return (
-      <DiscovererPageShell>
-        <div className="max-w-lg mx-auto py-24 px-6 text-center">
-          <p className="text-navy font-bold mb-4">Sign in and select a child to start today&apos;s mission.</p>
-          <Link to="/login" className="text-teal font-extrabold">Sign in →</Link>
-        </div>
-      </DiscovererPageShell>
-    )
-  }
-
   return (
-    <DiscovererPageShell>
+    <DiscovererPageShell
+      backFallback="/discoverer"
+      breadcrumbs={[
+        { label: 'Home', to: '/discoverer' },
+        { label: 'Daily Mission' },
+      ]}
+    >
       <div className="max-w-2xl mx-auto px-6 py-12">
         <h1 className="font-display text-3xl font-bold text-navy mb-1">Today&apos;s Mission 🎯</h1>
         <p className="text-muted mb-8">{today}</p>
@@ -154,9 +149,7 @@ export default function DailyMission() {
             allDone ? 'bg-[#FFF8ED] border-2 border-[#F5A623]' : 'bg-white border border-gray-100 shadow-sm'
           }`}
         >
-          <p className="font-bold text-navy text-lg mb-2">
-            {allDone ? '🎉 Mission Complete!' : 'Complete all 3 to earn +10 ⭐ bonus stars!'}
-          </p>
+          <p className="font-bold text-navy text-lg mb-4">Complete all 3 to earn +10 ⭐ and +25 XP!</p>
           {allDone && <p className="text-3xl animate-pulse">⭐⭐⭐</p>}
         </div>
       </div>

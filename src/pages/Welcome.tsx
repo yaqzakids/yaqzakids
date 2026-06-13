@@ -1,53 +1,63 @@
 import { useNavigate, Link } from 'react-router-dom'
 import { STORAGE_KEYS } from '../lib/constants'
+import { LanguagePickerOnboarding } from '../components/ui/LanguageSwitcher'
+import { SiteFooter } from '@/components/SiteFooter'
+import { useT } from '../i18n'
 
-const cards = [
+const cardStyles = [
   {
     id: 'explorer',
     imageUrl: 'https://i.ibb.co/1fvKwtzD/Chat-GPT-Image-Jun-3-2026-07-24-06-PM.png',
-    title: 'Explorer',
-    ages: 'Ages 5 – 8',
-    desc: 'Short fun stories, colourful adventures and exciting facts about the world around you!',
-    cta: "Let's Explore! →",
     to: '/explorer' as const,
     titleColor: '#D4820A',
     agesColor: '#E8A020',
     btnBg: '#F5A623',
     cardBg: 'linear-gradient(135deg, #FFF8E7, #FFFAEF)',
     borderColor: '#F5A623',
+    keys: {
+      title: 'explorerTitle',
+      ages: 'explorerAges',
+      desc: 'explorerDesc',
+      cta: 'explorerCta',
+    },
   },
   {
     id: 'discoverer',
     imageUrl: 'https://i.ibb.co/bMNpNMxx/Chat-GPT-Image-Jun-3-2026-07-15-02-PM.png',
-    title: 'Discoverer',
-    ages: 'Ages 9 – 12',
-    desc: 'Real news, fascinating science, inspiring history and more — for curious minds like yours!',
-    cta: 'Start Discovering! →',
     to: '/discoverer' as const,
     titleColor: '#1A7A70',
     agesColor: '#2AAFA0',
     btnBg: '#2AAFA0',
     cardBg: 'linear-gradient(135deg, #E8F8F6, #F0FDFA)',
     borderColor: '#2AAFA0',
+    keys: {
+      title: 'discovererTitle',
+      ages: 'discovererAges',
+      desc: 'discovererDesc',
+      cta: 'discovererCta',
+    },
   },
   {
     id: 'thinker',
     imageUrl: 'https://i.ibb.co/Fq0z4K7V/Chat-GPT-Image-Jun-3-2026-07-20-33-PM.png',
-    title: 'Thinker',
-    ages: 'Ages 13 – 16',
-    desc: 'Explore world events, technology, ideas and challenges. Think deeply. Lead the future.',
-    cta: 'Start Thinking! →',
     to: '/thinker' as const,
     titleColor: '#5B3D8A',
     agesColor: '#8B6BB1',
     btnBg: '#8B6BB1',
     cardBg: 'linear-gradient(135deg, #EEF2FF, #F5F3FF)',
     borderColor: '#8B6BB1',
+    keys: {
+      title: 'thinkerTitle',
+      ages: 'thinkerAges',
+      desc: 'thinkerDesc',
+      cta: 'thinkerCta',
+    },
   },
-]
+] as const
 
 export default function Welcome() {
   const navigate = useNavigate()
+  const t = useT()
 
   function pick(id: string, to: '/explorer' | '/discoverer' | '/thinker') {
     if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEYS.ageGroup, id)
@@ -56,15 +66,15 @@ export default function Welcome() {
 
   return (
     <div
+      className="flex flex-col min-h-screen"
       style={{
-        minHeight: '100vh',
         backgroundImage: 'url(https://i.ibb.co/YTbzfdLX/Yaffa-4.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <div style={{ minHeight: '100vh' }}>
+      <div className="flex-1" style={{ minHeight: '100vh' }}>
         <div style={{
           maxWidth: '1100px',
           margin: '0 auto',
@@ -81,7 +91,7 @@ export default function Welcome() {
               color: '#1B2F5E',
               margin: 0,
             }}>
-              Who's learning today?
+              {t.home.heroTitle}
             </h1>
             <p style={{
               marginTop: '12px',
@@ -89,9 +99,11 @@ export default function Welcome() {
               color: '#6B7280',
               fontFamily: 'Nunito, sans-serif',
             }}>
-              Explore the world through faith, curiosity and knowledge.
+              {t.home.heroSubtitle}
             </p>
           </div>
+
+          <LanguagePickerOnboarding />
 
           <div style={{
             marginTop: '32px',
@@ -100,7 +112,7 @@ export default function Welcome() {
             gap: '20px',
             width: '100%',
           }}>
-            {cards.map((c) => (
+            {cardStyles.map((c) => (
               <button
                 key={c.id}
                 type="button"
@@ -129,7 +141,7 @@ export default function Welcome() {
                 <div style={{ width: '100%', height: '320px', overflow: 'hidden' }}>
                   <img
                     src={c.imageUrl}
-                    alt={c.title}
+                    alt={t.welcome[c.keys.title]}
                     style={{
                       width: '100%',
                       height: '100%',
@@ -147,7 +159,7 @@ export default function Welcome() {
                     color: c.titleColor,
                     margin: 0,
                   }}>
-                    {c.title}
+                    {t.welcome[c.keys.title]}
                   </h2>
                   <div style={{
                     fontSize: '12px',
@@ -156,7 +168,7 @@ export default function Welcome() {
                     marginTop: '2px',
                     fontFamily: 'Nunito, sans-serif',
                   }}>
-                    {c.ages}
+                    {t.welcome[c.keys.ages]}
                   </div>
                   <p style={{
                     marginTop: '8px',
@@ -166,7 +178,7 @@ export default function Welcome() {
                     fontFamily: 'Nunito, sans-serif',
                     flex: 1,
                   }}>
-                    {c.desc}
+                    {t.welcome[c.keys.desc]}
                   </p>
                   <div style={{
                     marginTop: '16px',
@@ -179,7 +191,7 @@ export default function Welcome() {
                     textAlign: 'center',
                     fontFamily: 'Nunito, sans-serif',
                   }}>
-                    {c.cta}
+                    {t.welcome[c.keys.cta]}
                   </div>
                 </div>
               </button>
@@ -193,13 +205,14 @@ export default function Welcome() {
             textAlign: 'center',
             fontFamily: 'Nunito, sans-serif',
           }}>
-            Parents can set and manage age groups from the{' '}
+            {t.home.parentNote}{' '}
             <Link to="/login" style={{ color: '#9CA3AF', textDecoration: 'underline' }}>
-              parent dashboard
+              {t.home.parentDashboard}
             </Link>
           </p>
         </div>
       </div>
+      <SiteFooter variant="light" />
     </div>
   )
 }

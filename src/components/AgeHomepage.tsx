@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { SiteNav } from '@/components/SiteNav'
 import { SiteFooter } from '@/components/SiteFooter'
 import { Star, Rocket, Flame, Award } from 'lucide-react'
+import { useT } from '@/i18n'
+import type { TranslationKeys } from '@/i18n/locales/en'
 
 export type AgeVariant = 'explorer' | 'discoverer' | 'thinker'
 
@@ -29,78 +31,183 @@ export interface AgeHomepageConfig {
   sectionHeadlineCls?: string
 }
 
-const TOPICS = [
-  { icon: '📰', title: 'World News', desc: "Today's events explained for young minds.", border: 'border-l-navy' },
-  { icon: '🔬', title: 'Science & Discovery', desc: 'How the world works — from atoms to galaxies.', border: 'border-l-teal' },
-  { icon: '🏛️', title: 'History & Civilizations', desc: 'Lessons from the past that shape today.', border: 'border-l-gold' },
-  { icon: '🤖', title: 'Technology & AI', desc: 'Smart tools and how to use them wisely.', border: 'border-l-purple' },
-  { icon: '🌱', title: 'Environment', desc: "Caring for the Earth as Allah's amanah.", border: 'border-l-[#4AAE8A]' },
-  { icon: '🧭', title: 'Geography', desc: 'The Ummah and the world we share.', border: 'border-l-coral' },
-]
+type AgeHomepageProps = Partial<Omit<AgeHomepageConfig, 'variant'>> & Pick<AgeHomepageConfig, 'variant'>
 
-const HOW_STEPS = [
-  { icon: '👤', color: 'bg-teal', title: 'Create a free account', desc: 'Sign up in seconds. No credit card. Add up to 3 children.' },
-  { icon: '📰', color: 'bg-gold', title: "Explore today's story", desc: "Fresh news daily, adapted for your child's age." },
-  { icon: '🌙', color: 'bg-purple', title: 'Connect to faith', desc: 'Every story links to Islamic values and purpose.' },
-]
-
-const AGES = [
-  { emoji: '🌱', title: 'Explorer', ages: 'Ages 5–8', bg: 'bg-[#E8F5EE]', border: 'border-[#4AAE8A]', items: ['Simple vocabulary', 'Short sentences', 'Drawing activities'] },
-  { emoji: '🔍', title: 'Discoverer', ages: 'Ages 9–12', bg: 'bg-[#FDE8B8]', border: 'border-[#E8A020]', items: ['Expanded context', 'Critical thinking', 'Interactive quizzes'] },
-  { emoji: '🌍', title: 'Thinker', ages: 'Ages 13–16', bg: 'bg-[#EDE9FE]', border: 'border-[#8B6BB1]', items: ['In-depth analysis', 'Multiple perspectives', 'Discussion forums'] },
-]
-
-const GAMIFY = [
-  { icon: '⚡', title: 'XP Points', desc: 'Earn points for every mission completed' },
-  { icon: '🏆', title: 'Level Up', desc: 'Rise from Seeker to Visionary' },
-  { icon: '🔥', title: 'Daily Streaks', desc: 'Build powerful daily learning habits' },
-  { icon: '🎖️', title: 'Badges', desc: 'Collect achievements as you grow' },
-]
-
-const STORIES = [
-  { cat: 'World News', tag: 'bg-navy text-white', title: 'How nations are working together on clean water' },
-  { cat: 'Science', tag: 'bg-teal text-white', title: 'What scientists just learned about deep oceans' },
-  { cat: 'History', tag: 'bg-gold text-navy', title: 'The library of Baghdad and the love of learning' },
-  { cat: 'Technology', tag: 'bg-purple text-white', title: 'How AI is helping doctors save more lives' },
-  { cat: 'Environment', tag: 'bg-[#4AAE8A] text-white', title: 'Young Muslims planting forests across the world' },
-  { cat: 'Geography', tag: 'bg-coral text-white', title: 'Five rivers that shaped Islamic civilization' },
-]
-
-const PRICING = [
-  { name: 'Free', price: '$0', note: 'FREE FOREVER', noteCls: 'bg-teal/10 text-teal', border: 'border-border',
-    features: ['5 articles / month', 'All 3 languages', '✗ Full archive', '✗ Worksheets', '✗ Parent insights'],
-    cta: 'Get Started', ctaCls: 'border border-navy/30 text-navy hover:bg-navy hover:text-white' },
-  { name: 'Family Monthly', price: '$9.99', per: '/month', note: 'MOST POPULAR', noteCls: 'bg-gold text-navy', border: 'border-2 border-gold',
-    features: ['Daily stories', 'All 3 languages', '✓ Full archive', '✓ Worksheets', '✓ Parent insights'],
-    cta: 'Start Monthly', ctaCls: 'bg-gold text-navy hover:bg-gold-dark hover:text-white' },
-  { name: 'Family Yearly', price: '$79.99', per: '/year', note: 'BEST VALUE', noteCls: 'bg-teal text-white', border: 'border-border',
-    features: ['Save 33% vs monthly', 'All features included', '✓ Full archive', '✓ Worksheets', '✓ Parent insights'],
-    cta: 'Start Yearly', ctaCls: 'border border-navy/30 text-navy hover:bg-navy hover:text-white' },
-  { name: 'School', price: '$299', per: '/year', note: 'FOR EDUCATORS', noteCls: 'bg-purple text-white', border: 'border-border',
-    features: ['Up to 30 students', 'Teacher dashboard', 'All features', 'Classroom reports', 'Priority support'],
-    cta: 'Contact Us', ctaCls: 'border border-navy/30 text-navy hover:bg-navy hover:text-white' },
-]
-
-const EXPLORER_HOW_STEPS = [
-  { icon: '👤', color: 'bg-gold', title: 'Join for free!', desc: 'Ask a grown-up to sign you up in seconds!' },
-  { icon: '📖', color: 'bg-teal', title: 'Pick a story!', desc: 'Choose a fun story about animals, space, Islam and more!' },
-  { icon: '⭐', color: 'bg-purple', title: 'Learn and earn!', desc: 'Read stories and collect stars and badges!' },
-]
-
+const EXPLORER_HERO =
+  'https://i.ibb.co/bj7FdD4Z/Chat-GPT-Image-Jun-3-2026-11-34-07-PM.png'
 const EXPLORER_CARD_IMG = 'https://i.ibb.co/8DbgpyNZ/Jun-2-2026-11-10-16-PM.png'
 
-export function AgeHomepage(props: AgeHomepageConfig) {
-  const cfg = props
+function buildExplorerConfig(t: TranslationKeys): AgeHomepageConfig {
+  return {
+    variant: 'explorer',
+    pageBg: 'bg-cream',
+    heroBg: EXPLORER_HERO,
+    heroOverlay:
+      'linear-gradient(to right, rgba(255,251,240,0.97) 0%, rgba(255,251,240,0.92) 40%, transparent 100%)',
+    pillText: t.explorer.pillText,
+    headlineParts: [
+      { text: t.explorer.headline1, color: 'text-navy' },
+      { text: t.explorer.headline2, color: 'text-gold' },
+      { text: t.explorer.headline3, color: 'text-navy' },
+    ],
+    subtitle: t.explorer.subtitle,
+    primaryCta: { label: t.explorer.primaryCta, cls: 'bg-gold text-white hover:bg-gold-dark' },
+    secondaryCta: {
+      label: t.explorer.secondaryCta,
+      cls: 'border-2 border-gold text-gold-dark hover:bg-gold hover:text-white',
+    },
+    trustText: t.explorer.trustText,
+    features: [
+      { icon: '📖', title: t.explorer.featureStories },
+      { icon: '🎨', title: t.explorer.featureActivities },
+      { icon: '⭐', title: t.explorer.featureStars },
+      { icon: '☪️', title: t.explorer.featureIslam },
+    ],
+    storiesLabel: t.explorer.storiesLabel,
+    storiesHeadline: t.explorer.storiesHeadline,
+    storyXp: t.explorer.storyXp,
+    storyMeta: 'Easy · 3 min',
+  }
+}
+
+export function AgeHomepage(props: AgeHomepageProps) {
+  const t = useT()
+  const explorerDefaults = props.variant === 'explorer' ? buildExplorerConfig(t) : null
+  const cfg = { ...explorerDefaults, ...props } as AgeHomepageConfig
+
   const isThinker = cfg.variant === 'thinker'
   const isExplorer = cfg.variant === 'explorer'
-  const howSteps = isExplorer ? EXPLORER_HOW_STEPS : HOW_STEPS
-  const howHeadline = isExplorer ? 'How it works — super easy!' : 'Three steps to a curious, grounded child'
+  const ah = t.ageHomepage
+  const ex = t.explorer
+
+  const topics = [
+    { icon: '📰', title: ah.topicWorldNews, desc: ah.topicWorldNewsDesc, border: 'border-l-navy' },
+    { icon: '🔬', title: ah.topicScience, desc: ah.topicScienceDesc, border: 'border-l-teal' },
+    { icon: '🏛️', title: ah.topicHistory, desc: ah.topicHistoryDesc, border: 'border-l-gold' },
+    { icon: '🤖', title: ah.topicTech, desc: ah.topicTechDesc, border: 'border-l-purple' },
+    { icon: '🌱', title: ah.topicEnvironment, desc: ah.topicEnvironmentDesc, border: 'border-l-[#4AAE8A]' },
+    { icon: '🧭', title: ah.topicGeography, desc: ah.topicGeographyDesc, border: 'border-l-coral' },
+  ]
+
+  const howSteps = isExplorer
+    ? [
+        { icon: '👤', color: 'bg-gold', title: ex.howStep1Title, desc: ex.howStep1Desc },
+        { icon: '📖', color: 'bg-teal', title: ex.howStep2Title, desc: ex.howStep2Desc },
+        { icon: '⭐', color: 'bg-purple', title: ex.howStep3Title, desc: ex.howStep3Desc },
+      ]
+    : [
+        { icon: '👤', color: 'bg-teal', title: ah.howStep1Title, desc: ah.howStep1Desc },
+        { icon: '📰', color: 'bg-gold', title: ah.howStep2Title, desc: ah.howStep2Desc },
+        { icon: '🌙', color: 'bg-purple', title: ah.howStep3Title, desc: ah.howStep3Desc },
+      ]
+
+  const howHeadline = isExplorer ? ex.howHeadline : ah.howHeadlineDefault
+  const howLabel = isExplorer ? ex.howLabel : ah.howLabel
+  const stepLabel = isExplorer ? ex.stepLabel : ah.stepLabel
+
+  const ages = [
+    {
+      emoji: '🌱',
+      title: ah.ageExplorer,
+      ages: ah.ageExplorerAges,
+      bg: 'bg-[#E8F5EE]',
+      border: 'border-[#4AAE8A]',
+      items: [ah.ageExplorerItem1, ah.ageExplorerItem2, ah.ageExplorerItem3],
+    },
+    {
+      emoji: '🔍',
+      title: ah.ageDiscoverer,
+      ages: ah.ageDiscovererAges,
+      bg: 'bg-[#FDE8B8]',
+      border: 'border-[#E8A020]',
+      items: [ah.ageDiscovererItem1, ah.ageDiscovererItem2, ah.ageDiscovererItem3],
+    },
+    {
+      emoji: '🌍',
+      title: ah.ageThinker,
+      ages: ah.ageThinkerAges,
+      bg: 'bg-[#EDE9FE]',
+      border: 'border-[#8B6BB1]',
+      items: [ah.ageThinkerItem1, ah.ageThinkerItem2, ah.ageThinkerItem3],
+    },
+  ]
+
+  const gamify = [
+    { icon: '⚡', title: ah.gamifyXpTitle, desc: ah.gamifyXpDesc },
+    { icon: '🏆', title: ah.gamifyLevelTitle, desc: ah.gamifyLevelDesc },
+    { icon: '🔥', title: ah.gamifyStreakTitle, desc: ah.gamifyStreakDesc },
+    { icon: '🎖️', title: ah.gamifyBadgesTitle, desc: ah.gamifyBadgesDesc },
+  ]
+
+  const stories = [
+    { cat: ah.catWorldNews, tag: 'bg-navy text-white', title: ah.story1Title },
+    { cat: ah.catScience, tag: 'bg-teal text-white', title: ah.story2Title },
+    { cat: ah.catHistory, tag: 'bg-gold text-navy', title: ah.story3Title },
+    { cat: ah.catTechnology, tag: 'bg-purple text-white', title: ah.story4Title },
+    { cat: ah.catEnvironment, tag: 'bg-[#4AAE8A] text-white', title: ah.story5Title },
+    { cat: ah.catGeography, tag: 'bg-coral text-white', title: ah.story6Title },
+  ]
+
+  const pricing = [
+    {
+      name: ah.planFree,
+      price: '$0',
+      note: ah.planFreeNote,
+      noteCls: 'bg-teal/10 text-teal',
+      border: 'border-border',
+      features: [ah.planFeatArticles5, ah.planFeatLanguages, ah.planFeatNoArchive, ah.planFeatNoWorksheets, ah.planFeatNoInsights],
+      cta: ah.planCtaFree,
+      ctaCls: 'border border-navy/30 text-navy hover:bg-navy hover:text-white',
+    },
+    {
+      name: ah.planMonthly,
+      price: '$9.99',
+      per: ah.perMonth,
+      note: ah.planMonthlyNote,
+      noteCls: 'bg-gold text-navy',
+      border: 'border-2 border-gold',
+      features: [ah.planFeatDaily, ah.planFeatLanguages, ah.planFeatArchive, ah.planFeatWorksheets, ah.planFeatInsights],
+      cta: ah.planCtaMonthly,
+      ctaCls: 'bg-gold text-navy hover:bg-gold-dark hover:text-white',
+    },
+    {
+      name: ah.planYearly,
+      price: '$79.99',
+      per: ah.perYear,
+      note: ah.planYearlyNote,
+      noteCls: 'bg-teal text-white',
+      border: 'border-border',
+      features: [ah.planFeatSave, ah.planFeatAllIncluded, ah.planFeatArchive, ah.planFeatWorksheets, ah.planFeatInsights],
+      cta: ah.planCtaYearly,
+      ctaCls: 'border border-navy/30 text-navy hover:bg-navy hover:text-white',
+    },
+    {
+      name: ah.planSchool,
+      price: '$299',
+      per: ah.perYear,
+      note: ah.planSchoolNote,
+      noteCls: 'bg-purple text-white',
+      border: 'border-border',
+      features: [ah.planFeatStudents, ah.planFeatTeacher, ah.planFeatAllFeatures, ah.planFeatReports, ah.planFeatSupport],
+      cta: ah.planCtaSchool,
+      ctaCls: 'border border-navy/30 text-navy hover:bg-navy hover:text-white',
+    },
+  ]
+
+  const explorerCategories = [
+    { name: ex.catAmazingAnimals, bg: '#FEF9C3', img: 'https://i.ibb.co/HfGGfqTb/Chat-GPT-Image-Jun-4-2026-02-40-58-PM.png' },
+    { name: ex.catOurWorld, bg: '#DBEAFE', img: 'https://i.ibb.co/Qwk4M1Q/Chat-GPT-Image-Jun-4-2026-02-40-30-PM.png' },
+    { name: ex.catIslam, bg: '#EDE9FE', img: 'https://i.ibb.co/gFRNB3Jk/Chat-GPT-Image-Jun-4-2026-02-42-51-PM.png' },
+    { name: ex.catSpace, bg: '#DBEAFE', img: 'https://i.ibb.co/ns4zjTjM/Chat-GPT-Image-Jun-4-2026-02-44-34-PM.png' },
+    { name: ex.catNature, bg: '#DCFCE7', img: 'https://i.ibb.co/8qrSkyC/Chat-GPT-Image-Jun-4-2026-02-47-03-PM.png' },
+    { name: ex.catHealthy, bg: '#FED7AA', img: 'https://i.ibb.co/Fd0pV30/Chat-GPT-Image-Jun-4-2026-02-46-59-PM.png' },
+    { name: ex.catStoryTime, bg: '#FEF9C3', img: 'https://i.ibb.co/HDhQ9Wxk/Chat-GPT-Image-Jun-4-2026-02-47-50-PM.png' },
+  ]
 
   return (
     <div className={cfg.pageBg ?? 'bg-white'}>
-      <SiteNav variant={isThinker ? 'light' : cfg.variant} />
+      <SiteNav variant={cfg.variant} />
 
-      {/* HERO */}
       <section
         className="relative min-h-[580px] w-full"
         style={{ backgroundImage: `url(${cfg.heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center right' }}
@@ -108,26 +215,52 @@ export function AgeHomepage(props: AgeHomepageConfig) {
         <div className="absolute inset-0" style={{ background: cfg.heroOverlay }} />
         <div className="relative mx-auto max-w-7xl px-6 pb-16 pt-12 md:pt-20">
           <div className="max-w-[520px]">
-            <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${
-              isThinker ? 'border-white/40 text-white' : 'border-navy/40 text-navy'
-            }`}>{cfg.pillText}</span>
+            <span
+              className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${
+                isThinker ? 'border-white/40 text-white' : 'border-navy/40 text-navy'
+              }`}
+            >
+              {cfg.pillText}
+            </span>
             <h1 className="mt-5 font-display text-4xl font-bold leading-tight md:text-[54px] md:leading-[1.05]">
               {cfg.headlineParts.map((p, i) => (
-                <span key={i} className={p.color}>{p.text}{i < cfg.headlineParts.length - 1 ? ' ' : ''}</span>
+                <span key={i} className={p.color}>
+                  {p.text}
+                  {i < cfg.headlineParts.length - 1 ? ' ' : ''}
+                </span>
               ))}
             </h1>
             <p className={`mt-5 text-base md:text-[17px] ${cfg.subtitleColor ?? 'text-[#374151]'}`}>{cfg.subtitle}</p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link to="/signup" className={`rounded-full px-6 py-3 text-sm font-extrabold shadow-md transition ${cfg.primaryCta.cls}`}>{cfg.primaryCta.label}</Link>
-              <Link to="/discoverer" className={`rounded-full px-6 py-3 text-sm font-extrabold transition ${cfg.secondaryCta.cls}`}>{cfg.secondaryCta.label}</Link>
+              <Link to="/signup" className={`rounded-full px-6 py-3 text-sm font-extrabold shadow-md transition ${cfg.primaryCta.cls}`}>
+                {cfg.primaryCta.label}
+              </Link>
+              <Link to="/discoverer" className={`rounded-full px-6 py-3 text-sm font-extrabold transition ${cfg.secondaryCta.cls}`}>
+                {cfg.secondaryCta.label}
+              </Link>
             </div>
             <p className={`mt-6 text-xs ${isThinker ? 'text-white/70' : 'text-navy/70'}`}>{cfg.trustText}</p>
-            <div className={`mt-3 text-xl tracking-wider ${isThinker ? 'opacity-90' : ''}`}>​</div>
           </div>
         </div>
       </section>
 
-      {/* CATEGORY STRIP */}
+      {cfg.features && cfg.features.length > 0 && (
+        <section className={cfg.featureStripCls ?? 'bg-white border-b border-border'}>
+          <div className="mx-auto max-w-7xl px-6 py-5">
+            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
+              {cfg.features.map((f) => (
+                <div key={f.title} className="flex items-center gap-2">
+                  <span className="text-2xl">{f.icon}</span>
+                  <span className={`text-sm font-bold ${cfg.variant === 'thinker' ? 'text-white' : 'text-navy'}`}>
+                    {f.title}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {isExplorer && (
         <section style={{ background: '#FFFFFF', width: '100%' }}>
           <div style={{ width: '100%', padding: '28px 40px', boxSizing: 'border-box' }}>
@@ -141,18 +274,10 @@ export function AgeHomepage(props: AgeHomepageConfig) {
                 width: '100%',
               }}
             >
-              {[
-                { name: 'Amazing Animals', bg: '#FEF9C3', img: 'https://i.ibb.co/HfGGfqTb/Chat-GPT-Image-Jun-4-2026-02-40-58-PM.png', to: '/about' },
-                { name: 'Our World', bg: '#DBEAFE', img: 'https://i.ibb.co/Qwk4M1Q/Chat-GPT-Image-Jun-4-2026-02-40-30-PM.png', to: '/about' },
-                { name: 'Islam & Good Character', bg: '#EDE9FE', img: 'https://i.ibb.co/gFRNB3Jk/Chat-GPT-Image-Jun-4-2026-02-42-51-PM.png', to: '/about' },
-                { name: 'Space Adventures', bg: '#DBEAFE', img: 'https://i.ibb.co/ns4zjTjM/Chat-GPT-Image-Jun-4-2026-02-44-34-PM.png', to: '/about' },
-                { name: 'Nature Discoveries', bg: '#DCFCE7', img: 'https://i.ibb.co/8qrSkyC/Chat-GPT-Image-Jun-4-2026-02-47-03-PM.png', to: '/about' },
-                { name: 'Healthy Habits', bg: '#FED7AA', img: 'https://i.ibb.co/Fd0pV30/Chat-GPT-Image-Jun-4-2026-02-46-59-PM.png', to: '/about' },
-                { name: 'Story Time', bg: '#FEF9C3', img: 'https://i.ibb.co/HDhQ9Wxk/Chat-GPT-Image-Jun-4-2026-02-47-50-PM.png', to: '/about' },
-              ].map((cat) => (
+              {explorerCategories.map((cat) => (
                 <Link
                   key={cat.name}
-                  to={cat.to}
+                  to="/about"
                   style={{
                     flex: '1 1 0',
                     minWidth: 0,
@@ -166,8 +291,12 @@ export function AgeHomepage(props: AgeHomepageConfig) {
                     textDecoration: 'none',
                     transition: 'transform 0.2s ease',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)'
+                  }}
                 >
                   <img
                     src={cat.img}
@@ -198,13 +327,12 @@ export function AgeHomepage(props: AgeHomepageConfig) {
         </section>
       )}
 
-      {/* FEATURED STORY (explorer) */}
       {isExplorer && (
-        <section style={{ position: 'relative', width: '100%', height: '400px', overflow: 'hidden', borderRadius: 0 }}>
+        <section style={{ position: 'relative', width: '100%' }}>
           <img
             src="https://i.ibb.co/Z12Kh7qv/Chat-GPT-Image-Jun-4-2026-05-37-16-PM.png"
             alt=""
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '400px', objectFit: 'cover', objectPosition: 'center center' }}
+            style={{ display: 'block', width: '100%', height: 'auto' }}
           />
           <div
             style={{
@@ -213,46 +341,80 @@ export function AgeHomepage(props: AgeHomepageConfig) {
               background: 'linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.5) 40%, transparent 100%)',
             }}
           />
-          <div style={{ position: 'relative', zIndex: 2, padding: '48px 60px 48px 96px', maxWidth: '556px' }}>
-            <div style={{ color: '#F5A623', fontSize: '13px', fontWeight: 700, marginBottom: '12px' }}>⭐ Featured Story</div>
-            <h2 style={{ color: '#FFFFFF', fontFamily: "'Playfair Display', serif", fontSize: '36px', fontWeight: 800, lineHeight: 1.2, marginBottom: '14px' }}>
-              Why Do Giraffes Have Long Necks?
-            </h2>
-            <p style={{ color: 'rgba(255,255,255,0.85)', fontFamily: "'Nunito', sans-serif", fontSize: '16px', lineHeight: 1.7, marginBottom: '24px' }}>
-              Find out how Allah created giraffes with amazing features and why they are so special!
-            </p>
-            <Link
-              to="/about"
-              style={{
-                display: 'inline-block',
-                background: '#2AAFA0',
-                color: '#FFFFFF',
-                borderRadius: '9999px',
-                padding: '12px 28px',
-                fontSize: '15px',
-                fontWeight: 700,
-                textDecoration: 'none',
-              }}
-            >
-              Read Story
-            </Link>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              padding: '48px 60px 48px 96px',
+            }}
+          >
+            <div style={{ maxWidth: '556px' }}>
+              <div style={{ color: '#F5A623', fontSize: '13px', fontWeight: 700, marginBottom: '12px' }}>
+                {ex.featuredLabel}
+              </div>
+              <h2
+                style={{
+                  color: '#FFFFFF',
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: '36px',
+                  fontWeight: 800,
+                  lineHeight: 1.2,
+                  marginBottom: '14px',
+                }}
+              >
+                {ex.featuredTitle}
+              </h2>
+              <p
+                style={{
+                  color: 'rgba(255,255,255,0.85)',
+                  fontFamily: "'Nunito', sans-serif",
+                  fontSize: '16px',
+                  lineHeight: 1.7,
+                  marginBottom: '24px',
+                }}
+              >
+                {ex.featuredDesc}
+              </p>
+              <Link
+                to="/about"
+                style={{
+                  display: 'inline-block',
+                  background: '#2AAFA0',
+                  color: '#FFFFFF',
+                  borderRadius: '9999px',
+                  padding: '12px 28px',
+                  fontSize: '15px',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                }}
+              >
+                {ex.featuredCta}
+              </Link>
+            </div>
           </div>
         </section>
       )}
 
-      {/* WHAT WE COVER */}
       {!isExplorer && (
         <section className="bg-[#EEF4FF]">
           <div className="mx-auto max-w-7xl px-6 py-16">
-            <p className="text-center text-xs font-bold uppercase tracking-widest text-teal">What we cover</p>
-            <h2 className="mt-2 text-center font-display text-3xl font-bold text-navy md:text-4xl">13 Topics. One World.</h2>
+            <p className="text-center text-xs font-bold uppercase tracking-widest text-teal">{ah.whatWeCover}</p>
+            <h2 className="mt-2 text-center font-display text-3xl font-bold text-navy md:text-4xl">{ah.topicsHeadline}</h2>
             <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {TOPICS.map((t) => (
-                <div key={t.title} className={`rounded-2xl border-l-4 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg ${t.border}`}>
-                  <div className="text-2xl">{t.icon}</div>
-                  <h3 className="mt-2 font-display text-lg font-bold text-navy">{t.title}</h3>
-                  <p className="mt-1 text-sm text-navy/70">{t.desc}</p>
-                  <a href="#" className="mt-3 inline-block text-sm font-bold text-teal hover:underline">Explore →</a>
+              {topics.map((topic) => (
+                <div
+                  key={topic.title}
+                  className={`rounded-2xl border-l-4 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg ${topic.border}`}
+                >
+                  <div className="text-2xl">{topic.icon}</div>
+                  <h3 className="mt-2 font-display text-lg font-bold text-navy">{topic.title}</h3>
+                  <p className="mt-1 text-sm text-navy/70">{topic.desc}</p>
+                  <a href="#" className="mt-3 inline-block text-sm font-bold text-teal hover:underline">
+                    {ah.exploreLink}
+                  </a>
                 </div>
               ))}
             </div>
@@ -260,16 +422,22 @@ export function AgeHomepage(props: AgeHomepageConfig) {
         </section>
       )}
 
-      {/* HOW IT WORKS */}
       <section className="bg-white">
         <div className={`mx-auto max-w-7xl px-6 ${isExplorer ? 'pt-6 pb-16' : 'py-16'}`}>
-          <p className="text-center text-xs font-bold uppercase tracking-widest text-teal">How it works</p>
+          <p className="text-center text-xs font-bold uppercase tracking-widest text-teal">{howLabel}</p>
           <h2 className="mt-2 text-center font-display text-3xl font-bold text-navy md:text-4xl">{howHeadline}</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {howSteps.map((s, i) => (
-              <div key={s.title} className="rounded-2xl border border-border bg-white p-7 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-                <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full text-2xl text-white ${s.color}`}>{s.icon}</div>
-                <div className="mt-3 text-xs font-bold uppercase text-muted-foreground">Step {i + 1}</div>
+              <div
+                key={s.title}
+                className="rounded-2xl border border-border bg-white p-7 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+              >
+                <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full text-2xl text-white ${s.color}`}>
+                  {s.icon}
+                </div>
+                <div className="mt-3 text-xs font-bold uppercase text-muted-foreground">
+                  {stepLabel} {i + 1}
+                </div>
                 <h3 className="mt-1 font-display text-lg font-bold text-navy">{s.title}</h3>
                 <p className="mt-2 text-sm text-navy/70">{s.desc}</p>
               </div>
@@ -278,20 +446,21 @@ export function AgeHomepage(props: AgeHomepageConfig) {
         </div>
       </section>
 
-      {/* AGE GROUPS */}
       {!isExplorer && (
         <section className="bg-[#EEF4FF]">
           <div className="mx-auto max-w-7xl px-6 py-16">
-            <p className="text-center text-xs font-bold uppercase tracking-widest text-teal">Built for every age</p>
-            <h2 className="mt-2 text-center font-display text-3xl font-bold text-navy md:text-4xl">Same world. Right level.</h2>
+            <p className="text-center text-xs font-bold uppercase tracking-widest text-teal">{ah.agesLabel}</p>
+            <h2 className="mt-2 text-center font-display text-3xl font-bold text-navy md:text-4xl">{ah.agesHeadline}</h2>
             <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {AGES.map((a) => (
+              {ages.map((a) => (
                 <div key={a.title} className={`rounded-2xl border-2 p-6 transition hover:-translate-y-1 hover:shadow-lg ${a.bg} ${a.border}`}>
                   <div className="text-3xl">{a.emoji}</div>
                   <h3 className="mt-2 font-display text-xl font-bold text-navy">{a.title}</h3>
                   <div className="text-sm font-bold text-navy/70">{a.ages}</div>
                   <ul className="mt-3 space-y-1 text-sm text-navy/80">
-                    {a.items.map((item) => <li key={item}>• {item}</li>)}
+                    {a.items.map((item) => (
+                      <li key={item}>• {item}</li>
+                    ))}
                   </ul>
                 </div>
               ))}
@@ -300,54 +469,85 @@ export function AgeHomepage(props: AgeHomepageConfig) {
         </section>
       )}
 
-      {/* GAMIFICATION */}
       {isExplorer ? (
         <section style={{ background: 'linear-gradient(135deg, #F5A623, #E8941A)', padding: '48px 40px' }}>
           <div style={{ maxWidth: '1000px', margin: '0 auto', textAlign: 'center' }}>
-            <p style={{ color: '#FFFFFF', fontSize: '11px', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>LEARN. EARN. GROW.</p>
-            <h2 style={{ color: '#FFFFFF', fontFamily: "'Playfair Display', serif", fontSize: '32px', fontWeight: 800, textAlign: 'center', marginBottom: '40px' }}>Learning that feels like an adventure!</h2>
+            <p
+              style={{
+                color: '#FFFFFF',
+                fontSize: '11px',
+                fontWeight: 800,
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+                marginBottom: '8px',
+              }}
+            >
+              {ex.gamifyLabel}
+            </p>
+            <h2
+              style={{
+                color: '#FFFFFF',
+                fontFamily: "'Playfair Display', serif",
+                fontSize: '32px',
+                fontWeight: 800,
+                textAlign: 'center',
+                marginBottom: '40px',
+              }}
+            >
+              {ex.gamifyHeadline}
+            </h2>
             <div style={{ display: 'flex', gap: '24px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <div style={{ textAlign: 'center', maxWidth: '200px' }}>
-                <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-                  <Star size={28} color="#F5A623" fill="#F5A623" />
+              {[
+                { Icon: Star, title: ex.gamifyStarsTitle, desc: ex.gamifyStarsDesc },
+                { Icon: Rocket, title: ex.gamifyLevelTitle, desc: ex.gamifyLevelDesc },
+                { Icon: Flame, title: ex.gamifyStreakTitle, desc: ex.gamifyStreakDesc },
+                { Icon: Award, title: ex.gamifyBadgesTitle, desc: ex.gamifyBadgesDesc },
+              ].map(({ Icon, title, desc }) => (
+                <div key={title} style={{ textAlign: 'center', maxWidth: '200px' }}>
+                  <div
+                    style={{
+                      width: '72px',
+                      height: '72px',
+                      borderRadius: '50%',
+                      background: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 14px',
+                    }}
+                  >
+                    <Icon size={28} color="#F5A623" fill="#F5A623" />
+                  </div>
+                  <h3 style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 800, marginBottom: '6px' }}>{title}</h3>
+                  <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', textAlign: 'center' }}>{desc}</p>
                 </div>
-                <h3 style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 800, marginBottom: '6px' }}>Earn Stars!</h3>
-                <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', textAlign: 'center' }}>Get a star every time you finish a story!</p>
-              </div>
-              <div style={{ textAlign: 'center', maxWidth: '200px' }}>
-                <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-                  <Rocket size={28} color="#F5A623" fill="#F5A623" />
-                </div>
-                <h3 style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 800, marginBottom: '6px' }}>Level Up!</h3>
-                <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', textAlign: 'center' }}>The more you read, the higher you go!</p>
-              </div>
-              <div style={{ textAlign: 'center', maxWidth: '200px' }}>
-                <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-                  <Flame size={28} color="#F5A623" fill="#F5A623" />
-                </div>
-                <h3 style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 800, marginBottom: '6px' }}>Come Back Every Day!</h3>
-                <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', textAlign: 'center' }}>Build your streak and win bonus stars!</p>
-              </div>
-              <div style={{ textAlign: 'center', maxWidth: '200px' }}>
-                <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-                  <Award size={28} color="#F5A623" fill="#F5A623" />
-                </div>
-                <h3 style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 800, marginBottom: '6px' }}>Collect Badges!</h3>
-                <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', textAlign: 'center' }}>Earn special badges for being amazing!</p>
-              </div>
+              ))}
             </div>
-            <Link to="/signup" style={{ display: 'inline-block', background: '#FFFFFF', color: '#F5A623', borderRadius: '9999px', padding: '12px 32px', fontSize: '15px', fontWeight: 800, textDecoration: 'none', marginTop: '32px' }}>
-              Start Earning Stars!
+            <Link
+              to="/signup"
+              style={{
+                display: 'inline-block',
+                background: '#FFFFFF',
+                color: '#F5A623',
+                borderRadius: '9999px',
+                padding: '12px 32px',
+                fontSize: '15px',
+                fontWeight: 800,
+                textDecoration: 'none',
+                marginTop: '32px',
+              }}
+            >
+              {ex.gamifyCta}
             </Link>
           </div>
         </section>
       ) : (
         <section className="bg-navy text-white">
           <div className="mx-auto max-w-7xl px-6 py-16">
-            <p className="text-center text-xs font-bold uppercase tracking-widest text-gold">Learn. Earn. Grow.</p>
-            <h2 className="mt-2 text-center font-display text-3xl font-bold text-white md:text-4xl">Learning that feels like an adventure</h2>
+            <p className="text-center text-xs font-bold uppercase tracking-widest text-gold">{ah.gamifyLabel}</p>
+            <h2 className="mt-2 text-center font-display text-3xl font-bold text-white md:text-4xl">{ah.gamifyHeadline}</h2>
             <div className="mt-10 grid gap-8 md:grid-cols-4">
-              {GAMIFY.map((g) => (
+              {gamify.map((g) => (
                 <div key={g.title} className="text-center">
                   <div className="text-4xl">{g.icon}</div>
                   <h3 className="mt-3 font-display text-lg font-bold text-gold">{g.title}</h3>
@@ -359,14 +559,20 @@ export function AgeHomepage(props: AgeHomepageConfig) {
         </section>
       )}
 
-      {/* TODAY'S TOP STORIES */}
       <section className={cfg.storiesBg ?? 'bg-[#EEF4FF]'}>
         <div className="mx-auto max-w-7xl px-6 py-16">
-          <p className={`text-center text-xs font-bold uppercase tracking-widest ${cfg.sectionLabelCls ?? 'text-teal'}`}>{cfg.storiesLabel}</p>
-          <h2 className={`mt-2 text-center font-display text-3xl font-bold md:text-4xl ${cfg.sectionHeadlineCls ?? 'text-navy'}`}>{cfg.storiesHeadline}</h2>
+          <p className={`text-center text-xs font-bold uppercase tracking-widest ${cfg.sectionLabelCls ?? 'text-teal'}`}>
+            {cfg.storiesLabel}
+          </p>
+          <h2 className={`mt-2 text-center font-display text-3xl font-bold md:text-4xl ${cfg.sectionHeadlineCls ?? 'text-navy'}`}>
+            {cfg.storiesHeadline}
+          </h2>
           <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {STORIES.map((st, i) => (
-              <article key={i} className={`group flex flex-col rounded-2xl shadow-sm transition hover:-translate-y-1 hover:shadow-lg overflow-hidden ${cfg.storyCardCls ?? 'bg-white'}`}>
+            {stories.map((st, i) => (
+              <article
+                key={i}
+                className={`group flex flex-col rounded-2xl shadow-sm transition hover:-translate-y-1 hover:shadow-lg overflow-hidden ${cfg.storyCardCls ?? 'bg-white'}`}
+              >
                 {isExplorer && (
                   <img
                     src={EXPLORER_CARD_IMG}
@@ -378,12 +584,16 @@ export function AgeHomepage(props: AgeHomepageConfig) {
                 <div className="flex flex-1 flex-col p-5">
                   <span className={`inline-flex w-fit rounded-full px-3 py-1 text-[11px] font-bold ${st.tag}`}>{st.cat}</span>
                   {isExplorer ? (
-                    <h3 className="mt-3" style={{ fontSize: '16px', fontWeight: 700, color: '#1B2F5E', lineHeight: 1.4 }}>{st.title}</h3>
+                    <h3 className="mt-3" style={{ fontSize: '16px', fontWeight: 700, color: '#1B2F5E', lineHeight: 1.4 }}>
+                      {st.title}
+                    </h3>
                   ) : (
                     <h3 className={`mt-3 font-display text-lg font-bold ${isThinker ? 'text-white' : 'text-navy'}`}>{st.title}</h3>
                   )}
-                  <div className={`mt-auto flex items-center justify-between pt-4 text-xs font-bold ${isThinker ? 'text-white/70' : 'text-muted-foreground'}`}>
-                    <span>{isExplorer ? '⏱ 3 min read' : cfg.storyMeta}</span>
+                  <div
+                    className={`mt-auto flex items-center justify-between pt-4 text-xs font-bold ${isThinker ? 'text-white/70' : 'text-muted-foreground'}`}
+                  >
+                    <span>{isExplorer ? ex.storyReadTime : cfg.storyMeta}</span>
                     <span className={isThinker ? 'text-gold' : 'text-gold-dark'}>{cfg.storyXp}</span>
                   </div>
                 </div>
@@ -393,64 +603,78 @@ export function AgeHomepage(props: AgeHomepageConfig) {
         </div>
       </section>
 
-      {/* THREE INSIGHT CARDS */}
       <section className="bg-white">
         <div className="mx-auto grid max-w-7xl gap-6 px-6 py-16 md:grid-cols-3">
           <div className="rounded-2xl border-t-4 border-teal bg-white p-6 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-widest text-teal">☪️ What Islam Teaches</p>
-            <h3 className="mt-2 font-display text-xl font-bold text-navy">Seek Knowledge</h3>
-            <p className="mt-3 text-right font-arabic text-base text-navy" dir="rtl">طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ</p>
-            <p className="mt-2 text-sm italic text-navy/70">&quot;Seeking knowledge is an obligation upon every Muslim.&quot; — Ibn Majah</p>
-            <a href="#" className="mt-4 inline-block text-sm font-bold text-teal hover:underline">Read More →</a>
+            <p className="text-xs font-bold uppercase tracking-widest text-teal">{ah.islamTeaches}</p>
+            <h3 className="mt-2 font-display text-xl font-bold text-navy">{ah.islamTeachesTitle}</h3>
+            <p className="mt-3 text-right font-arabic text-base text-navy" dir="rtl">
+              طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ
+            </p>
+            <p className="mt-2 text-sm italic text-navy/70">{ah.islamTeachesQuote}</p>
+            <a href="#" className="mt-4 inline-block text-sm font-bold text-teal hover:underline">
+              {ah.readMore}
+            </a>
           </div>
           <div className="rounded-2xl border-t-4 border-gold bg-white p-6 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-widest text-gold-dark">💡 Think About It</p>
-            <p className="mt-3 text-base italic text-navy">&quot;If knowledge is a duty, how can I spend even one day without learning something new?&quot;</p>
-            <button type="button" className="mt-5 rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-navy hover:bg-gold-dark hover:text-white">Share Your Thoughts</button>
+            <p className="text-xs font-bold uppercase tracking-widest text-gold-dark">{ah.thinkAboutIt}</p>
+            <p className="mt-3 text-base italic text-navy">{ah.thinkAboutItQuote}</p>
+            <button type="button" className="mt-5 rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-navy hover:bg-gold-dark hover:text-white">
+              {ah.shareThoughts}
+            </button>
           </div>
           <div className="rounded-2xl border-t-4 border-purple bg-white p-6 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-widest text-purple-dark">🎨 Activity Corner</p>
-            <h3 className="mt-2 font-display text-xl font-bold text-navy">Build Your Own News Page</h3>
-            <p className="mt-2 text-sm text-navy/70">Pick a story, write 3 sentences, and draw what it means to you.</p>
-            <button type="button" className="mt-5 rounded-full border border-purple px-5 py-2.5 text-sm font-bold text-purple-dark hover:bg-purple hover:text-white">Unlock with Family Plan</button>
+            <p className="text-xs font-bold uppercase tracking-widest text-purple-dark">{ah.activityCorner}</p>
+            <h3 className="mt-2 font-display text-xl font-bold text-navy">{ah.activityTitle}</h3>
+            <p className="mt-2 text-sm text-navy/70">{ah.activityDesc}</p>
+            <button
+              type="button"
+              className="mt-5 rounded-full border border-purple px-5 py-2.5 text-sm font-bold text-purple-dark hover:bg-purple hover:text-white"
+            >
+              {ah.unlockFamily}
+            </button>
           </div>
         </div>
       </section>
 
-      {/* PRICING */}
       <section className="bg-[#EEF4FF]">
         <div className="mx-auto max-w-7xl px-6 py-16">
-          <p className="text-center text-xs font-bold uppercase tracking-widest text-teal">Simple pricing</p>
-          <h2 className="mt-2 text-center font-display text-3xl font-bold text-navy md:text-4xl">One family. One price.</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-navy/70">No per-child fees. One subscription covers your whole family up to 3 children.</p>
+          <p className="text-center text-xs font-bold uppercase tracking-widest text-teal">{ah.pricingLabel}</p>
+          <h2 className="mt-2 text-center font-display text-3xl font-bold text-navy md:text-4xl">{ah.pricingHeadline}</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-navy/70">{ah.pricingSub}</p>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {PRICING.map((p) => (
+            {pricing.map((p) => (
               <div key={p.name} className={`flex flex-col rounded-2xl bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg ${p.border}`}>
-                <span className={`inline-flex w-fit rounded-full px-3 py-1 text-[10px] font-extrabold tracking-wider ${p.noteCls}`}>{p.note}</span>
+                <span className={`inline-flex w-fit rounded-full px-3 py-1 text-[10px] font-extrabold tracking-wider ${p.noteCls}`}>
+                  {p.note}
+                </span>
                 <h3 className="mt-3 font-display text-xl font-bold text-navy">{p.name}</h3>
                 <div className="mt-2 flex items-baseline gap-1">
                   <span className="font-display text-3xl font-bold text-navy">{p.price}</span>
                   {'per' in p && p.per && <span className="text-sm text-navy/60">{p.per}</span>}
                 </div>
                 <ul className="mt-4 flex-1 space-y-2 text-sm text-navy/80">
-                  {p.features.map((f) => <li key={f}>{f}</li>)}
+                  {p.features.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
                 </ul>
-                <Link to="/signup" className={`mt-5 inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition ${p.ctaCls}`}>{p.cta}</Link>
+                <Link to="/signup" className={`mt-5 inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition ${p.ctaCls}`}>
+                  {p.cta}
+                </Link>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA BAND */}
       <section className="bg-gold">
         <div className="mx-auto max-w-5xl px-6 py-14 text-center">
-          <h2 className="font-display text-2xl font-bold text-navy md:text-[28px]">Start your child&apos;s learning journey today</h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-navy/80">Join the growing community of Muslim families raising aware, grounded children.</p>
+          <h2 className="font-display text-2xl font-bold text-navy md:text-[28px]">{ah.ctaHeadline}</h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-navy/80">{ah.ctaSub}</p>
           <Link to="/signup" className="mt-6 inline-flex rounded-full bg-navy px-7 py-3 text-sm font-extrabold text-white shadow-md transition hover:bg-navy-deep">
-            Get Started Free →
+            {ah.ctaButton}
           </Link>
-          <p className="mt-3 text-xs text-navy/70">Free forever · Cancel anytime · EN, FR, AR</p>
+          <p className="mt-3 text-xs text-navy/70">{ah.ctaFootnote}</p>
         </div>
       </section>
 

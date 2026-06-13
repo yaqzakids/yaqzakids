@@ -2,19 +2,20 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import DiscovererPageShell from '@/components/discoverer/DiscovererPageShell'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import BadgeHexagon from '@/components/discoverer/BadgeHexagon'
+import DiscovererProgressSnapshot from '@/components/discoverer/DiscovererProgressSnapshot'
 import TealProgressBar from '@/components/discoverer/TealProgressBar'
 import { useSelectedChild } from '@/context/SelectedChildContext'
 import {
   fetchChildStats,
   fetchDiscovererHomepageData,
   fetchChildCertificates,
-  DISCOVERER_BADGE_DISPLAY,
+  fetchDailyMission,
 } from '@/lib/discoverer'
 import type { Certificate } from '@/lib/types'
 import type { AdventureArticle, PathWithProgress } from '@/lib/adventure/types'
 import { useAuth } from '@/components/ProtectedRoute'
 
+/** Full dashboard at /discoverer/dashboard */
 export default function DiscovererDashboard() {
   const { user } = useAuth()
   const { selectedChild, loading: childLoading } = useSelectedChild()
@@ -23,6 +24,8 @@ export default function DiscovererDashboard() {
   const [paths, setPaths] = useState<PathWithProgress[]>([])
   const [recommended, setRecommended] = useState<AdventureArticle[]>([])
   const [certificates, setCertificates] = useState<Certificate[]>([])
+  const [missionDone, setMissionDone] = useState({ read: false, quiz: false, reflection: false })
+  const [earnedBadgeSlugs, setEarnedBadgeSlugs] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (childLoading) return
@@ -36,13 +39,20 @@ export default function DiscovererDashboard() {
       fetchChildStats(selectedChild.id),
       fetchDiscovererHomepageData(selectedChild.id, user?.id ?? null, selectedChild.name),
       fetchChildCertificates(selectedChild.id),
+      fetchDailyMission(selectedChild.id),
     ])
-      .then(([s, home, certs]) => {
+      .then(([s, home, certs, mission]) => {
         if (cancelled) return
         setStats(s)
         setPaths(home.continuePaths)
         setRecommended(home.recommendedArticles)
         setCertificates(certs)
+        setMissionDone({
+          read: mission.readStory,
+          quiz: mission.passQuiz,
+          reflection: mission.answerReflection,
+        })
+        setEarnedBadgeSlugs(new Set(home.badges.filter((b) => b.earned).map((b) => b.slug)))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -75,146 +85,70 @@ export default function DiscovererDashboard() {
     )
   }
 
-  const streakDays = stats?.streak ?? 0
-  const weekDots = Array.from({ length: 7 }, (_, i) => i < Math.min(streakDays, 7))
-
   return (
-    <DiscovererPageShell>
-      <div className="max-w-7xl mx-auto px-6 md:px-10 py-10 grid lg:grid-cols-[65%_35%] gap-8">
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-full bg-teal flex items-center justify-center text-2xl">
-                👧
+    <DiscovererPageShell backFallback="/discoverer" homeTo="/discoverer">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 py-10">
+        <div className="mb-6">
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-navy">My Dashboard</h1>
+          <p className="text-muted text-sm mt-1">Your full progress overview</p>
+        </div>
+
+        <DiscovererProgressSnapshot
+          childName={selectedChild.name}
+          avatarId={selectedChild.avatar_id ?? null}
+          levelLabel={stats?.level ?? 'Seeker'}
+          xp={stats?.xp ?? 0}
+          starsToNext={stats?.starsToNext ?? 100}
+          streak={stats?.streak ?? 0}
+          paths={paths}
+          certificateCount={certificates.length}
+          missionDone={missionDone}
+          earnedBadgeSlugs={earnedBadgeSlugs}
+        />
+
+        {paths[0] && (
+          <section className="mt-10 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="font-bold text-navy mb-4">Continue Learning</h2>
+            <div className="flex gap-4 items-center">
+              {paths[0].cover_image_url && (
+                <img src={paths[0].cover_image_url} alt="" className="w-24 h-24 rounded-xl object-cover" />
+              )}
+              <div className="flex-1">
+                <p className="font-bold text-navy">{paths[0].title}</p>
+                <TealProgressBar
+                  value={paths[0].path_progress?.completion_percentage ?? 0}
+                  showLabel
+                  className="mt-2"
+                />
+                <Link
+                  to={`/adventures/${paths[0].slug}`}
+                  className="inline-block mt-3 text-teal font-extrabold text-sm"
+                >
+                  Continue →
+                </Link>
               </div>
-              <div>
-                <h1 className="font-display text-2xl font-bold text-navy">{selectedChild.name}</h1>
-                <p className="text-sm text-teal font-bold">Discoverer {stats?.level ?? 'Level 1'}</p>
-              </div>
             </div>
-            <TealProgressBar value={stats?.xp ?? 0} max={(stats?.xp ?? 0) + (stats?.starsToNext ?? 100)} showLabel />
-            <p className="text-sm text-muted mt-3">You&apos;re on a great learning adventure!</p>
-          </div>
+          </section>
+        )}
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-navy text-lg">🎯 Daily Mission</h2>
-              <Link to="/discoverer/mission" className="text-teal text-sm font-bold">
-                Go →
-              </Link>
-            </div>
-            <ul className="space-y-2 text-sm text-navy mb-4">
-              <li>⭕ Read 1 story</li>
-              <li>⭕ Pass 1 quiz</li>
-              <li>⭕ Answer 1 reflection</li>
-            </ul>
-            <p className="text-xs font-bold text-teal">+10 ⭐ bonus when complete</p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-navy">My Badges</h2>
-              <Link to="/discoverer/badges" className="text-teal text-sm font-bold">
-                View all →
-              </Link>
-            </div>
-            <div className="flex gap-4 overflow-x-auto">
-              {DISCOVERER_BADGE_DISPLAY.map((b) => (
-                <BadgeHexagon key={b.slug} icon={b.icon} name={b.name} color={b.color} size="sm" />
-              ))}
-            </div>
-          </div>
-
-          {paths[0] && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="font-bold text-navy mb-4">Continue Learning</h2>
-              <div className="flex gap-4 items-center">
-                {paths[0].cover_image_url && (
-                  <img src={paths[0].cover_image_url} alt="" className="w-24 h-24 rounded-xl object-cover" />
-                )}
-                <div className="flex-1">
-                  <p className="font-bold text-navy">{paths[0].title}</p>
-                  <TealProgressBar
-                    value={paths[0].path_progress?.completion_percentage ?? 0}
-                    showLabel
-                    className="mt-2"
-                  />
-                  <Link
-                    to={`/adventures/${paths[0].slug}`}
-                    className="inline-block mt-3 text-teal font-extrabold text-sm"
-                  >
-                    Continue →
+        <section className="mt-10 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 className="font-bold text-navy mb-4">Recommended For You</h2>
+          {recommended.length === 0 ? (
+            <p className="text-muted text-sm">No stories yet — explore the library!</p>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-4">
+              {recommended.slice(0, 4).map((a) => (
+                <div key={a.id} className="border border-gray-100 rounded-xl p-3">
+                  <p className="font-bold text-navy text-sm line-clamp-2">{a.title}</p>
+                  <p className="text-xs text-muted mt-1">{a.reading_time_minutes} min</p>
+                  <Link to="/discoverer/explore" className="text-teal text-xs font-bold mt-2 inline-block">
+                    Read →
                   </Link>
                 </div>
-              </div>
-            </div>
-          )}
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="font-bold text-navy mb-4">Recommended For You</h2>
-            {recommended.length === 0 ? (
-              <p className="text-muted text-sm">No stories yet — explore the library!</p>
-            ) : (
-              <div className="grid sm:grid-cols-2 gap-4">
-                {recommended.slice(0, 4).map((a) => (
-                  <div key={a.id} className="border border-gray-100 rounded-xl p-3">
-                    <p className="font-bold text-navy text-sm line-clamp-2">{a.title}</p>
-                    <p className="text-xs text-muted mt-1">{a.reading_time_minutes} min</p>
-                    <Link to="/discoverer/explore" className="text-teal text-xs font-bold mt-2 inline-block">
-                      Read →
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-navy">My Learning Paths</h2>
-              <Link to="/adventures" className="text-teal text-sm font-bold">
-                View all →
-              </Link>
-            </div>
-            {paths.length === 0 ? (
-              <p className="text-muted text-sm">Start a path to track progress here.</p>
-            ) : (
-              <div className="space-y-4">
-                {paths.map((p) => (
-                  <div key={p.id}>
-                    <p className="text-sm font-bold text-navy mb-1">{p.title}</p>
-                    <TealProgressBar value={p.path_progress?.completion_percentage ?? 0} showLabel />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
-            <p className="text-4xl mb-2">🔥</p>
-            <p className="text-4xl font-extrabold text-[#F5A623]">{streakDays}</p>
-            <p className="text-sm text-muted mb-4">day streak</p>
-            <div className="flex justify-center gap-2">
-              {weekDots.map((on, i) => (
-                <span
-                  key={i}
-                  className={`w-3 h-3 rounded-full ${on ? 'bg-[#F5A623]' : 'bg-gray-200'}`}
-                />
               ))}
             </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <p className="text-3xl mb-2">📜</p>
-            <h2 className="font-bold text-navy mb-1">Certificates</h2>
-            <p className="text-2xl font-extrabold text-teal mb-3">{certificates.length}</p>
-            <Link to="/discoverer/certificates" className="text-teal font-extrabold text-sm">
-              View →
-            </Link>
-          </div>
-        </div>
+          )}
+        </section>
       </div>
     </DiscovererPageShell>
   )

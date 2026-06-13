@@ -1,14 +1,10 @@
 import Footer from '../components/layout/Footer'
-import Pricing from '../components/home/Pricing'
 import CTABand from '../components/home/CTABand'
-import { IMAGES } from '../lib/constants'
 
 export default function About() {
   return (
     <div className="page-transition min-h-screen bg-bg">
-      <nav className="bg-white border-b border-gray-200 px-6 md:px-10 h-16 flex items-center">
-        <a href="/"><img src={IMAGES.logo} alt="Yaqza Kids" className="h-12" /></a>
-      </nav>
+      <nav className="bg-white border-b border-gray-200 px-6 md:px-10 h-16 flex items-center" />
       <div className="max-w-3xl mx-auto px-6 py-16 text-center">
         <h1 className="font-display text-4xl font-extrabold text-navy mb-6">About Yaqza Kids</h1>
         <p className="text-lg text-muted leading-relaxed mb-6">

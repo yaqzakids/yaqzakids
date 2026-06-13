@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import DiscovererPageShell from '@/components/discoverer/DiscovererPageShell'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import BadgeHexagon from '@/components/discoverer/BadgeHexagon'
+import BadgeDetailModal from '@/components/discoverer/BadgeDetailModal'
 import { useSelectedChild } from '@/context/SelectedChildContext'
 import { fetchChildBadgesWithStatus, DISCOVERER_BADGE_DISPLAY } from '@/lib/discoverer'
+import type { DiscovererBadgeDisplay } from '@/lib/discoverer'
 
 const CATEGORIES = [
   { id: 'reading', label: 'Reading Badges' },
@@ -18,6 +20,7 @@ export default function BadgesPage() {
   const { selectedChild, loading: childLoading } = useSelectedChild()
   const [loading, setLoading] = useState(true)
   const [earnedSlugs, setEarnedSlugs] = useState<Set<string>>(new Set())
+  const [selectedBadge, setSelectedBadge] = useState<DiscovererBadgeDisplay | null>(null)
 
   useEffect(() => {
     if (childLoading) return
@@ -34,7 +37,7 @@ export default function BadgesPage() {
 
   if (childLoading || loading) {
     return (
-      <DiscovererPageShell>
+      <DiscovererPageShell backFallback="/discoverer">
         <div className="py-24 flex justify-center">
           <LoadingSpinner size="lg" />
         </div>
@@ -43,7 +46,18 @@ export default function BadgesPage() {
   }
 
   return (
-    <DiscovererPageShell>
+    <DiscovererPageShell
+      backFallback="/discoverer"
+      breadcrumbs={[
+        { label: 'Home', to: '/discoverer' },
+        { label: 'Badges' },
+      ]}
+    >
+      <BadgeDetailModal
+        badge={selectedBadge}
+        earned={selectedBadge ? earnedSlugs.has(selectedBadge.slug) : false}
+        onClose={() => setSelectedBadge(null)}
+      />
       <div className="max-w-5xl mx-auto px-6 py-12">
         <h1 className="font-display text-3xl font-bold text-navy mb-2">My Badges</h1>
         <p className="text-muted mb-10">Earn badges by reading, quizzing, reflecting, and completing paths.</p>
@@ -64,11 +78,10 @@ export default function BadgesPage() {
                       name={b.name}
                       color={b.color}
                       earned={earned}
+                      onClick={() => setSelectedBadge(b)}
                     />
                     {!earned && (
-                      <p className="text-xs text-muted mt-3">
-                        Complete missions to unlock
-                      </p>
+                      <p className="text-xs text-muted mt-3">{b.requirement}</p>
                     )}
                     {earned && (
                       <p className="text-xs text-teal font-bold mt-3">Earned</p>

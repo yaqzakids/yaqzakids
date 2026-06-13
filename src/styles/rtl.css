@@ -1,0 +1,48 @@
+/* RTL layout helpers — applied when html[dir="rtl"] */
+
+html[dir='rtl'] body {
+  text-align: right;
+}
+
+html[dir='rtl'] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+html[dir='rtl'] input,
+html[dir='rtl'] textarea,
+html[dir='rtl'] select {
+  text-align: right;
+}
+
+html[dir='rtl'] .text-left {
+  text-align: right;
+}
+
+html[dir='rtl'] .text-right {
+  text-align: left;
+}
+
+html[dir='rtl'] .ml-auto {
+  margin-left: unset;
+  margin-right: auto;
+}
+
+html[dir='rtl'] .mr-auto {
+  margin-right: unset;
+  margin-left: auto;
+}
+
+html[dir='rtl'] nav .flex.gap-3,
+html[dir='rtl'] nav .flex.gap-6 {
+  flex-direction: row-reverse;
+}
+
+html[dir='rtl'] [class*='rounded-l-'] {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+html[dir='rtl'] [class*='rounded-r-'] {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}

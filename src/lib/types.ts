@@ -63,6 +63,8 @@ export interface ChildProfile {
   parent_id: string
   name: string
   age_group: AgeGroup
+  age?: number | null
+  interests?: string[] | null
   avatar: string | null
   avatar_url?: string | null
   avatar_id?: string | null

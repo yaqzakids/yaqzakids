@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import Breadcrumbs from '@/components/navigation/Breadcrumbs'
+import ParentGateLink from '@/components/parent/ParentGateLink'
 import QuizComponent from '@/components/adventure/QuizComponent'
 import ArticleProgressButton from '@/components/adventure/ArticleProgressButton'
 import ReadAloudPlayer from '@/components/voice/ReadAloudPlayer'
@@ -13,6 +15,8 @@ import {
   pickLocalizedThinkAbout,
   usulThemeLabel,
   saveReflectionResponse,
+  fetchRelatedDiscovererArticles,
+  resolveArticleUrl,
 } from '@/lib/discoverer'
 import { buildArticleReadAloudBody } from '@/lib/voice/readAloudText'
 import type { AdventureArticle, AdventurePath, ArticleProgress, QuizQuestion } from '@/lib/adventure/types'
@@ -66,6 +70,8 @@ export default function DiscovererArticleView({
   const [miniQuestions, setMiniQuestions] = useState<QuizQuestion[]>([])
   const [miniSelected, setMiniSelected] = useState<number | null>(null)
   const [miniCorrect, setMiniCorrect] = useState<boolean | null>(null)
+  const [relatedArticles, setRelatedArticles] = useState<AdventureArticle[]>([])
+  const [relatedUrls, setRelatedUrls] = useState<Record<string, string>>({})
 
   const funFacts = article.fun_facts?.length
     ? article.fun_facts
@@ -116,6 +122,18 @@ export default function DiscovererArticleView({
     fetchQuizQuestions(quizId).then((qs) => setMiniQuestions(qs.slice(0, 1)))
   }, [quizId])
 
+  useEffect(() => {
+    fetchRelatedDiscovererArticles(article.id, 4).then(async (articles) => {
+      setRelatedArticles(articles)
+      const urls: Record<string, string> = {}
+      for (const a of articles) {
+        const u = await resolveArticleUrl(a.id)
+        if (u) urls[a.id] = u
+      }
+      setRelatedUrls(urls)
+    })
+  }, [article.id])
+
   const miniQ = miniQuestions[0]
   const miniOptions = useMemo(
     () => (miniQ ? shuffleOptions(miniQ.options) : []),
@@ -152,13 +170,14 @@ export default function DiscovererArticleView({
     <div className="min-h-screen bg-[#EEF4FF] page-transition">
       <div className="max-w-7xl mx-auto px-6 md:px-10 py-8">
         <nav className="text-sm text-muted mb-4">
-          <Link to="/discoverer/explore" className="hover:text-teal">Explore</Link>
-          <span className="mx-2">›</span>
-          <Link to={`/adventures/${path.slug}`} className="hover:text-teal">
-            {path.title}
-          </Link>
-          <span className="mx-2">›</span>
-          <span className="text-navy font-semibold">{localized.title}</span>
+          <Breadcrumbs
+            items={[
+              { label: 'Home', to: '/discoverer' },
+              { label: 'Explore', to: '/discoverer/explore' },
+              { label: path.title, to: `/adventures/${path.slug}` },
+              { label: localized.title },
+            ]}
+          />
         </nav>
 
         <div className="grid lg:grid-cols-[65%_35%] gap-8 items-start">
@@ -376,6 +395,7 @@ export default function DiscovererArticleView({
             )}
 
             {tab === 'action' && (
+              <div className="space-y-6">
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <h2 className="font-display text-xl font-bold text-navy mb-4">Your Activity</h2>
                 <p className="text-navy leading-relaxed whitespace-pre-wrap mb-6">
@@ -395,6 +415,30 @@ export default function DiscovererArticleView({
                 >
                   Share
                 </button>
+              </div>
+
+              {relatedArticles.length > 0 && (
+                <div className="bg-white rounded-2xl p-6 shadow-sm">
+                  <h2 className="font-display text-xl font-bold text-navy mb-4">More To Explore</h2>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {relatedArticles.map((a) => (
+                      <Link
+                        key={a.id}
+                        to={relatedUrls[a.id] ?? '/discoverer/explore'}
+                        className="flex gap-3 p-3 rounded-xl border border-gray-100 hover:border-teal/40 transition-colors"
+                      >
+                        {a.cover_image_url && (
+                          <img src={a.cover_image_url} alt="" className="w-16 h-16 rounded-lg object-cover shrink-0" />
+                        )}
+                        <div>
+                          <p className="font-bold text-navy text-sm line-clamp-2">{a.title}</p>
+                          <p className="text-xs text-muted mt-1">{a.reading_time_minutes} min read</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
               </div>
             )}
           </div>
@@ -469,9 +513,9 @@ export default function DiscovererArticleView({
                 <p className="text-sm text-navy mb-3">
                   How can we show gratitude for the amazing things Allah created in nature?
                 </p>
-                <Link to="/dashboard" className="text-teal text-sm font-extrabold">
+                <ParentGateLink to="/parent/dashboard" className="text-teal text-sm font-extrabold">
                   View full report →
-                </Link>
+                </ParentGateLink>
               </div>
             </aside>
           )}

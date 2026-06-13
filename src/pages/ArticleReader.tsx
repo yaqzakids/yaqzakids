@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { getArticleById, getQuizzesByArticleId, getRelatedArticles, getXPReward } from '../lib/supabase'
 import { CATEGORY_COLORS, STORAGE_KEYS } from '../lib/constants'
 import type { Article, AgeGroup, Quiz } from '../lib/types'
@@ -8,7 +8,8 @@ import SourceLinks from '../components/article/SourceLinks'
 import QuizSection from '../components/article/QuizSection'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorMessage from '../components/ErrorMessage'
-import { IMAGES } from '../lib/constants'
+import PageBackNav from '@/components/navigation/PageBackNav'
+import Breadcrumbs from '@/components/navigation/Breadcrumbs'
 
 const ageTabs: { id: AgeGroup; label: string; emoji: string }[] = [
   { id: 'explorer', label: 'Explorer', emoji: '🌱' },
@@ -72,9 +73,13 @@ export default function ArticleReader() {
 
   return (
     <div className="min-h-screen bg-bg page-transition">
-      <nav className="bg-white border-b border-gray-200 px-6 md:px-10 h-16 flex items-center justify-between sticky top-0 z-50">
-        <Link to="/"><img src={IMAGES.logo} alt="Yaqza Kids" className="h-12" /></Link>
-        <button onClick={() => navigate(-1)} className="text-sm text-teal font-bold">← Back</button>
+      <nav className="bg-white border-b border-gray-200 px-6 md:px-10 py-3 sticky top-0 z-50">
+        <div className="max-w-[800px] mx-auto flex flex-wrap items-center justify-between gap-3">
+          <Link to="/" className="font-display font-bold text-navy tracking-tight no-underline">
+            YAQZA KIDS
+          </Link>
+          <PageBackNav fallbackTo="/discoverer" homeTo="/" />
+        </div>
       </nav>
 
       {article.image_url && (
@@ -82,6 +87,14 @@ export default function ArticleReader() {
       )}
 
       <div className="max-w-[800px] mx-auto px-6 md:px-10 py-8">
+        <Breadcrumbs
+          items={[
+            { label: 'Home', to: '/' },
+            { label: article.category, to: '/discoverer/explore' },
+            { label: article.title_en },
+          ]}
+          className="mb-4"
+        />
         <span
           className="inline-block text-[9px] font-extrabold uppercase rounded-full px-2.5 py-0.5 mb-3"
           style={{ background: CATEGORY_COLORS[article.category] ?? '#FEF3C7', color: '#1B2F5E' }}

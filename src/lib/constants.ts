@@ -1,3 +1,11 @@
+export const SITE_EMAILS = {
+  admin: 'yaqzakids@gmail.com',
+  contact: 'hello@yaqzakids.com',
+} as const
+
+/** Root owner admin — always has full admin access */
+export const MAIN_ADMIN_EMAIL = 'hello@yaqzakids.com'
+
 export const COLORS = {
   bg: '#EEF4FF',
   navy: '#1B2F5E',
@@ -28,12 +36,11 @@ export const COLORS = {
 } as const
 
 export const IMAGES = {
-  logo: 'https://i.ibb.co/Z1KtZ2rN/Chat-GPT-Image-Jun-2-2026-08-37-45-PM.png',
-  welcomeBg: 'https://i.ibb.co/fYzYBmvx/Chat-GPT-Image-Jun-3-2026-09-30-49-PM.png',
-  explorerCard: 'https://i.ibb.co/HfGGfqTb/Chat-GPT-Image-Jun-4-2026-02-40-58-PM.png',
-  discovererCard: 'https://i.ibb.co/pjFS3JM6/Chat-GPT-Image-Jun-3-2026-04-45-19-PM.png',
-  thinkerCard: 'https://i.ibb.co/tTgr2xFx/Chat-GPT-Image-Jun-3-2026-04-59-24-PM.png',
-  explorerHero: 'https://i.ibb.co/8DbgpyNZ/Jun-2-2026-11-10-16-PM.png',
+  welcomeBg: 'https://i.ibb.co/YTbzfdLX/Yaffa-4.png',
+  explorerCard: 'https://i.ibb.co/1fvKwtzD/Chat-GPT-Image-Jun-3-2026-07-24-06-PM.png',
+  discovererCard: 'https://i.ibb.co/bMNpNMxx/Chat-GPT-Image-Jun-3-2026-07-15-02-PM.png',
+  thinkerCard: 'https://i.ibb.co/Fq0z4K7V/Chat-GPT-Image-Jun-3-2026-07-20-33-PM.png',
+  explorerHero: 'https://i.ibb.co/bj7FdD4Z/Chat-GPT-Image-Jun-3-2026-11-34-07-PM.png',
   discovererHero: 'https://i.ibb.co/pjFS3JM6/Chat-GPT-Image-Jun-3-2026-04-45-19-PM.png',
   thinkerHero: 'https://i.ibb.co/tTgr2xFx/Chat-GPT-Image-Jun-3-2026-04-59-24-PM.png',
   featuredStory: 'https://i.ibb.co/Z12Kh7qv/Chat-GPT-Image-Jun-4-2026-05-37-16-PM.png',

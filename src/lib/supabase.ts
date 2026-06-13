@@ -1,10 +1,28 @@
 import { createClient } from '@supabase/supabase-js'
-import type { AgeGroup, Article, ChildProfile, Profile, Progress, Quiz, Subscription } from './types'
+import type { AgeGroup, Article, ChildProfile, Language, Profile, Progress, Quiz, Subscription } from './types'
+import { formatSupabaseError } from './supabaseErrors'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder')
+
+type PostgrestErrorLike = { code?: string; message?: string }
+
+/** PostgREST cache missing age/interests on child_profiles (migration not applied yet) */
+function isMissingOptionalChildColumnError(error: PostgrestErrorLike): boolean {
+  const message = error.message ?? ''
+  return (
+    error.code === 'PGRST204' &&
+    /child_profiles/i.test(message) &&
+    /\b(age|interests)\b/i.test(message)
+  )
+}
+
+function withoutOptionalChildFields(payload: Record<string, unknown>): Record<string, unknown> {
+  const { age: _age, interests: _interests, ...rest } = payload
+  return rest
+}
 
 /*
  * Supabase Database Schema (run in SQL editor):
@@ -40,9 +58,12 @@ export const supabase = createClient(supabaseUrl || 'https://placeholder.supabas
  * CREATE TABLE subscriptions ( ... );
  */
 
+/** Legacy marketing articles table (renamed by adventure migration) */
+const LEGACY_ARTICLES = 'articles_legacy'
+
 export async function getPublishedArticles(limit = 6): Promise<Article[]> {
   const { data, error } = await supabase
-    .from('articles')
+    .from(LEGACY_ARTICLES)
     .select('*')
     .eq('status', 'published')
     .order('published_date', { ascending: false })
@@ -54,7 +75,7 @@ export async function getPublishedArticles(limit = 6): Promise<Article[]> {
 
 export async function getArticleById(id: string): Promise<Article | null> {
   const { data, error } = await supabase
-    .from('articles')
+    .from(LEGACY_ARTICLES)
     .select('*')
     .eq('id', id)
     .single()
@@ -65,7 +86,7 @@ export async function getArticleById(id: string): Promise<Article | null> {
 
 export async function getRelatedArticles(category: string, excludeId: string, limit = 3): Promise<Article[]> {
   const { data, error } = await supabase
-    .from('articles')
+    .from(LEGACY_ARTICLES)
     .select('*')
     .eq('status', 'published')
     .eq('category', category)
@@ -87,14 +108,24 @@ export async function getQuizzesByArticleId(articleId: string): Promise<Quiz[]> 
 }
 
 export async function getProfile(userId: string): Promise<Profile | null> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, role, language, created_at, avatar_url')
+      .eq('id', userId)
+      .maybeSingle()
 
-  if (error) return null
-  return data
+    if (error) {
+      console.error('getProfile error:', error)
+      return null
+    }
+
+    console.log('getProfile result:', data)
+    return data
+  } catch (err) {
+    console.error('getProfile exception:', err)
+    return null
+  }
 }
 
 export async function createProfile(profile: Omit<Profile, 'created_at'>): Promise<void> {
@@ -112,27 +143,130 @@ export async function getChildProfiles(parentId: string): Promise<ChildProfile[]
   return data ?? []
 }
 
-export async function createChildProfile(child: Omit<ChildProfile, 'id' | 'xp_points' | 'level' | 'streak_days' | 'last_active_date' | 'total_articles_read' | 'total_quizzes_completed' | 'badges'>): Promise<ChildProfile> {
-  const { data, error } = await supabase
+export async function createChildProfile(
+  child: Omit<
+    ChildProfile,
+    'id' | 'xp_points' | 'level' | 'streak_days' | 'last_active_date' | 'total_articles_read' | 'total_quizzes_completed' | 'badges'
+  > & { avatar_id?: string | null },
+): Promise<ChildProfile> {
+  const { avatar_id, ...rest } = child
+  const payload: Record<string, unknown> = { ...rest }
+
+  if (avatar_id !== undefined) {
+    payload.avatar_id = avatar_id
+    console.log('saving avatar id:', avatar_id)
+  }
+
+  const { data: { user } } = await supabase.auth.getUser()
+  console.log('saving for parent/user:', user?.id)
+
+  let { data, error } = await supabase
     .from('child_profiles')
-    .insert(child)
+    .insert(payload)
     .select()
     .single()
 
-  if (error) throw error
+  if (error && isMissingOptionalChildColumnError(error)) {
+    console.warn('child_profiles.age/interests not in DB yet — saving without those fields. Run apply_child_profile_fields.sql.')
+    ;({ data, error } = await supabase
+      .from('child_profiles')
+      .insert(withoutOptionalChildFields(payload))
+      .select()
+      .single())
+  }
+
+  console.log('avatar save result:', data)
+  console.log('avatar save error:', error)
+
+  if (error) {
+    throw new Error(formatSupabaseError(error))
+  }
+  return data
+}
+
+export async function updateChildProfile(
+  childId: string,
+  update: {
+    name?: string
+    age?: number | null
+    age_group?: AgeGroup
+    avatar_id?: string | null
+    language?: Language
+    interests?: string[]
+  },
+): Promise<ChildProfile> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not authenticated.')
+  }
+
+  const payload: Record<string, unknown> = {}
+
+  if (update.name !== undefined) payload.name = update.name
+  if (update.age !== undefined) payload.age = update.age
+  if (update.age_group !== undefined) payload.age_group = update.age_group
+  if (update.language !== undefined) payload.language = update.language
+  if (update.interests !== undefined) payload.interests = update.interests
+
+  if (update.avatar_id !== undefined) {
+    payload.avatar_id = update.avatar_id
+    console.log('saving avatar id:', update.avatar_id)
+  }
+
+  console.log('saving for child profile:', childId)
+  console.log('saving for parent/user:', user.id)
+
+  let { data, error } = await supabase
+    .from('child_profiles')
+    .update(payload)
+    .eq('id', childId)
+    .eq('parent_id', user.id)
+    .select()
+    .single()
+
+  if (error && isMissingOptionalChildColumnError(error)) {
+    console.warn('child_profiles.age/interests not in DB yet — saving without those fields. Run apply_child_profile_fields.sql.')
+    ;({ data, error } = await supabase
+      .from('child_profiles')
+      .update(withoutOptionalChildFields(payload))
+      .eq('id', childId)
+      .eq('parent_id', user.id)
+      .select()
+      .single())
+  }
+
+  console.log('avatar save result:', data)
+  console.log('avatar save error:', error)
+
+  if (error) {
+    throw new Error(formatSupabaseError(error))
+  }
+  if (!data) {
+    throw new Error('No child profile row was updated. Check that this child belongs to your account.')
+  }
+
   return data
 }
 
 export async function getSubscription(userId: string): Promise<Subscription | null> {
-  const { data, error } = await supabase
-    .from('subscriptions')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .maybeSingle()
 
-  if (error) return null
-  return data
+    if (error) {
+      console.warn('Subscription fetch failed:', error.message)
+      return null
+    }
+
+    return data
+  } catch (err) {
+    console.warn('Subscription fetch failed:', err)
+    return null
+  }
 }
 
 export async function createFreeSubscription(userId: string): Promise<void> {
@@ -149,14 +283,27 @@ export async function getRecentProgress(childIds: string[], limit = 5): Promise<
   if (childIds.length === 0) return []
 
   const { data, error } = await supabase
-    .from('progress')
-    .select('*, article:articles(title_en), child:child_profiles(name)')
-    .in('child_id', childIds)
-    .order('completed_date', { ascending: false })
+    .from('article_progress')
+    .select('id, child_profile_id, article_id, completed_at, updated_at, article:articles(title), child:child_profiles(name)')
+    .in('child_profile_id', childIds)
+    .eq('read_completed', true)
+    .eq('quiz_passed', true)
+    .order('completed_at', { ascending: false, nullsFirst: false })
     .limit(limit)
 
   if (error) throw error
-  return data ?? []
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    child_id: row.child_profile_id,
+    article_id: row.article_id,
+    completed: true,
+    quiz_score: null,
+    xp_earned: 0,
+    completed_date: row.completed_at ?? row.updated_at ?? null,
+    article: row.article as unknown as Progress['article'],
+    child: row.child as unknown as Progress['child'],
+  }))
 }
 
 export async function updateChildXP(childId: string, xpEarned: number): Promise<void> {

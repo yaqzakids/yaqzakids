@@ -83,7 +83,7 @@ export default function CertificatesPage() {
 
   if (childLoading || loading) {
     return (
-      <DiscovererPageShell>
+      <DiscovererPageShell backFallback="/discoverer">
         <div className="py-24 flex justify-center">
           <LoadingSpinner size="lg" />
         </div>
@@ -92,7 +92,13 @@ export default function CertificatesPage() {
   }
 
   return (
-    <DiscovererPageShell>
+    <DiscovererPageShell
+      backFallback="/discoverer"
+      breadcrumbs={[
+        { label: 'Home', to: '/discoverer' },
+        { label: 'Certificates' },
+      ]}
+    >
       <style>{`
         @media print {
           body * { visibility: hidden; }

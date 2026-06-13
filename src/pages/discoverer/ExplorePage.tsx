@@ -3,7 +3,37 @@ import { Link } from 'react-router-dom'
 import DiscovererPageShell from '@/components/discoverer/DiscovererPageShell'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { supabase } from '@/lib/supabase'
+import { resolveArticleUrl } from '@/lib/discoverer'
 import type { AdventureArticle } from '@/lib/adventure/types'
+
+function ExploreArticleCard({ article }: { article: AdventureArticle }) {
+  const [url, setUrl] = useState('/discoverer/explore')
+  useEffect(() => {
+    resolveArticleUrl(article.id).then((u) => {
+      if (u) setUrl(u)
+    })
+  }, [article.id])
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+      {article.cover_image_url ? (
+        <img src={article.cover_image_url} alt="" className="w-full h-40 object-cover" />
+      ) : (
+        <div className="w-full h-40 bg-gradient-to-br from-[#EEF4FF] to-teal/20" />
+      )}
+      <div className="p-4">
+        <h2 className="font-bold text-navy line-clamp-2 mb-2">{article.title}</h2>
+        <p className="text-xs text-muted mb-3">{article.reading_time_minutes} min read</p>
+        <Link
+          to={url}
+          className="block text-center py-2 bg-teal text-white rounded-full text-sm font-extrabold"
+        >
+          Read
+        </Link>
+      </div>
+    </div>
+  )
+}
 
 export default function ExplorePage() {
   const [articles, setArticles] = useState<AdventureArticle[]>([])
@@ -65,23 +95,7 @@ export default function ExplorePage() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((a) => (
-            <div key={a.id} className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
-              {a.cover_image_url ? (
-                <img src={a.cover_image_url} alt="" className="w-full h-40 object-cover" />
-              ) : (
-                <div className="w-full h-40 bg-gradient-to-br from-[#EEF4FF] to-teal/20" />
-              )}
-              <div className="p-4">
-                <h2 className="font-bold text-navy line-clamp-2 mb-2">{a.title}</h2>
-                <p className="text-xs text-muted mb-3">{a.reading_time_minutes} min read</p>
-                <Link
-                  to="/adventures"
-                  className="block text-center py-2 bg-teal text-white rounded-full text-sm font-extrabold"
-                >
-                  Read
-                </Link>
-              </div>
-            </div>
+            <ExploreArticleCard key={a.id} article={a} />
           ))}
         </div>
       </div>

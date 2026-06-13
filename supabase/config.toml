@@ -1,0 +1,14 @@
+# Yaqza Kids Supabase project
+# Project ref from VITE_SUPABASE_URL: cgvzeydhhkwosphixznd
+
+project_id = "cgvzeydhhkwosphixznd"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[functions.tts]
+verify_jwt = false

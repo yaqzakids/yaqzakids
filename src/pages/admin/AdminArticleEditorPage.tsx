@@ -73,6 +73,7 @@ export default function AdminArticleEditorPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [previewAge, setPreviewAge] = useState<AgeGroup | null>(null)
   const [previewLanguage, setPreviewLanguage] = useState<Language>('en')
+  const [editorTab, setEditorTab] = useState<'content' | 'faith'>('content')
 
   useEffect(() => {
     fetchAdminPillars().then(setPillars)
@@ -203,6 +204,24 @@ export default function AdminArticleEditorPage() {
       </div>
 
       <div style={{ ...adminCard, marginBottom: 16 }}>
+        <div className="flex gap-2 mb-4">
+          {(['content', 'faith'] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setEditorTab(tab)}
+              className={`px-4 py-2 rounded-lg text-sm font-bold border ${
+                editorTab === tab
+                  ? 'bg-[#1B2F5E] text-white border-[#1B2F5E]'
+                  : 'bg-white text-gray-700 border-gray-300'
+              }`}
+            >
+              {tab === 'content' ? 'Content' : 'Faith & Reflection'}
+            </button>
+          ))}
+        </div>
+
+        {editorTab === 'content' && (
         <ArticleContentEditor
           locales={form.locales}
           activeLanguage={activeLanguage}
@@ -221,8 +240,10 @@ export default function AdminArticleEditorPage() {
             })
           }}
         />
+        )}
       </div>
 
+      {editorTab === 'faith' && (
       <div style={{ ...adminCard, marginBottom: 16 }}>
         <h2 className="font-bold text-navy mb-4">Faith & Reflection</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -414,6 +435,7 @@ export default function AdminArticleEditorPage() {
           )}
         </div>
       </div>
+      )}
 
       {!isNew && id && <ArticleQuizEditor articleId={id} articleTitle={form.locales.en?.title ?? form.title} />}
 
