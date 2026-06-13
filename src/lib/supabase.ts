@@ -133,6 +133,23 @@ export async function createProfile(profile: Omit<Profile, 'created_at'>): Promi
   if (error) throw error
 }
 
+export async function upsertParentProfile(
+  userId: string,
+  fullName: string,
+  language: Language
+): Promise<void> {
+  const { error } = await supabase.from('profiles').upsert(
+    {
+      id: userId,
+      full_name: fullName,
+      role: 'parent',
+      language,
+    },
+    { onConflict: 'id' }
+  )
+  if (error) throw error
+}
+
 export async function getChildProfiles(parentId: string): Promise<ChildProfile[]> {
   const { data, error } = await supabase
     .from('child_profiles')

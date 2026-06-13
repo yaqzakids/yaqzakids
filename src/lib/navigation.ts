@@ -78,6 +78,9 @@ const PUBLIC_PREFIXES = [
   '/article/',
   '/login',
   '/signup',
+  '/verify-email',
+  '/onboarding/parent',
+  '/onboarding/choose-path',
   '/forgot-password',
   '/reset-password',
 ]

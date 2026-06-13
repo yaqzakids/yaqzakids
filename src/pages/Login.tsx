@@ -43,7 +43,7 @@ export default function Login() {
         return
       }
 
-      await navigateAfterAuth(session.user.id, navigate, redirectTo)
+      await navigateAfterAuth(session.user.id, navigate, redirectTo, session.user)
     }
     void checkSession()
   }, [adminLoginMode, navigate, redirectTo])
@@ -73,7 +73,7 @@ export default function Login() {
           }
           return
         }
-        await navigateAfterAuth(data.user.id, navigate, redirectTo)
+        await navigateAfterAuth(data.user.id, navigate, redirectTo, data.user)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.')

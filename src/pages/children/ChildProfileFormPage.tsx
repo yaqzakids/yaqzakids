@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/components/ProtectedRoute'
 import { useSelectedChild } from '@/context/SelectedChildContext'
 import AvatarSelectorModal from '@/components/avatar/AvatarSelectorModal'
@@ -14,6 +14,7 @@ import {
   defaultAgeForGroup,
 } from '@/lib/childProfiles'
 import { createChildProfile, getChildProfiles, updateChildProfile } from '@/lib/supabase'
+import { setPendingAgeGroupChild } from '@/lib/onboarding'
 import { formatSupabaseError } from '@/lib/supabaseErrors'
 import { isPresetAvatarId, type PresetAvatarId } from '@/lib/avatar/presetAvatars'
 import type { AgeGroup, Language } from '@/lib/types'
@@ -26,6 +27,8 @@ const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
 
 export default function ChildProfileFormPage() {
   const { childProfileId } = useParams<{ childProfileId?: string }>()
+  const [searchParams] = useSearchParams()
+  const isOnboarding = searchParams.get('onboarding') === '1'
   const isEdit = Boolean(childProfileId)
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
@@ -116,7 +119,7 @@ export default function ChildProfileFormPage() {
           interests,
         })
       } else {
-        await createChildProfile({
+        const created = await createChildProfile({
           parent_id: user.id,
           name,
           age,
@@ -126,6 +129,13 @@ export default function ChildProfileFormPage() {
           language,
           interests,
         })
+        await refreshChildren()
+
+        if (isOnboarding) {
+          setPendingAgeGroupChild(created.id)
+          navigate(`/onboarding/choose-path?childId=${created.id}`, { replace: true })
+          return
+        }
       }
 
       await refreshChildren()
@@ -174,7 +184,7 @@ export default function ChildProfileFormPage() {
             ← Back to profiles
           </Link>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-[#1B2F5E] mt-3">
-            {isEdit ? 'Edit child profile' : 'Add a child'}
+            {isEdit ? 'Edit child profile' : isOnboarding ? 'Create child profile' : 'Add a child'}
           </h1>
         </div>
       </header>
@@ -208,27 +218,34 @@ export default function ChildProfileFormPage() {
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#2AAFA0] focus:outline-none"
               />
             </div>
-            <div>
-              <label className="block text-sm font-bold text-[#1B2F5E] mb-2">Age group</label>
-              <select
-                value={ageGroup}
-                onChange={(e) => {
-                  setAgeGroupManual(true)
-                  setAgeGroup(e.target.value as AgeGroup)
-                }}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#2AAFA0] focus:outline-none bg-white"
-              >
-                {(Object.keys(AGE_GROUP_META) as AgeGroup[]).map((group) => (
-                  <option key={group} value={group}>
-                    {AGE_GROUP_META[group].emoji} {AGE_GROUP_META[group].label} (Ages {AGE_GROUP_META[group].ages})
-                  </option>
-                ))}
-              </select>
-              {!ageGroupManual && (
-                <p className="text-xs text-[#6B7280] mt-1">Auto-selected from age</p>
-              )}
-            </div>
+            {!isOnboarding && (
+              <div>
+                <label className="block text-sm font-bold text-[#1B2F5E] mb-2">Age group</label>
+                <select
+                  value={ageGroup}
+                  onChange={(e) => {
+                    setAgeGroupManual(true)
+                    setAgeGroup(e.target.value as AgeGroup)
+                  }}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#2AAFA0] focus:outline-none bg-white"
+                >
+                  {(Object.keys(AGE_GROUP_META) as AgeGroup[]).map((group) => (
+                    <option key={group} value={group}>
+                      {AGE_GROUP_META[group].emoji} {AGE_GROUP_META[group].label} (Ages {AGE_GROUP_META[group].ages})
+                    </option>
+                  ))}
+                </select>
+                {!ageGroupManual && (
+                  <p className="text-xs text-[#6B7280] mt-1">Auto-selected from age</p>
+                )}
+              </div>
+            )}
           </div>
+          {isOnboarding && (
+            <p className="text-sm text-[#6B7280] leading-relaxed">
+              You&apos;ll choose Explorer, Discoverer, or Thinker on the next step.
+            </p>
+          )}
 
           <div>
             <label className="block text-sm font-bold text-[#1B2F5E] mb-2">Language</label>

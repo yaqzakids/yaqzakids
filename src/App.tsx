@@ -38,6 +38,9 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import VerifyEmailPage from './pages/onboarding/VerifyEmailPage'
+import ParentOnboardingPage from './pages/onboarding/ParentOnboardingPage'
+import ChooseAgeGroupPage from './pages/onboarding/ChooseAgeGroupPage'
 import ParentAccountSettingsPage from './pages/ParentAccountSettingsPage'
 import Dashboard from './pages/Dashboard'
 import ChildDashboard from './pages/ChildDashboard'
@@ -132,6 +135,9 @@ export default function App() {
           <Route path="/thinker" element={<Thinker />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/onboarding/parent" element={<ParentOnboardingPage />} />
+          <Route path="/onboarding/choose-path" element={<ChooseAgeGroupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/about" element={<About />} />
