@@ -7,7 +7,7 @@ export async function bootstrapApp(): Promise<void> {
 
   if (!isRuntimeConfigValid(config)) {
     console.error(
-      '[YaqzaKids] Supabase is not configured. Ensure public/runtime-config.json exists with supabaseAnonKey, or set VITE_SUPABASE_* env vars at build time.',
+      '[YaqzaKids] Supabase is not configured. Ensure public/assets/runtime-config.json exists with supabaseAnonKey, or set VITE_SUPABASE_* env vars at build time.',
     )
   }
 }

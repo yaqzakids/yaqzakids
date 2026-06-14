@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const envPath = path.join(root, '.env')
-const outPath = path.join(root, 'public', 'runtime-config.json')
+const outPath = path.join(root, 'public', 'assets', 'runtime-config.json')
+const legacyOutPath = path.join(root, 'public', 'runtime-config.json')
 
 function readEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return {}
@@ -35,4 +36,5 @@ if (!config.supabaseAnonKey) {
 
 fs.mkdirSync(path.dirname(outPath), { recursive: true })
 fs.writeFileSync(outPath, `${JSON.stringify(config, null, 2)}\n`)
-console.log('[generate-runtime-config] wrote public/runtime-config.json')
+fs.writeFileSync(legacyOutPath, `${JSON.stringify(config, null, 2)}\n`)
+console.log('[generate-runtime-config] wrote public/assets/runtime-config.json')

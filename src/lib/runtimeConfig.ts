@@ -41,7 +41,7 @@ export async function resolveRuntimeConfig(): Promise<AppRuntimeConfig> {
   }
 
   try {
-    const response = await fetch('/runtime-config.json', { cache: 'no-store' })
+    const response = await fetch('/assets/runtime-config.json', { cache: 'no-store' })
     if (response.ok) {
       const json = (await response.json()) as Partial<AppRuntimeConfig>
       const merged = normalizeConfig({

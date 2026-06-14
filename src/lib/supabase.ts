@@ -5,7 +5,7 @@ import type { AppRuntimeConfig } from './runtimeConfig'
 import { isRuntimeConfigValid } from './runtimeConfig'
 
 export const SUPABASE_CONFIG_ERROR =
-  'This site is not connected to Supabase yet. Add public/runtime-config.json or set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, then redeploy.'
+  'This site is not connected to Supabase yet. Add public/assets/runtime-config.json or set VITE_SUPABASE_* env vars, then redeploy.'
 
 let client: SupabaseClient | null = null
 let activeConfig: AppRuntimeConfig | null = null
