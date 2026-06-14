@@ -11,7 +11,10 @@ import {
   isAdminLoginMode,
   isAuthorizedAdminLoginEmail,
 } from '@/lib/admin/adminLogin'
-import { supabase } from '../lib/supabase'
+import { supabase, isSupabaseReady, SUPABASE_CONFIG_ERROR } from '../lib/supabase'
+import { formatAuthError } from '@/lib/supabaseConfig'
+import PageSeo from '@/components/seo/PageSeo'
+import { PAGE_SEO_PRESETS } from '@/lib/seo/siteSeo'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -26,6 +29,12 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [accessDenied, setAccessDenied] = useState(false)
+
+  useEffect(() => {
+    if (!isSupabaseReady()) {
+      setError(SUPABASE_CONFIG_ERROR)
+    }
+  }, [])
 
   useEffect(() => {
     const checkSession = async () => {
@@ -76,7 +85,7 @@ export default function Login() {
         await navigateAfterAuth(data.user.id, navigate, redirectTo, data.user)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please try again.')
+      setError(formatAuthError(err, 'Login failed. Please try again.'))
     } finally {
       setLoading(false)
     }
@@ -94,6 +103,12 @@ export default function Login() {
 
   return (
     <AuthPageShell>
+      <PageSeo
+        {...(adminLoginMode
+          ? { title: 'Admin Sign In', noIndex: true }
+          : PAGE_SEO_PRESETS.login)}
+        path="/login"
+      />
       <div className="bg-white rounded-[20px] p-8 md:p-12 max-w-[420px] w-full shadow-lg">
         {adminLoginMode ? (
           <>

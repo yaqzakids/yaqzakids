@@ -4,6 +4,7 @@ import AuthPageShell from '@/components/navigation/AuthPageShell'
 import PasswordCreateFields from '@/components/auth/PasswordCreateFields'
 import { isPasswordValid, passwordsMatch, validateNewPassword } from '@/lib/auth/passwordPolicy'
 import { setRecoveredPassword } from '@/lib/auth/changePassword'
+import { hasAuthCallbackInUrl, waitForAuthSessionFromUrl } from '@/lib/auth/authCallback'
 import { supabase } from '@/lib/supabase'
 
 export default function ResetPasswordPage() {
@@ -20,6 +21,17 @@ export default function ResetPasswordPage() {
     let active = true
 
     const init = async () => {
+      if (hasAuthCallbackInUrl()) {
+        const session = await waitForAuthSessionFromUrl()
+        if (!active) return
+        if (session) {
+          window.history.replaceState({}, document.title, '/reset-password')
+          setReady(true)
+          setChecking(false)
+          return
+        }
+      }
+
       const {
         data: { session },
       } = await supabase.auth.getSession()

@@ -77,8 +77,18 @@ import SupportPage from './pages/SupportPage'
 import MessagesPage from './pages/MessagesPage'
 import AdminMessagesPage from './pages/admin/AdminMessagesPage'
 import AdminAnnouncementsPage from './pages/admin/AdminAnnouncementsPage'
+import { DefaultSeo } from './components/seo/PageSeo'
+import AuthCallbackRedirect from './components/auth/AuthCallbackRedirect'
+import {
+  hasAuthCallbackInUrl,
+  authCallbackRouteWithCallback,
+} from './lib/auth/authCallback'
 
 function HomeRedirect() {
+  if (hasAuthCallbackInUrl()) {
+    return <Navigate to={authCallbackRouteWithCallback()} replace />
+  }
+
   const ageGroup = localStorage.getItem(STORAGE_KEYS.ageGroup)
   if (!ageGroup) return <Navigate to="/welcome" replace />
   if (ageGroup === 'explorer') return <Navigate to="/explorer" replace />
@@ -106,6 +116,8 @@ function ChildExperienceRoute({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <DefaultSeo />
+      <AuthCallbackRedirect />
       <SelectedChildProvider>
         <ParentGateProvider>
         <VoiceSettingsProvider>

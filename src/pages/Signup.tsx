@@ -6,6 +6,12 @@ import { authUrl, resolveAuthRedirect } from '@/lib/navigation'
 import { navigateAfterAuth } from '@/lib/postLoginRedirect'
 import { isPasswordValid, passwordsMatch, validateNewPassword } from '@/lib/auth/passwordPolicy'
 import { supabase } from '../lib/supabase'
+import {
+  storePendingVerifyEmail,
+  verifyEmailCallbackUrl,
+} from '@/lib/auth/authCallback'
+import PageSeo from '@/components/seo/PageSeo'
+import { PAGE_SEO_PRESETS } from '@/lib/seo/siteSeo'
 
 export default function Signup() {
   const navigate = useNavigate()
@@ -35,9 +41,14 @@ export default function Signup() {
     setError(null)
 
     try {
+      storePendingVerifyEmail(email)
+
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: verifyEmailCallbackUrl(),
+        },
       })
 
       if (authError) {
@@ -67,6 +78,7 @@ export default function Signup() {
 
   return (
     <AuthPageShell>
+      <PageSeo {...PAGE_SEO_PRESETS.signup} path="/signup" />
       <div className="bg-white rounded-[20px] p-8 md:p-12 max-w-[420px] w-full shadow-lg">
         <h1 className="font-display text-[28px] font-bold text-navy text-center mb-1">Sign up</h1>
         <p className="text-muted text-center mb-6">Create your Yaqza Kids parent account</p>

@@ -3,6 +3,8 @@ export const SITE_EMAILS = {
   contact: 'hello@yaqzakids.com',
 } as const
 
+export { SITE_SEO } from '@/lib/seo/siteSeo'
+
 /** Root owner admin — always has full admin access */
 export const MAIN_ADMIN_EMAIL = 'hello@yaqzakids.com'
 

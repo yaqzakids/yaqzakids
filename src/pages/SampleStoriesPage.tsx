@@ -5,6 +5,8 @@ import { SiteFooter } from '@/components/SiteFooter'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { fetchSampleDiscovererArticles } from '@/lib/discoverer'
 import type { AdventureArticle } from '@/lib/adventure/types'
+import PageSeo from '@/components/seo/PageSeo'
+import { PAGE_SEO_PRESETS } from '@/lib/seo/siteSeo'
 
 interface SampleArticle {
   article: AdventureArticle
@@ -36,6 +38,7 @@ export default function SampleStoriesPage() {
 
   return (
     <div className="min-h-screen bg-[#EEF4FF] page-transition flex flex-col">
+      <PageSeo {...PAGE_SEO_PRESETS.sampleStories} path="/sample-stories" />
       <SiteNav variant="discoverer" />
       <div className="max-w-7xl mx-auto px-6 md:px-10 py-10">
         <p className="text-[#2AAFA0] text-xs font-extrabold tracking-widest uppercase mb-2">

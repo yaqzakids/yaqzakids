@@ -3,6 +3,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import AuthPageShell from '@/components/navigation/AuthPageShell'
 import { supabase } from '@/lib/supabase'
 import { resolveOnboardingPath } from '@/lib/onboarding'
+import {
+  clearPendingVerifyEmail,
+  hasAuthCallbackInUrl,
+  readPendingVerifyEmail,
+  verifyEmailCallbackUrl,
+  waitForAuthSessionFromUrl,
+} from '@/lib/auth/authCallback'
 
 export default function VerifyEmailPage() {
   const navigate = useNavigate()
@@ -11,33 +18,74 @@ export default function VerifyEmailPage() {
   const [error, setError] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
   const [resending, setResending] = useState(false)
+  const [processingCallback, setProcessingCallback] = useState(hasAuthCallbackInUrl())
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setEmail(data.user?.email ?? null)
-    })
+    let active = true
+
+    const init = async () => {
+      if (hasAuthCallbackInUrl()) {
+        setProcessingCallback(true)
+        const session = await waitForAuthSessionFromUrl()
+        if (!active) return
+
+        if (session?.user) {
+          clearPendingVerifyEmail()
+          window.history.replaceState({}, document.title, '/verify-email')
+          const next = await resolveOnboardingPath(session.user.id, session.user)
+          if (next && next !== '/verify-email') {
+            navigate(next, { replace: true })
+            return
+          }
+          setEmail(session.user.email ?? null)
+          setProcessingCallback(false)
+          return
+        }
+
+        setError('We could not finish email verification. Try opening the link again or sign in.')
+        setProcessingCallback(false)
+      }
+
+      const pending = readPendingVerifyEmail()
+      if (pending) setEmail(pending)
+
+      const { data } = await supabase.auth.getUser()
+      if (!active) return
+      setEmail(data.user?.email ?? pending ?? null)
+    }
+
+    void init()
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const user = session?.user
       if (!user) return
+      clearPendingVerifyEmail()
       const next = await resolveOnboardingPath(user.id, user)
       if (next && next !== '/verify-email') {
         navigate(next, { replace: true })
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      active = false
+      subscription.unsubscribe()
+    }
   }, [navigate])
 
   const handleResend = async () => {
-    if (!email) return
+    const targetEmail = email ?? readPendingVerifyEmail()
+    if (!targetEmail) return
     setResending(true)
     setError(null)
     setMessage(null)
     try {
-      const { error: resendError } = await supabase.auth.resend({ type: 'signup', email })
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: targetEmail,
+        options: { emailRedirectTo: verifyEmailCallbackUrl() },
+      })
       if (resendError) throw resendError
       setMessage('Verification email sent. Check your inbox.')
     } catch (err) {
@@ -58,13 +106,25 @@ export default function VerifyEmailPage() {
         setError('Sign in again after verifying your email.')
         return
       }
+      clearPendingVerifyEmail()
       const next = await resolveOnboardingPath(user.id, user)
-      navigate(next ?? '/children', { replace: true })
+      navigate(next ?? '/onboarding/parent', { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Still waiting for verification.')
     } finally {
       setChecking(false)
     }
+  }
+
+  if (processingCallback) {
+    return (
+      <AuthPageShell>
+        <div className="bg-white rounded-[20px] p-8 md:p-12 max-w-[460px] w-full shadow-lg text-center">
+          <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin-slow mx-auto mb-4" />
+          <p className="text-muted">Confirming your email…</p>
+        </div>
+      </AuthPageShell>
+    )
   }
 
   return (

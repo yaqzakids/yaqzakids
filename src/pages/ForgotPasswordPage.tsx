@@ -3,6 +3,8 @@ import { Link, useLocation } from 'react-router-dom'
 import AuthPageShell from '@/components/navigation/AuthPageShell'
 import { authUrl, resolveAuthRedirect } from '@/lib/navigation'
 import { supabase } from '@/lib/supabase'
+import { formatAuthError } from '@/lib/supabaseConfig'
+import { passwordResetCallbackUrl } from '@/lib/auth/authCallback'
 
 export default function ForgotPasswordPage() {
   const location = useLocation()
@@ -18,12 +20,12 @@ export default function ForgotPasswordPage() {
     setError(null)
     try {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: passwordResetCallbackUrl(),
       })
       if (resetError) throw resetError
       setSent(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not send reset email.')
+      setError(formatAuthError(err, 'Could not send reset email.'))
     } finally {
       setLoading(false)
     }
@@ -40,6 +42,9 @@ export default function ForgotPasswordPage() {
         {sent ? (
           <div className="text-center space-y-4">
             <p className="text-navy font-semibold">Check your inbox for a reset link.</p>
+            <p className="text-muted text-sm">
+              If you don&apos;t see it, check spam or wait a minute before requesting another link.
+            </p>
             <Link to={authUrl('/login', redirectTo)} className="text-teal font-semibold hover:opacity-80">
               Back to sign in →
             </Link>

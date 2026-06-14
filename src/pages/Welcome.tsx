@@ -2,6 +2,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { STORAGE_KEYS } from '../lib/constants'
 import { LanguagePickerOnboarding } from '../components/ui/LanguageSwitcher'
 import { SiteFooter } from '@/components/SiteFooter'
+import PageSeo from '@/components/seo/PageSeo'
 import { useT } from '../i18n'
 
 const cardStyles = [
@@ -65,6 +66,8 @@ export default function Welcome() {
   }
 
   return (
+    <>
+      <PageSeo defaultsOnly path="/welcome" />
     <div
       className="flex flex-col min-h-screen"
       style={{
@@ -214,5 +217,6 @@ export default function Welcome() {
       </div>
       <SiteFooter variant="light" />
     </div>
+    </>
   )
 }

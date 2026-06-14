@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import DiscovererPageShell from '@/components/discoverer/DiscovererPageShell'
+import PageSeo from '@/components/seo/PageSeo'
+import { PAGE_SEO_PRESETS } from '@/lib/seo/siteSeo'
 
 const FEATURES = [
   {
@@ -27,6 +29,7 @@ const FEATURES = [
 export default function ParentsPage() {
   return (
     <DiscovererPageShell>
+      <PageSeo {...PAGE_SEO_PRESETS.parents} path="/parents" />
       <div className="max-w-4xl mx-auto px-6 md:px-10 py-12">
         <p className="text-teal text-xs font-extrabold tracking-widest uppercase mb-2">For Parents</p>
         <h1 className="font-display text-3xl md:text-4xl font-bold text-navy mb-4">
