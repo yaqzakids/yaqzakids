@@ -1,9 +1,9 @@
+import { IMAGES } from '@/lib/images'
+
 export const SITE_EMAILS = {
   admin: 'yaqzakids@gmail.com',
   contact: 'hello@yaqzakids.com',
 } as const
-
-export { SITE_SEO } from '@/lib/seo/siteSeo'
 
 /** Root owner admin — always has full admin access */
 export const MAIN_ADMIN_EMAIL = 'hello@yaqzakids.com'
@@ -37,25 +37,7 @@ export const COLORS = {
   },
 } as const
 
-export const IMAGES = {
-  welcomeBg: 'https://i.ibb.co/YTbzfdLX/Yaffa-4.png',
-  explorerCard: 'https://i.ibb.co/1fvKwtzD/Chat-GPT-Image-Jun-3-2026-07-24-06-PM.png',
-  discovererCard: 'https://i.ibb.co/bMNpNMxx/Chat-GPT-Image-Jun-3-2026-07-15-02-PM.png',
-  thinkerCard: 'https://i.ibb.co/Fq0z4K7V/Chat-GPT-Image-Jun-3-2026-07-20-33-PM.png',
-  explorerHero: 'https://i.ibb.co/bj7FdD4Z/Chat-GPT-Image-Jun-3-2026-11-34-07-PM.png',
-  discovererHero: 'https://i.ibb.co/pjFS3JM6/Chat-GPT-Image-Jun-3-2026-04-45-19-PM.png',
-  thinkerHero: 'https://i.ibb.co/tTgr2xFx/Chat-GPT-Image-Jun-3-2026-04-59-24-PM.png',
-  featuredStory: 'https://i.ibb.co/Z12Kh7qv/Chat-GPT-Image-Jun-4-2026-05-37-16-PM.png',
-  categories: {
-    amazingAnimals: 'https://i.ibb.co/HfGGfqTb/Chat-GPT-Image-Jun-4-2026-02-40-58-PM.png',
-    ourWorld: 'https://i.ibb.co/Qwk4M1Q/Chat-GPT-Image-Jun-4-2026-02-40-30-PM.png',
-    islamCharacter: 'https://i.ibb.co/gFRNB3Jk/Chat-GPT-Image-Jun-4-2026-02-42-51-PM.png',
-    spaceAdventures: 'https://i.ibb.co/ns4zjTjM/Chat-GPT-Image-Jun-4-2026-02-44-34-PM.png',
-    natureDiscoveries: 'https://i.ibb.co/8qrSkyC/Chat-GPT-Image-Jun-4-2026-02-47-03-PM.png',
-    healthyHabits: 'https://i.ibb.co/Fd0pV30/Chat-GPT-Image-Jun-4-2026-02-46-59-PM.png',
-    storyTime: 'https://i.ibb.co/HDhQ9Wxk/Chat-GPT-Image-Jun-4-2026-02-47-50-PM.png',
-  },
-} as const
+export { IMAGES } from '@/lib/images'
 
 export const CATEGORY_COLORS: Record<string, string> = {
   'Amazing Animals': '#FEF9C3',

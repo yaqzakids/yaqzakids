@@ -1,19 +1,19 @@
 import { useAuth } from '@/components/ProtectedRoute'
 import { useSelectedChild } from '@/context/SelectedChildContext'
-import SignedOutDiscovererNav from '@/components/discoverer/SignedOutDiscovererNav'
 import SignedInDiscovererNav from '@/components/discoverer/SignedInDiscovererNav'
+import PublicNav from '@/components/layout/PublicNav'
 
-export default function DiscovererNavbar() {
+export default function DiscovererNavbar({ forcePublic = false }: { forcePublic?: boolean }) {
   const { user, loading: authLoading } = useAuth()
   const { selectedChild, loading: childLoading } = useSelectedChild()
 
-  if (authLoading || childLoading) {
-    return <SignedOutDiscovererNav />
+  if (forcePublic || authLoading || childLoading) {
+    return <PublicNav />
   }
 
   if (user && selectedChild) {
     return <SignedInDiscovererNav />
   }
 
-  return <SignedOutDiscovererNav />
+  return <PublicNav />
 }

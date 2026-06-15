@@ -184,15 +184,23 @@ export interface ChildDashboardAnalytics {
   hasActivity: boolean
 }
 
+export type ArticleUnlockStatus = 'completed' | 'available' | 'locked'
+export type ArticleLockReason = 'premium' | 'sequential'
+
 export interface PathWithProgress extends AdventurePath {
   path_progress?: PathProgress | null
   accessible: boolean
+  lessonCount?: number
+  nextArticleTitle?: string | null
 }
 
 export interface PathArticleWithProgress extends PathArticle {
   progress?: ArticleProgress | null
   locked: boolean
   complete: boolean
+  unlockStatus?: ArticleUnlockStatus
+  lockReason?: ArticleLockReason | null
+  previousArticle?: PathArticle | null
 }
 
 export function getArticleContentForAge(article: AdventureArticle, ageGroup: AgeGroup): string {

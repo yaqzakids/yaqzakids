@@ -134,7 +134,7 @@ export default function SignedInDiscovererNav() {
                   {[
                     { label: 'Switch Child', to: '/children', action: null, gate: false },
                     { label: 'My Progress', to: childHome, action: null, gate: false },
-                    { label: 'Home', to: childHome, action: null, gate: false },
+                    { label: 'Certificates', to: '/discoverer/certificates', action: null, gate: false },
                     { label: 'Parent Dashboard', to: '/parent/dashboard', action: null, gate: true },
                     { label: 'Sign Out', to: null, action: signOut, gate: false },
                   ].map((item) =>
@@ -224,8 +224,8 @@ export default function SignedInDiscovererNav() {
             <Link to={childHome} onClick={() => setMenuOpen(false)} className="block text-navy font-bold py-2">
               My Progress
             </Link>
-            <Link to={childHome} onClick={() => setMenuOpen(false)} className="block text-navy font-bold py-2">
-              Home
+            <Link to="/discoverer/certificates" onClick={() => setMenuOpen(false)} className="block text-navy font-bold py-2">
+              Certificates
             </Link>
             <ParentGateLink to="/parent/dashboard" onClick={() => setMenuOpen(false)} className="block text-navy font-bold py-2">
               Parent Dashboard

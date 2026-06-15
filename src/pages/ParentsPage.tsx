@@ -28,7 +28,7 @@ const FEATURES = [
 
 export default function ParentsPage() {
   return (
-    <DiscovererPageShell>
+    <DiscovererPageShell navMode="public">
       <PageSeo {...PAGE_SEO_PRESETS.parents} path="/parents" />
       <div className="max-w-4xl mx-auto px-6 md:px-10 py-12">
         <p className="text-teal text-xs font-extrabold tracking-widest uppercase mb-2">For Parents</p>

@@ -27,7 +27,7 @@ const LEGAL_LINKS = [
   { label: 'Privacy Policy', to: '/about#privacy', external: false },
   { label: 'Terms of Use', to: '/about#terms', external: false },
   { label: 'Contact', to: `mailto:${SITE_EMAILS.contact}`, external: true },
-  { label: 'Admin', to: '/admin', external: false },
+  { label: 'Admin', to: '/admin/login', external: false },
 ] as const
 
 function FooterLink({

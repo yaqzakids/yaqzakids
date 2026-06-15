@@ -6,18 +6,14 @@ import App from './App'
 import './index.css'
 import { LanguageProvider } from './i18n'
 
-import { bootstrapApp } from './bootstrap'
-
-bootstrapApp().then(() => {
-  ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-      <ErrorBoundary>
-        <SeoProvider>
-          <LanguageProvider>
-            <App />
-          </LanguageProvider>
-        </SeoProvider>
-      </ErrorBoundary>
-    </React.StrictMode>,
-  )
-})
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <ErrorBoundary>
+      <SeoProvider>
+        <LanguageProvider>
+          <App />
+        </LanguageProvider>
+      </SeoProvider>
+    </ErrorBoundary>
+  </React.StrictMode>,
+)

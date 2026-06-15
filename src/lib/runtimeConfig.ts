@@ -1,3 +1,9 @@
+import {
+  PUBLIC_SITE_URL,
+  PUBLIC_SUPABASE_ANON_KEY,
+  PUBLIC_SUPABASE_URL,
+} from '@/generated/supabase.public'
+
 export interface AppRuntimeConfig {
   supabaseUrl: string
   supabaseAnonKey: string
@@ -40,24 +46,38 @@ export async function resolveRuntimeConfig(): Promise<AppRuntimeConfig> {
     return fromVite
   }
 
+  const fromPublic = normalizeConfig({
+    supabaseUrl: PUBLIC_SUPABASE_URL,
+    supabaseAnonKey: PUBLIC_SUPABASE_ANON_KEY,
+    siteUrl: PUBLIC_SITE_URL,
+  })
+
+  if (isValidAnonKey(fromPublic.supabaseAnonKey)) {
+    return fromPublic
+  }
+
   try {
     const response = await fetch('/assets/runtime-config.json', { cache: 'no-store' })
     if (response.ok) {
+      const contentType = response.headers.get('content-type') ?? ''
+      if (!contentType.includes('application/json')) {
+        return fromPublic
+      }
       const json = (await response.json()) as Partial<AppRuntimeConfig>
       const merged = normalizeConfig({
-        supabaseUrl: json.supabaseUrl ?? fromVite.supabaseUrl,
-        supabaseAnonKey: json.supabaseAnonKey ?? fromVite.supabaseAnonKey,
-        siteUrl: json.siteUrl ?? fromVite.siteUrl,
+        supabaseUrl: json.supabaseUrl ?? fromPublic.supabaseUrl,
+        supabaseAnonKey: json.supabaseAnonKey ?? fromPublic.supabaseAnonKey,
+        siteUrl: json.siteUrl ?? fromPublic.siteUrl,
       })
       if (isValidAnonKey(merged.supabaseAnonKey)) {
         return merged
       }
     }
   } catch {
-    // runtime-config.json unavailable during dev/offline
+    // optional runtime override unavailable
   }
 
-  return fromVite
+  return fromPublic
 }
 
 export function isRuntimeConfigValid(config: AppRuntimeConfig): boolean {

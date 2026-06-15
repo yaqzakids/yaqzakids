@@ -1,52 +1,13 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { AgeGroup, Article, ChildProfile, Language, Profile, Progress, Quiz, Subscription } from './types'
 import { formatSupabaseError } from './supabaseErrors'
-import type { AppRuntimeConfig } from './runtimeConfig'
-import { isRuntimeConfigValid } from './runtimeConfig'
+import { supabase } from './supabaseClientCore'
 
-export const SUPABASE_CONFIG_ERROR =
-  'This site is not connected to Supabase yet. Add public/assets/runtime-config.json or set VITE_SUPABASE_* env vars, then redeploy.'
-
-let client: SupabaseClient | null = null
-let activeConfig: AppRuntimeConfig | null = null
-
-export function initSupabase(config: AppRuntimeConfig): void {
-  activeConfig = config
-  client = createClient(
-    config.supabaseUrl,
-    config.supabaseAnonKey || 'placeholder',
-    {
-      auth: {
-        detectSessionInUrl: true,
-      },
-    },
-  )
-}
-
-export function isSupabaseReady(): boolean {
-  return Boolean(client && activeConfig && isRuntimeConfigValid(activeConfig))
-}
-
-export function getActiveSiteUrl(): string {
-  return activeConfig?.siteUrl ?? 'https://www.yaqzakids.com'
-}
-
-function getClient(): SupabaseClient {
-  if (!client) {
-    throw new Error('Supabase client is not initialized yet.')
-  }
-  return client
-}
-
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
-    const value = getClient()[prop as keyof SupabaseClient]
-    if (typeof value === 'function') {
-      return value.bind(getClient())
-    }
-    return value
-  },
-})
+export {
+  getActiveSiteUrl,
+  isSupabaseReady,
+  SUPABASE_CONFIG_ERROR,
+  supabase,
+} from './supabaseClientCore'
 
 type PostgrestErrorLike = { code?: string; message?: string }
 

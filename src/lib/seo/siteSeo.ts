@@ -1,4 +1,4 @@
-import { IMAGES } from '@/lib/constants'
+const DEFAULT_OG_IMAGE = 'https://i.ibb.co/YTbzfdLX/Yaffa-4.png'
 
 export const SITE_SEO = {
   brandName: 'YaqzaKids',
@@ -21,7 +21,7 @@ export const SITE_SEO = {
       'Rooted in Faith. Awake to the World. A safe learning platform helping Muslim children discover science, history, technology, and the world through an Islamic worldview.',
   },
   siteUrl: (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') ?? 'https://www.yaqzakids.com',
-  defaultImage: IMAGES.welcomeBg,
+  defaultImage: DEFAULT_OG_IMAGE,
   locale: 'en_US',
   twitterCard: 'summary_large_image' as const,
 } as const

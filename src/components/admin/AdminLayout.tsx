@@ -2,7 +2,11 @@ import { NavLink, Outlet, useLocation, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/ProtectedRoute'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ADMIN_ROLE_LABELS, useAdminRole } from '@/context/AdminRoleContext'
+import {
+  ADMIN_ROLE_LABELS,
+  canAccessAdminPath,
+  useAdminRole,
+} from '@/context/AdminRoleContext'
 import { AdminShellContext } from '@/context/AdminShellContext'
 import { dashboardTheme } from '@/lib/admin/dashboardTheme'
 import AdminAvatar from '@/components/admin/AdminAvatar'
@@ -75,7 +79,7 @@ const navSections: NavSection[] = [
     items: [
       { to: '/admin/settings', label: 'Settings', icon: '⚙️' },
       { to: '/admin/settings/profile', label: 'Profile Settings', icon: '👤' },
-      { to: '/admin/admin-users', label: 'Admin Users', icon: '🛡️', ownerOnly: true },
+      { to: '/admin/team', label: 'Team / Employees', icon: '🛡️', ownerOnly: true },
       { to: '/admin/log', label: 'Admin Activity Log', icon: '📋' },
     ],
   },
@@ -96,7 +100,7 @@ const titles: Record<string, string> = {
   '/admin/analytics': 'Analytics',
   '/admin/settings': 'Settings',
   '/admin/settings/profile': 'Profile Settings',
-  '/admin/admin-users': 'Admin Users',
+  '/admin/team': 'Team / Employee Accounts',
   '/admin/log': 'Admin Activity Log',
   '/admin/articles': 'Articles',
   '/admin/paths': 'Paths',
@@ -229,8 +233,18 @@ export default function AdminLayout() {
 
   const signOut = async () => {
     await supabase.auth.signOut()
-    window.location.href = '/login'
+    window.location.href = '/admin/login'
   }
+
+  const visibleNavSections = navSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter(
+        (item) =>
+          (!item.ownerOnly || isOwner) && canAccessAdminPath(adminRole, item.to.split('?')[0] ?? item.to)
+      ),
+    }))
+    .filter((section) => section.items.length > 0)
 
   const pageTitle = getTitle(location.pathname)
   const isOverview = location.pathname === '/admin'
@@ -267,7 +281,7 @@ export default function AdminLayout() {
           </div>
 
           <nav className="flex-1 min-h-0 px-3 py-4 overflow-y-auto overscroll-contain">
-            {navSections.map((section, si) => (
+            {visibleNavSections.map((section, si) => (
               <div key={si} className={si > 0 ? 'mt-5 pt-4 border-t border-white/10' : ''}>
                 {section.title && (
                   <div
@@ -277,9 +291,7 @@ export default function AdminLayout() {
                     {section.title}
                   </div>
                 )}
-                {section.items
-                  .filter((item) => !item.ownerOnly || isOwner)
-                  .map((item) => (
+                {section.items.map((item) => (
                   <SidebarLink key={`${item.to}-${item.label}`} item={item} onNavigate={() => setSidebarOpen(false)} />
                 ))}
               </div>

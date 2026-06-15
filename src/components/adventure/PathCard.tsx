@@ -16,16 +16,15 @@ export default function PathCard({ path }: PathCardProps) {
   const pct = path.path_progress?.completion_percentage ?? 0
   const locked = !path.accessible
   const completed = Boolean(path.path_progress?.completed)
-  const started =
-    !completed &&
-    ((path.path_progress?.completed_articles ?? 0) > 0 || pct > 0)
+  const lessonCount = path.lessonCount ?? path.path_progress?.total_articles ?? 0
+  const completedLessons = path.path_progress?.completed_articles ?? 0
 
   const difficulty = difficultyStyles[path.difficulty_level]
   const badgeName = path.badge?.name
   const articleCount = path.path_progress?.total_articles
 
   const metaLine = [
-    articleCount != null && articleCount > 0 ? `${articleCount} articles` : null,
+    lessonCount > 0 ? `${lessonCount} lessons` : null,
     badgeName ?? null,
   ]
     .filter(Boolean)
@@ -42,7 +41,7 @@ export default function PathCard({ path }: PathCardProps) {
   } else if (completed) {
     ctaLabel = 'Completed ✓'
     ctaBg = '#22C55E'
-  } else if (started) {
+  } else if (completedLessons > 0 || pct > 0) {
     ctaLabel = 'Continue →'
     ctaBg = '#2AAFA0'
   }
@@ -169,7 +168,7 @@ export default function PathCard({ path }: PathCardProps) {
           {path.description}
         </p>
 
-        {started && !completed && (
+        {(completedLessons > 0 || lessonCount > 0) && !locked && (
           <div style={{ marginBottom: 12 }}>
             <div
               style={{
@@ -181,7 +180,9 @@ export default function PathCard({ path }: PathCardProps) {
                 marginBottom: 4,
               }}
             >
-              <span>Progress</span>
+              <span>
+                {completedLessons} / {lessonCount || articleCount || 0} lessons completed
+              </span>
               <span style={{ color: '#F5A623' }}>{Math.round(pct)}%</span>
             </div>
             <div style={{ height: 8, background: '#F3F4F6', borderRadius: 999, overflow: 'hidden' }}>
@@ -189,13 +190,19 @@ export default function PathCard({ path }: PathCardProps) {
                 style={{
                   height: '100%',
                   width: `${pct}%`,
-                  background: '#F5A623',
+                  background: completed ? '#22C55E' : '#F5A623',
                   borderRadius: 999,
                   transition: 'width 0.3s ease',
                 }}
               />
             </div>
           </div>
+        )}
+
+        {!locked && path.nextArticleTitle && !completed && (
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#1B2F5E', margin: '0 0 12px' }}>
+            Next up: {path.nextArticleTitle}
+          </p>
         )}
 
         {metaLine && (

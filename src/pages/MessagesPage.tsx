@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/components/ProtectedRoute'
-import ParentNavLinks from '@/components/messaging/ParentNavLinks'
+import ParentLayout from '@/components/layout/ParentLayout'
 import ErrorMessage from '@/components/ErrorMessage'
 import AnnouncementBanner from '@/components/messaging/AnnouncementBanner'
 import MessageThread from '@/components/messaging/MessageThread'
@@ -107,12 +107,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg page-transition">
-      <nav className="bg-white border-b border-gray-200 px-6 md:px-10 h-16 flex items-center justify-between gap-4">
-        <ParentNavLinks active="messages" />
-        <span className="font-display text-lg font-bold text-navy hidden sm:block">Messages</span>
-      </nav>
-
+    <ParentLayout active="messages">
       <div className="max-w-6xl mx-auto px-4 md:px-10 py-6 md:py-10">
         <AnnouncementBanner compact />
 
@@ -230,6 +225,6 @@ export default function MessagesPage() {
           </div>
         </div>
       </div>
-    </div>
+    </ParentLayout>
   )
 }

@@ -41,6 +41,15 @@ export default function Signup() {
     setError(null)
 
     try {
+      const { data: reserved } = await supabase.rpc('is_reserved_team_email', {
+        p_email: email.trim().toLowerCase(),
+      })
+      if (reserved) {
+        setError('This email is a team account. Sign in at /admin/login instead.')
+        setLoading(false)
+        return
+      }
+
       storePendingVerifyEmail(email)
 
       const { data, error: authError } = await supabase.auth.signUp({

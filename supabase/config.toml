@@ -12,3 +12,6 @@ max_rows = 1000
 
 [functions.tts]
 verify_jwt = false
+
+[functions.send-team-credentials-email]
+verify_jwt = false

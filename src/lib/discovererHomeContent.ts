@@ -23,16 +23,42 @@ export interface DiscovererFeaturedStory {
 }
 
 export const SIGNED_OUT_FEATURED_STORY: DiscovererFeaturedStory = {
-  category: 'History & Faith',
-  title: 'Salman al-Farisi — The Boy Who Searched for the Truth',
+  category: 'Science & Nature',
+  title: 'Why Bees Matter',
   description:
-    'Salman grew up in Persia but never stopped asking: who is the true God? His long search shows that sincere truth-seeking is a virtue.',
-  image: 'https://i.ibb.co/HfGGfqTb/Chat-GPT-Image-Jun-4-2026-02-40-58-PM.png',
+    'Bees are tiny, but they do an enormous job! They help plants grow, food thrive, and nature stay in balance.',
+  image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&q=80',
   readingTime: 6,
   ageTag: 'Ages 9–12',
-  url: '/adventures/search-for-truth/salman-al-farisi',
-  ctaLabel: 'Read Sample →',
+  url: '/sample-stories',
+  ctaLabel: 'Read Now →',
 }
+
+export const SIGNED_OUT_FEATURED_SIDEBAR: {
+  title: string
+  category: string
+  image: string
+  url: string
+}[] = [
+  {
+    title: 'The Great Library of Baghdad',
+    category: 'History',
+    image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80',
+    url: '/sample-stories',
+  },
+  {
+    title: 'What is Artificial Intelligence?',
+    category: 'Technology',
+    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&q=80',
+    url: '/sample-stories',
+  },
+  {
+    title: 'Exploring the Amazon Rainforest',
+    category: 'Geography',
+    image: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=600&q=80',
+    url: '/sample-stories',
+  },
+]
 
 export const SIGNED_IN_FEATURED_STORY: DiscovererFeaturedStory = {
   category: 'Science & Nature',

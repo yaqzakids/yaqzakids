@@ -6,6 +6,7 @@ import AvatarSelectorModal from '@/components/avatar/AvatarSelectorModal'
 import UserAvatar from '@/components/UserAvatar'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import ErrorMessage from '@/components/ErrorMessage'
+import ParentLayout from '@/components/layout/ParentLayout'
 import {
   AGE_GROUP_META,
   ageGroupFromAge,
@@ -177,19 +178,15 @@ export default function ChildProfileFormPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EEF4FF] page-transition">
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-2xl mx-auto px-6 py-5">
-          <Link to="/children" className="text-sm font-bold text-[#6B7280] hover:text-[#1B2F5E]">
-            ← Back to profiles
-          </Link>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-[#1B2F5E] mt-3">
-            {isEdit ? 'Edit child profile' : isOnboarding ? 'Create child profile' : 'Add a child'}
-          </h1>
-        </div>
-      </header>
+    <ParentLayout active="children" bg="bg-[#EEF4FF]">
+      <div className="max-w-2xl mx-auto px-6 py-8">
+        <Link to="/children" className="text-sm font-bold text-[#6B7280] hover:text-[#1B2F5E]">
+          ← Back to profiles
+        </Link>
+        <h1 className="font-display text-2xl md:text-3xl font-bold text-[#1B2F5E] mt-3 mb-6">
+          {isEdit ? 'Edit child profile' : isOnboarding ? 'Create child profile' : 'Add a child'}
+        </h1>
 
-      <main className="max-w-2xl mx-auto px-6 py-8">
         {error && <ErrorMessage message={error} onRetry={() => setError(null)} />}
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-6 md:p-8 space-y-6">
@@ -316,18 +313,18 @@ export default function ChildProfileFormPage() {
             </button>
           </div>
         </form>
-      </main>
 
-      <AvatarSelectorModal
-        open={avatarOpen}
-        selectedId={avatarId}
-        onClose={() => setAvatarOpen(false)}
-        onSave={(id) => {
-          setAvatarId(id)
-          setAvatarOpen(false)
-        }}
-        variant="default"
-      />
-    </div>
+        <AvatarSelectorModal
+          open={avatarOpen}
+          selectedId={avatarId}
+          onClose={() => setAvatarOpen(false)}
+          onSave={(id) => {
+            setAvatarId(id)
+            setAvatarOpen(false)
+          }}
+          variant="default"
+        />
+      </div>
+    </ParentLayout>
   )
 }

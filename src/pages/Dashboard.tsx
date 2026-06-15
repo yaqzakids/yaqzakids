@@ -9,8 +9,7 @@ import ChildAnalyticsCard from '../components/dashboard/ChildAnalyticsCard'
 import DashboardSkeleton from '../components/dashboard/DashboardSkeleton'
 import ErrorMessage from '../components/ErrorMessage'
 import AnnouncementBanner from '@/components/messaging/AnnouncementBanner'
-import ParentNavLinks from '@/components/messaging/ParentNavLinks'
-import PageBackNav from '@/components/navigation/PageBackNav'
+import ParentLayout from '@/components/layout/ParentLayout'
 import Breadcrumbs from '@/components/navigation/Breadcrumbs'
 import { DiscovererReportSection } from '@/components/dashboard/DiscovererReportTab'
 import { formatSupabaseError } from '../lib/supabaseErrors'
@@ -79,36 +78,17 @@ export default function Dashboard() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-bg page-transition">
-        <nav className="bg-white border-b border-gray-200 px-6 md:px-10 h-16" />
+      <ParentLayout active="dashboard">
         <div className="max-w-5xl mx-auto px-6 md:px-10 py-10">
           <div className="h-8 bg-gray-200 rounded w-64 mb-10 animate-pulse" />
           <DashboardSkeleton />
         </div>
-      </div>
+      </ParentLayout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-bg page-transition">
-      <nav className="bg-white border-b border-gray-200 px-6 md:px-10 py-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-4">
-          <Link to="/" className="font-display font-bold text-navy tracking-tight no-underline">
-            YAQZA KIDS
-          </Link>
-          <PageBackNav fallbackTo="/children" homeTo="/" showHome />
-        </div>
-        <div className="flex items-center gap-4">
-          <ParentNavLinks active="dashboard" />
-          <button
-            onClick={() => supabaseSignOut()}
-            className="text-sm text-muted hover:text-navy transition-colors"
-          >
-            Sign Out
-          </button>
-        </div>
-      </nav>
-
+    <ParentLayout active="dashboard">
       <div className="max-w-5xl mx-auto px-6 md:px-10 py-10">
         <Breadcrumbs
           items={[
@@ -225,12 +205,6 @@ export default function Dashboard() {
           </button>
         </section>
       </div>
-    </div>
+    </ParentLayout>
   )
-}
-
-async function supabaseSignOut() {
-  const { supabase } = await import('../lib/supabase')
-  await supabase.auth.signOut()
-  window.location.href = '/login'
 }

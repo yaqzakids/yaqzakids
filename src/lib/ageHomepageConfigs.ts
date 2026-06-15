@@ -1,5 +1,5 @@
 import type { AgeHomepageConfig } from '@/components/AgeHomepage'
-import { IMAGES } from '@/lib/constants'
+import { IMAGES } from '@/lib/images'
 
 export const explorerHomepageConfig: AgeHomepageConfig = {
   variant: 'explorer',

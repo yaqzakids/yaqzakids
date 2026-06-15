@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { STORAGE_KEYS } from '../../lib/constants'
+import { STORAGE_KEYS } from '@/lib/constants'
 import { useAuth } from '@/components/ProtectedRoute'
 import { useSelectedChild } from '@/context/SelectedChildContext'
-import NavbarEngagement from '@/components/adventure/NavbarEngagement'
-import ParentGateLink from '@/components/parent/ParentGateLink'
-import { authUrlForLocation } from '@/lib/navigation'
+import PublicNav, { PUBLIC_NAV_LINKS } from '@/components/layout/PublicNav'
+import ExplorerThinkerChildNav from '@/components/layout/ExplorerThinkerChildNav'
+import { authUrlForLocation, shouldUseChildNav } from '@/lib/navigation'
 import { useT } from '@/i18n'
 import { supabase } from '@/lib/supabase'
 import DiscovererNav from '@/components/discoverer/DiscovererNavbar'
@@ -14,19 +14,11 @@ type NavbarVariant = 'explorer' | 'discoverer' | 'thinker'
 
 interface NavbarProps {
   variant: NavbarVariant
+  forcePublic?: boolean
 }
 
-const PUBLIC_NAV_LINKS = [
-  { label: 'Discover', to: '/discoverer' },
-  { label: 'Curiosity Starts Here', to: '/discoverer#curiosity-starts-here' },
-  { label: 'Learning Paths', to: '/paths' },
-  { label: 'For Parents', to: '/parents' },
-  { label: 'Pricing', to: '/pricing' },
-  { label: 'About', to: '/about' },
-] as const
-
 const variantStyles: Record<
-  NavbarVariant,
+  'explorer' | 'thinker',
   {
     bg: string
     border: string
@@ -46,15 +38,6 @@ const variantStyles: Record<
     ctaBg: 'bg-gold',
     ctaText: 'text-white',
   },
-  discoverer: {
-    bg: 'bg-white',
-    border: 'border-b border-gray-200 shadow-sm',
-    linkColor: 'text-navy',
-    loginBorder: 'border-navy',
-    loginText: 'text-navy',
-    ctaBg: 'bg-gold',
-    ctaText: 'text-white',
-  },
   thinker: {
     bg: 'bg-navy',
     border: 'border-b border-[#243B6E]',
@@ -66,15 +49,21 @@ const variantStyles: Record<
   },
 }
 
-export default function Navbar({ variant }: NavbarProps) {
+export default function Navbar({ variant, forcePublic = false }: NavbarProps) {
   if (variant === 'discoverer') {
-    return <DiscovererNav />
+    return <DiscovererNav forcePublic={forcePublic} />
   }
 
-  return <ExplorerThinkerNavbar variant={variant} />
+  return <ExplorerThinkerNavbar variant={variant} forcePublic={forcePublic} />
 }
 
-function ExplorerThinkerNavbar({ variant }: { variant: 'explorer' | 'thinker' }) {
+function ExplorerThinkerNavbar({
+  variant,
+  forcePublic,
+}: {
+  variant: 'explorer' | 'thinker'
+  forcePublic?: boolean
+}) {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
@@ -83,17 +72,20 @@ function ExplorerThinkerNavbar({ variant }: { variant: 'explorer' | 'thinker' })
   const [menuOpen, setMenuOpen] = useState(false)
   const styles = variantStyles[variant]
 
-  const switchAge = () => {
-    localStorage.removeItem(STORAGE_KEYS.ageGroup)
-    navigate('/welcome')
+  if (forcePublic) {
+    return <PublicNav />
   }
+
+  if (user && selectedChild && shouldUseChildNav(location.pathname)) {
+    return <ExplorerThinkerChildNav variant={variant} />
+  }
+
+  const homeTo = variant === 'explorer' ? '/explorer' : '/thinker'
 
   const signOut = async () => {
     await supabase.auth.signOut()
     navigate('/login')
   }
-
-  const homeTo = variant === 'explorer' ? '/explorer' : '/thinker'
 
   return (
     <nav className={`${styles.bg} ${styles.border} h-16 sticky top-0 z-50`}>
@@ -115,21 +107,20 @@ function ExplorerThinkerNavbar({ variant }: { variant: 'explorer' | 'thinker' })
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          {user && selectedChild && <NavbarEngagement />}
           {user ? (
             <>
-              <ParentGateLink
-                to="/parent/dashboard"
+              <Link
+                to="/children"
                 className={`px-4 py-1.5 border-2 ${styles.loginBorder} ${styles.loginText} rounded-full text-sm font-bold hover:opacity-80 transition-opacity`}
               >
-                {t.nav.dashboard}
-              </ParentGateLink>
+                My Children
+              </Link>
               <button
                 type="button"
-                onClick={signOut}
-                className={`px-4 py-1.5 border-2 ${styles.loginBorder} ${styles.loginText} rounded-full text-sm font-bold hover:opacity-80 transition-opacity bg-transparent cursor-pointer`}
+                onClick={() => void signOut()}
+                className={`px-4 py-1.5 ${styles.ctaBg} ${styles.ctaText} rounded-full text-sm font-bold hover:opacity-90 transition-opacity`}
               >
-                {t.nav.logout}
+                Sign Out
               </button>
             </>
           ) : (
@@ -149,7 +140,10 @@ function ExplorerThinkerNavbar({ variant }: { variant: 'explorer' | 'thinker' })
             </>
           )}
           <button
-            onClick={switchAge}
+            onClick={() => {
+              localStorage.removeItem(STORAGE_KEYS.ageGroup)
+              navigate('/welcome')
+            }}
             className="text-[#9CA3AF] text-xs hover:text-muted transition-colors ml-1"
           >
             {t.nav.switchAge}
@@ -177,44 +171,48 @@ function ExplorerThinkerNavbar({ variant }: { variant: 'explorer' | 'thinker' })
               {link.label}
             </Link>
           ))}
-          {user && selectedChild && (
-            <div className="py-2">
-              <NavbarEngagement />
-            </div>
-          )}
           {user ? (
             <>
-              <ParentGateLink
-                to="/parent/dashboard"
+              <Link
+                to="/children"
+                onClick={() => setMenuOpen(false)}
                 className="block text-center py-2 border-2 border-gold text-[#D4820A] rounded-full font-bold"
               >
-                {t.nav.dashboard}
-              </ParentGateLink>
+                My Children
+              </Link>
               <button
                 type="button"
-                onClick={signOut}
-                className="block w-full text-center py-2 border-2 border-gold text-[#D4820A] rounded-full font-bold bg-transparent cursor-pointer"
+                onClick={() => void signOut()}
+                className="block w-full text-center py-2 bg-gold text-white rounded-full font-bold"
               >
-                {t.nav.logout}
+                Sign Out
               </button>
             </>
           ) : (
             <>
               <Link
                 to={authUrlForLocation('/login', location)}
+                onClick={() => setMenuOpen(false)}
                 className="block text-center py-2 border-2 border-gold text-[#D4820A] rounded-full font-bold"
               >
                 Sign In
               </Link>
               <Link
                 to={authUrlForLocation('/signup', location)}
+                onClick={() => setMenuOpen(false)}
                 className="block text-center py-2 bg-gold text-white rounded-full font-bold"
               >
                 Start Free
               </Link>
             </>
           )}
-          <button onClick={switchAge} className="block w-full text-center text-[#9CA3AF] text-xs py-1">
+          <button
+            onClick={() => {
+              localStorage.removeItem(STORAGE_KEYS.ageGroup)
+              navigate('/welcome')
+            }}
+            className="block w-full text-center text-[#9CA3AF] text-xs py-1"
+          >
             {t.nav.switchAge}
           </button>
         </div>

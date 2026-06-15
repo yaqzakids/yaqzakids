@@ -1,13 +1,24 @@
-import { Link, Navigate, Outlet } from 'react-router-dom'
+import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { authUrl } from '@/lib/navigation'
-import { AdminRoleContext, getPermissions, parseAdminRole, type AdminRole } from '@/context/AdminRoleContext'
-import { checkIsAdmin, linkAdminUserAccount } from '@/lib/admin/adminUsers'
+import {
+  AdminRoleContext,
+  canAccessAdminPath,
+  getPermissions,
+  parseAdminRole,
+  type AdminRole,
+} from '@/context/AdminRoleContext'
+import {
+  checkIsActiveAdmin,
+  checkMustChangePassword,
+  isMainAdminEmail,
+  linkAdminUserAccount,
+} from '@/lib/admin/adminUsers'
 
-type AdminRouteStatus = 'loading' | 'admin' | 'not-admin' | 'not-logged-in'
+type AdminRouteStatus = 'loading' | 'admin' | 'not-admin' | 'not-logged-in' | 'change-password'
 
 export default function AdminRoute() {
+  const location = useLocation()
   const [status, setStatus] = useState<AdminRouteStatus>('loading')
   const [adminRole, setAdminRole] = useState<AdminRole | null>(null)
 
@@ -24,21 +35,29 @@ export default function AdminRoute() {
 
       try {
         await linkAdminUserAccount()
-        const isAdmin = await checkIsAdmin()
+        const isAdmin = await checkIsActiveAdmin()
         if (!isAdmin) {
+          await supabase.auth.signOut()
           setStatus('not-admin')
           return
         }
 
+        const mustChange = await checkMustChangePassword()
+        if (mustChange && !isMainAdminEmail(user.email)) {
+          setStatus('change-password')
+          return
+        }
+
         const { data: rpcRole } = await supabase.rpc('get_admin_role')
-        setAdminRole(parseAdminRole(rpcRole) ?? 'admin')
+        const role = parseAdminRole(rpcRole) ?? 'admin'
+        setAdminRole(role)
         setStatus('admin')
       } catch {
         setStatus('not-admin')
       }
     }
     void check()
-  }, [])
+  }, [location.pathname])
 
   if (status === 'loading') {
     return (
@@ -67,7 +86,11 @@ export default function AdminRoute() {
   }
 
   if (status === 'not-logged-in') {
-    return <Navigate to={authUrl('/login', '/admin')} replace />
+    return <Navigate to="/admin/login" replace state={{ from: location.pathname }} />
+  }
+
+  if (status === 'change-password') {
+    return <Navigate to="/admin/change-password" replace />
   }
 
   if (status === 'not-admin') {
@@ -96,7 +119,7 @@ export default function AdminRoute() {
           Access Denied
         </h1>
         <p style={{ color: '#6B7280', margin: 0, textAlign: 'center', maxWidth: 480, lineHeight: 1.6 }}>
-          You do not have permission to access this page.
+          This account is not authorized for admin access.
         </p>
         <Link
           to="/"
@@ -119,6 +142,10 @@ export default function AdminRoute() {
 
   if (!adminRole) {
     return null
+  }
+
+  if (!canAccessAdminPath(adminRole, location.pathname)) {
+    return <Navigate to="/admin" replace />
   }
 
   return (

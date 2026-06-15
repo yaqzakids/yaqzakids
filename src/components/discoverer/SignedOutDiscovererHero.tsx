@@ -1,54 +1,49 @@
 import { Link } from 'react-router-dom'
-import DiscovererHeroShell from '@/components/discoverer/DiscovererHeroShell'
-
-const TRUST_BADGES = [
-  { icon: '🌙', label: 'Muslim-rooted learning' },
-  { icon: '🔬', label: 'Science & discovery' },
-  { icon: '✨', label: 'Ages 9–12' },
-  { icon: '🛡️', label: 'Safe for families' },
-] as const
+import { DISCOVERER_HERO_IMAGE } from '@/components/discoverer/DiscovererHeroShell'
 
 export default function SignedOutDiscovererHero() {
   return (
-    <DiscovererHeroShell>
-      <div className="max-w-xl">
-        <p className="text-[#2AAFA0] text-xs font-extrabold tracking-widest uppercase mb-3">
-          YaqzaKids Discoverers
-        </p>
-        <h1 className="font-display font-bold text-[#1B2F5E] leading-[1.12] mb-4 text-[clamp(1.85rem,3.5vw,48px)] drop-shadow-sm">
-          Explore Allah&apos;s world through{' '}
-          <span className="text-[#F5A623]">stories, science & faith</span>
-        </h1>
-        <p className="text-[#1B2F5E]/80 text-[17px] leading-relaxed mb-6 max-w-[500px]">
-          A joyful learning adventure for curious kids — read exciting stories, earn stars,
-          build character, and grow through Islamic values. No school portal. Just discovery.
-        </p>
-        <div className="flex flex-wrap gap-3 mb-8">
-          <Link
-            to="/signup"
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-full font-extrabold text-white bg-[#2AAFA0] hover:opacity-90 shadow-md text-[15px]"
-          >
-            ✨ Start Free
-          </Link>
-          <Link
-            to="/sample-stories"
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-full font-extrabold border-2 border-[#1B2F5E] text-[#1B2F5E] bg-white/90 backdrop-blur-sm text-[15px] hover:bg-white"
-          >
-            📚 Explore Sample Stories
-          </Link>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {TRUST_BADGES.map((badge) => (
-            <span
-              key={badge.label}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-white/95 text-[#1B2F5E] shadow-[0_4px_16px_rgba(27,47,94,0.12)] backdrop-blur-sm"
+    <section className="relative overflow-hidden bg-[#FDF9F0]">
+      {/* Illustration backdrop */}
+      <div className="relative min-h-[480px] md:min-h-[560px] flex flex-col">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${DISCOVERER_HERO_IMAGE})` }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-[#FDF9F0] via-[#FDF9F0]/75 to-[#FDF9F0]/20"
+          aria-hidden
+        />
+
+        {/* Headline + CTAs anchored at bottom */}
+        <div className="relative z-10 mt-auto max-w-[1280px] mx-auto w-full px-5 md:px-8 pb-10 md:pb-14 pt-32 md:pt-40">
+          <h1 className="font-display font-bold text-[#1B2F5E] leading-[1.1] mb-4 text-[clamp(2rem,4.5vw,3.25rem)] max-w-3xl">
+            Discover{' '}
+            <span className="text-[#148281]">Allah&apos;s World</span>, One Story at a Time.
+          </h1>
+          <p className="text-[#1B2F5E]/80 text-base md:text-lg leading-relaxed mb-8 max-w-2xl">
+            Read exciting stories about science, nature, history, technology and today&apos;s world
+            through curiosity, reflection and Islamic values.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/signup"
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-extrabold text-white bg-[#148281] hover:opacity-90 shadow-lg text-[15px]"
             >
-              <span aria-hidden>{badge.icon}</span>
-              {badge.label}
-            </span>
-          ))}
+              <span aria-hidden>⭐</span>
+              Start Today&apos;s Mission
+            </Link>
+            <Link
+              to="/sample-stories"
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-extrabold border-2 border-[#148281] text-[#148281] bg-white hover:bg-[#FDF9F0] text-[15px] shadow-sm"
+            >
+              <span aria-hidden>📖</span>
+              Explore Stories
+            </Link>
+          </div>
         </div>
       </div>
-    </DiscovererHeroShell>
+    </section>
   )
 }

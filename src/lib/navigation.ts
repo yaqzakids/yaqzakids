@@ -119,10 +119,39 @@ export function isParentPath(path: string): boolean {
     path === '/dashboard' ||
     path === '/parent/dashboard' ||
     path === '/parent/account' ||
+    path === '/account/settings' ||
+    path.startsWith('/children') ||
     path.startsWith('/support') ||
     path.startsWith('/messages') ||
     path.startsWith('/admin')
   )
+}
+
+/** Routes that should always show marketing navigation, even when a child is selected. */
+const ALWAYS_PUBLIC_NAV = [
+  '/paths',
+  '/parents',
+  '/sample-stories',
+  '/about',
+  '/pricing',
+  '/welcome',
+  '/explorer',
+  '/thinker',
+] as const
+
+export function isAlwaysPublicNavPath(path: string): boolean {
+  return ALWAYS_PUBLIC_NAV.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))
+}
+
+export function shouldUseChildNav(pathname: string): boolean {
+  if (isAlwaysPublicNavPath(pathname)) return false
+  if (pathname === '/discoverer' || pathname.startsWith('/discoverer/')) return true
+  if (requiresActiveChild(pathname)) return true
+  if (pathname.startsWith('/adventures/') && pathname.split('/').filter(Boolean).length > 1) {
+    return true
+  }
+  if (pathname === '/adventures') return true
+  return false
 }
 
 export function childrenPickerUrl(redirectTo?: string | null): string {

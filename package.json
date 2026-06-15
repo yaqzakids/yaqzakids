@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/generate-runtime-config.mjs",
+    "prebuild": "node scripts/generate-supabase-public.mjs && node scripts/generate-runtime-config.mjs",
     "build": "npm run prebuild && tsc -b && vite build",
     "preview": "vite preview",
-    "deploy:cloudflare": "npm run build && wrangler pages deploy dist --project-name=yaqza-kids"
+    "deploy:cloudflare": "npm run build && wrangler pages deploy dist --project-name=yaqzakids"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

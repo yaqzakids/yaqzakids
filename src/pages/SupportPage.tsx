@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/components/ProtectedRoute'
 import ErrorMessage from '@/components/ErrorMessage'
-import ParentNavLinks from '@/components/messaging/ParentNavLinks'
+import ParentLayout from '@/components/layout/ParentLayout'
 import SupportAttachmentLink from '@/components/support/SupportAttachmentLink'
 import SupportPagination from '@/components/support/SupportPagination'
 import {
@@ -172,12 +172,7 @@ export default function SupportPage() {
     'w-full border-[1.5px] border-gray-200 rounded-xl px-4 py-3 text-navy text-sm focus:outline-none focus:border-teal'
 
   return (
-    <div className="min-h-screen bg-bg page-transition">
-      <nav className="bg-white border-b border-gray-200 px-6 md:px-10 h-16 flex items-center justify-between gap-4">
-        <ParentNavLinks active="support" />
-        <span className="font-display text-lg font-bold text-navy hidden sm:block">Support Center</span>
-      </nav>
-
+    <ParentLayout active="support">
       <div className="max-w-4xl mx-auto px-6 md:px-10 py-8 md:py-12">
         <div className="mb-8">
           <h1 className="font-display text-2xl md:text-3xl font-bold text-navy m-0 mb-2">
@@ -456,6 +451,6 @@ export default function SupportPage() {
           </div>
         )}
       </div>
-    </div>
+    </ParentLayout>
   )
 }

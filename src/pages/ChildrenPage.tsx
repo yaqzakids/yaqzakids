@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/components/ProtectedRoute'
 import { useSelectedChild } from '@/context/SelectedChildContext'
-import ParentGateLink from '@/components/parent/ParentGateLink'
-import PageBackNav from '@/components/navigation/PageBackNav'
+import ParentLayout from '@/components/layout/ParentLayout'
 import ChildProfileCard from '@/components/children/ChildProfileCard'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { fetchAllChildProfileSummaries, type ChildProfileSummary } from '@/lib/childProfiles'
@@ -70,33 +69,20 @@ export default function ChildrenPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EEF4FF] page-transition">
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-5xl mx-auto px-6 py-5">
-          <PageBackNav fallbackTo="/" homeTo="/" className="mb-4" />
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-[#2AAFA0] text-xs font-extrabold tracking-widest uppercase">YaqzaKids</p>
-              <h1 className="font-display text-2xl md:text-3xl font-bold text-[#1B2F5E]">
-                Who&apos;s learning today?
-              </h1>
-            </div>
-            <ParentGateLink
-              to="/parent/dashboard"
-              className="text-sm font-bold text-[#6B7280] hover:text-[#1B2F5E] hidden sm:inline"
-            >
-              Parent Dashboard
-            </ParentGateLink>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-6 py-10">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <p className="text-[#1B2F5E]/70 max-w-xl leading-relaxed">
+    <ParentLayout active="children" bg="bg-[#EEF4FF]">
+      <div className="max-w-5xl mx-auto px-6 py-10">
+        <div className="mb-8">
+          <p className="text-[#2AAFA0] text-xs font-extrabold tracking-widest uppercase mb-2">YaqzaKids</p>
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-[#1B2F5E]">
+            Who&apos;s learning today?
+          </h1>
+          <p className="text-[#1B2F5E]/70 max-w-xl leading-relaxed mt-3">
             Each child gets their own stars, streaks, paths, and progress. Tap a profile to enter their
             personalized learning world.
           </p>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-end gap-4 mb-8">
           <Link
             to="/children/new"
             className="inline-flex px-5 py-2.5 bg-[#F5A623] text-white rounded-full text-sm font-extrabold hover:opacity-90 shrink-0"
@@ -148,7 +134,7 @@ export default function ChildrenPage() {
             </button>
           </p>
         )}
-      </main>
-    </div>
+      </div>
+    </ParentLayout>
   )
 }

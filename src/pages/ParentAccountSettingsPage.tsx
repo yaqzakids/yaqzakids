@@ -1,9 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useAuth } from '@/components/ProtectedRoute'
 import PasswordCreateFields from '@/components/auth/PasswordCreateFields'
-import PageBackNav from '@/components/navigation/PageBackNav'
-import ParentNavLinks from '@/components/messaging/ParentNavLinks'
+import ParentLayout from '@/components/layout/ParentLayout'
 import Breadcrumbs from '@/components/navigation/Breadcrumbs'
 import { AUTH_INPUT_CLASS } from '@/components/auth/PasswordRequirementsChecklist'
 import { isPasswordValid, passwordsMatch, validateNewPassword } from '@/lib/auth/passwordPolicy'
@@ -54,17 +52,7 @@ export default function ParentAccountSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg page-transition">
-      <nav className="bg-white border-b border-gray-200 px-6 md:px-10 py-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-4">
-          <Link to="/" className="font-display font-bold text-navy tracking-tight no-underline">
-            YAQZA KIDS
-          </Link>
-          <PageBackNav fallbackTo="/parent/dashboard" homeTo="/" showHome />
-        </div>
-        <ParentNavLinks active="dashboard" />
-      </nav>
-
+    <ParentLayout active="account">
       <div className="max-w-xl mx-auto px-6 md:px-10 py-10">
         <Breadcrumbs
           items={[
@@ -115,6 +103,6 @@ export default function ParentAccountSettingsPage() {
           </form>
         </div>
       </div>
-    </div>
+    </ParentLayout>
   )
 }

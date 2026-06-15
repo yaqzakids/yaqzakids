@@ -11,6 +11,7 @@ export default function DiscovererPageShell({
   backLabel,
   breadcrumbs,
   homeTo,
+  navMode = 'child',
 }: {
   children: ReactNode
   bg?: string
@@ -18,12 +19,14 @@ export default function DiscovererPageShell({
   backLabel?: string
   breadcrumbs?: BreadcrumbItem[]
   homeTo?: string
+  /** Public marketing pages always use the signed-out nav, even when a child is active. */
+  navMode?: 'public' | 'child'
 }) {
   const showSubNav = backFallback || breadcrumbs
 
   return (
     <div className={`min-h-screen page-transition ${bg}`}>
-      <SiteNav variant="discoverer" />
+      <SiteNav variant="discoverer" forcePublic={navMode === 'public'} />
       {showSubNav && (
         <div className="max-w-7xl mx-auto px-4 md:px-10 pt-4">
           {backFallback && (

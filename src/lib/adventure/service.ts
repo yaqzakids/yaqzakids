@@ -1,4 +1,8 @@
 import { supabase } from '../supabase'
+import {
+  applyPathArticleProgression,
+  findNextAvailablePathArticle,
+} from './articleProgression'
 import type {
   AdventureArticle,
   AdventurePath,
@@ -14,6 +18,44 @@ import type {
   Pillar,
   QuizQuestion,
 } from './types'
+
+export type ArticlePathAccessResult =
+  | {
+      allowed: true
+      reason: null
+      articleTitle?: string
+      pathTitle?: string
+    }
+  | {
+      allowed: false
+      reason: 'premium' | 'sequential' | 'not_found'
+      articleTitle?: string
+      pathTitle?: string
+      pathSlug?: string
+      previousArticle?: { title: string; slug: string }
+    }
+
+async function fetchPathArticlesForPaths(pathIds: string[]) {
+  if (pathIds.length === 0) return []
+  const { data, error } = await supabase
+    .from('path_articles')
+    .select('*, article:articles(id, title, slug)')
+    .in('adventure_path_id', pathIds)
+    .order('sort_order')
+  if (error) throw error
+  return data ?? []
+}
+
+async function fetchArticleProgressMap(childId: string, articleIds: string[]) {
+  if (articleIds.length === 0) return {} as Record<string, import('./types').ArticleProgress>
+  const { data, error } = await supabase
+    .from('article_progress')
+    .select('*')
+    .eq('child_profile_id', childId)
+    .in('article_id', articleIds)
+  if (error) throw error
+  return Object.fromEntries((data ?? []).map((row) => [row.article_id, row]))
+}
 
 export async function isPaidMember(userId: string): Promise<boolean> {
   const { data, error } = await supabase.rpc('is_paid_member', { p_user_id: userId })
@@ -77,13 +119,44 @@ export async function fetchPathsWithProgress(
 
   const paid = userId ? await isPaidMember(userId) : false
 
-  const paths: PathWithProgress[] = (pathsRes.data ?? []).map((p) => ({
+  let enrichedPaths: PathWithProgress[] = (pathsRes.data ?? []).map((p) => ({
     ...p,
     pillar: p.pillar as Pillar,
     badge: p.badge as Badge | null,
     path_progress: progressMap[p.id] ?? null,
     accessible: p.is_free || paid,
   }))
+
+  if (childId && enrichedPaths.length > 0) {
+    const pathIds = enrichedPaths.map((path) => path.id)
+    const allPathArticles = await fetchPathArticlesForPaths(pathIds)
+    const articleIds = [...new Set(allPathArticles.map((item) => item.article_id))]
+    const articleProgress = await fetchArticleProgressMap(childId, articleIds)
+
+    enrichedPaths = enrichedPaths.map((path) => {
+      const pathArticles = allPathArticles.filter((item) => item.adventure_path_id === path.id)
+      const articlesWithProgress = applyPathArticleProgression(
+        pathArticles,
+        articleProgress,
+        path.accessible,
+      )
+      const nextArticle = findNextAvailablePathArticle(articlesWithProgress)
+
+      return {
+        ...path,
+        lessonCount: pathArticles.length || path.path_progress?.total_articles || 0,
+        nextArticleTitle: nextArticle?.article?.title ?? null,
+      }
+    })
+  } else {
+    enrichedPaths = enrichedPaths.map((path) => ({
+      ...path,
+      lessonCount: path.path_progress?.total_articles ?? 0,
+      nextArticleTitle: null,
+    }))
+  }
+
+  const paths: PathWithProgress[] = enrichedPaths
 
   return { pillars: pillarsRes.data ?? [], paths }
 }
@@ -136,19 +209,61 @@ export async function fetchPathDetail(
     pathProgress = pp
   }
 
-  const articles: PathArticleWithProgress[] = (pathArticles ?? []).map((pa) => {
-    const prog = articleProgress[pa.article_id]
-    const complete = Boolean(prog?.read_completed && prog?.quiz_passed)
-    return {
-      ...pa,
-      article: pa.article as AdventureArticle,
-      progress: prog ?? null,
-      locked: !accessible,
-      complete,
-    }
-  })
+  const articles: PathArticleWithProgress[] = applyPathArticleProgression(
+    pathArticles ?? [],
+    articleProgress,
+    accessible,
+  )
 
   return { path: path as AdventurePath, articles, pathProgress, accessible }
+}
+
+export async function fetchChildArticlePathAccess(
+  pathSlug: string,
+  articleSlug: string,
+  childId: string,
+  userId: string | null,
+): Promise<ArticlePathAccessResult> {
+  const detail = await fetchPathDetail(pathSlug, childId, userId)
+  if (!detail) {
+    return { allowed: false, reason: 'not_found' }
+  }
+
+  const pathArticle = detail.articles.find((item) => item.article?.slug === articleSlug)
+  if (!pathArticle?.article) {
+    return { allowed: false, reason: 'not_found' }
+  }
+
+  if (!detail.accessible) {
+    return {
+      allowed: false,
+      reason: 'premium',
+      articleTitle: pathArticle.article.title,
+      pathTitle: detail.path.title,
+      pathSlug: detail.path.slug,
+    }
+  }
+
+  if (pathArticle.locked) {
+    const previous = pathArticle.previousArticle
+    return {
+      allowed: false,
+      reason: pathArticle.lockReason === 'premium' ? 'premium' : 'sequential',
+      articleTitle: pathArticle.article.title,
+      pathTitle: detail.path.title,
+      pathSlug: detail.path.slug,
+      previousArticle: previous?.article
+        ? { title: previous.article.title, slug: previous.article.slug }
+        : undefined,
+    }
+  }
+
+  return {
+    allowed: true,
+    reason: null,
+    articleTitle: pathArticle.article.title,
+    pathTitle: detail.path.title,
+  }
 }
 
 export async function fetchAdventureArticle(

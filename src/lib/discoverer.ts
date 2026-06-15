@@ -29,6 +29,7 @@ export interface DiscovererHomepageData {
   stats: ChildStats
   childName: string
   featuredArticle: AdventureArticle | null
+  allPaths: PathWithProgress[]
   continuePaths: PathWithProgress[]
   recommendedArticles: AdventureArticle[]
   badges: ReturnType<typeof mapBadgesWithStatus>
@@ -155,6 +156,7 @@ export async function fetchDiscovererHomepageData(
     stats,
     childName,
     featuredArticle,
+    allPaths: pathsResult.paths,
     continuePaths,
     recommendedArticles,
     badges,
@@ -446,21 +448,119 @@ export async function fetchRelatedDiscovererArticles(
 }
 
 export const FAITH_CARDS = [
-  { icon: '🌟', title: 'Wonder at Creation', text: "Science helps us discover Allah's signs." },
-  { icon: '📖', title: 'Guided by Revelation', text: 'The Quran helps us understand life.' },
-  { icon: '⚡', title: 'Character in Action', text: 'Knowledge should make us better people.' },
-  { icon: '🎯', title: 'Purposeful Learning', text: 'Learning is a trust and a way to serve others.' },
+  {
+    icon: '🔭',
+    title: 'Wonder at Creation',
+    text: "Science helps us discover Allah's signs.",
+    gradient: 'from-[#1B2F5E]/10 to-[#2AAFA0]/20',
+  },
+  {
+    icon: '📖',
+    title: 'Guided by Revelation',
+    text: 'The Quran helps us understand life and purpose.',
+    gradient: 'from-[#F5A623]/15 to-[#FFF8ED]',
+  },
+  {
+    icon: '🌱',
+    title: 'Character in Action',
+    text: 'Knowledge should help us become better people.',
+    gradient: 'from-[#4AAE8A]/15 to-[#ECFDF5]',
+  },
+  {
+    icon: '🏮',
+    title: 'Purposeful Learning',
+    text: 'Learning is a trust and a way to serve others.',
+    gradient: 'from-[#8B6BB1]/15 to-[#F3E8FF]',
+  },
 ] as const
 
 export const LEARNING_PATHS_HOME = [
-  { emoji: '🔬', name: 'Science & Nature', border: 'border-teal', articles: 5, slug: 'science-nature' },
-  { emoji: '🏛️', name: 'History & Civilization', border: 'border-[#F5A623]', articles: 5, slug: 'history' },
-  { emoji: '📰', name: 'Current Events', border: 'border-[#E85D4A]', articles: 5, slug: 'current-events' },
-  { emoji: '🤖', name: 'Technology & AI', border: 'border-[#8B6BB1]', articles: 5, slug: 'technology' },
-  { emoji: '🌍', name: 'Geography & Cultures', border: 'border-[#1B2F5E]', articles: 5, slug: 'geography' },
-  { emoji: '🌱', name: 'Environment', border: 'border-green-500', articles: 5, slug: 'environment' },
-  { emoji: '✨', name: 'Foundations of Faith', border: 'border-[#F5A623]', articles: 5, slug: 'faith' },
+  {
+    emoji: '✨',
+    name: 'Foundations of Faith',
+    border: 'border-[#F5A623]',
+    articles: 12,
+    slug: 'faith',
+    mission: 'Build a strong Islamic foundation through stories of prophets, values, and purpose.',
+    matchKeywords: ['faith', 'islam', 'prophet', 'revelation'],
+    gradient: 'from-[#FFF8ED] to-[#F5A623]/30',
+  },
+  {
+    emoji: '🔬',
+    name: 'Science & Nature',
+    border: 'border-teal',
+    articles: 12,
+    slug: 'science-nature',
+    mission: 'Explore animals, plants, space and the wonders of creation.',
+    matchKeywords: ['science', 'nature', 'wonder', 'creation'],
+    gradient: 'from-[#EEF4FF] to-teal/20',
+  },
+  {
+    emoji: '🏛️',
+    name: 'History & Civilization',
+    border: 'border-[#F5A623]',
+    articles: 12,
+    slug: 'history',
+    mission: 'Discover how people lived, built, and shaped the world through time.',
+    matchKeywords: ['history', 'civilization', 'ancient', 'egypt'],
+    gradient: 'from-[#FFF8ED] to-[#D4820A]/20',
+  },
+  {
+    emoji: '🌍',
+    name: 'Geography & Cultures',
+    border: 'border-[#1B2F5E]',
+    articles: 12,
+    slug: 'geography',
+    mission: 'Travel the world and learn how people, places, and cultures connect.',
+    matchKeywords: ['geography', 'culture', 'migration', 'world'],
+    gradient: 'from-[#EEF4FF] to-[#1B2F5E]/15',
+  },
+  {
+    emoji: '🤖',
+    name: 'Technology & AI',
+    border: 'border-[#8B6BB1]',
+    articles: 12,
+    slug: 'technology',
+    mission: 'Understand inventions, digital life, and how to use tech wisely.',
+    matchKeywords: ['technology', 'tech', 'ai', 'invention'],
+    gradient: 'from-[#F3E8FF] to-[#8B6BB1]/25',
+  },
+  {
+    emoji: '📰',
+    name: "Today's World",
+    border: 'border-[#E85D4A]',
+    articles: 12,
+    slug: 'current-events',
+    mission: 'Make sense of news, current events, and the world happening now.',
+    matchKeywords: ['current', 'events', 'news', 'today'],
+    gradient: 'from-[#FFF1F0] to-[#E85D4A]/20',
+  },
+  {
+    emoji: '🌱',
+    name: 'Environment & Stewardship',
+    border: 'border-green-500',
+    articles: 12,
+    slug: 'environment',
+    mission: 'Learn to care for the Earth as a trust from Allah.',
+    matchKeywords: ['environment', 'climate', 'stewardship', 'earth'],
+    gradient: 'from-[#ECFDF5] to-green-400/20',
+  },
 ] as const
+
+export type LearningPathHome = (typeof LEARNING_PATHS_HOME)[number]
+
+export function matchPathForCategory(
+  category: LearningPathHome,
+  paths: PathWithProgress[]
+): PathWithProgress | undefined {
+  return paths.find(
+    (p) =>
+      p.slug === category.slug ||
+      category.matchKeywords.some((kw) =>
+        `${p.title} ${p.description ?? ''} ${p.pillar?.name ?? ''}`.toLowerCase().includes(kw)
+      )
+  )
+}
 
 export const DISCOVERER_BADGE_DISPLAY = [
   {
@@ -519,7 +619,7 @@ export const DISCOVERER_PATH_FILTERS = [
   { id: 'all', label: 'All' },
   { id: 'science', label: 'Science' },
   { id: 'history', label: 'History' },
-  { id: 'current', label: 'Current Events' },
+  { id: 'current', label: "Today's World" },
   { id: 'technology', label: 'Technology' },
   { id: 'geography', label: 'Geography' },
   { id: 'environment', label: 'Environment' },

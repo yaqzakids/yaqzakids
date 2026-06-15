@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { SiteNav } from '@/components/SiteNav'
-import { SiteFooter } from '@/components/SiteFooter'
+import PublicLayout from '@/components/layout/PublicLayout'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { fetchSampleDiscovererArticles } from '@/lib/discoverer'
 import type { AdventureArticle } from '@/lib/adventure/types'
@@ -37,9 +36,8 @@ export default function SampleStoriesPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#EEF4FF] page-transition flex flex-col">
+    <PublicLayout>
       <PageSeo {...PAGE_SEO_PRESETS.sampleStories} path="/sample-stories" />
-      <SiteNav variant="discoverer" />
       <div className="max-w-7xl mx-auto px-6 md:px-10 py-10">
         <p className="text-[#2AAFA0] text-xs font-extrabold tracking-widest uppercase mb-2">
           Free preview
@@ -108,7 +106,6 @@ export default function SampleStoriesPage() {
           <p className="text-[#6B7280]">Sample stories coming soon.</p>
         )}
       </div>
-      <SiteFooter variant="light" />
-    </div>
+    </PublicLayout>
   )
 }

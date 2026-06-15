@@ -80,10 +80,7 @@ export async function navigateAfterAuth(
 
   const { data: isAdmin } = await supabase.rpc('is_admin')
   if (isAdmin) {
-    const safeRedirect = sanitizeRedirectPath(redirectTo)
-    const adminDest =
-      safeRedirect && safeRedirect.startsWith('/admin') ? safeRedirect : '/admin'
-    navigate(adminDest, { replace: true })
+    navigate('/admin', { replace: true })
     return
   }
 

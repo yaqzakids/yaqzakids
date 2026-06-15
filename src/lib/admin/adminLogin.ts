@@ -1,43 +1,50 @@
 import type { NavigateFunction } from 'react-router-dom'
-import { MAIN_ADMIN_EMAIL, SITE_EMAILS } from '@/lib/constants'
-import { REDIRECT_PARAM, sanitizeRedirectPath } from '@/lib/navigation'
-import { checkIsAdmin, linkAdminUserAccount } from '@/lib/admin/adminUsers'
+import { MAIN_ADMIN_EMAIL } from '@/lib/constants'
+import {
+  checkIsActiveAdmin,
+  checkMustChangePassword,
+  clearMustChangePassword,
+  isMainAdminEmail,
+  linkAdminUserAccount,
+  recordAdminLogin,
+} from '@/lib/admin/adminUsers'
 import { supabase } from '@/lib/supabase'
-
-export const ADMIN_LOGIN_EMAILS = [MAIN_ADMIN_EMAIL, SITE_EMAILS.admin] as const
 
 export function normalizeEmail(email: string | null | undefined): string {
   return (email ?? '').trim().toLowerCase()
 }
 
-export function isAuthorizedAdminLoginEmail(email: string | null | undefined): boolean {
-  const normalized = normalizeEmail(email)
-  return ADMIN_LOGIN_EMAILS.some((allowed) => allowed === normalized)
-}
-
-/** True when login was opened for /admin (e.g. /login?redirectTo=/admin). */
-export function isAdminLoginMode(search: string, redirectTo: string | null): boolean {
-  if (redirectTo === '/admin') return true
-  const raw = new URLSearchParams(search).get(REDIRECT_PARAM)
-  if (!raw) return false
-  return sanitizeRedirectPath(raw) === '/admin'
-}
-
-export async function completeAdminLogin(navigate: NavigateFunction): Promise<'success' | 'denied'> {
+export async function completeAdminLogin(navigate: NavigateFunction): Promise<'success' | 'denied' | 'change-password'> {
   await linkAdminUserAccount()
-  const isAdmin = await checkIsAdmin()
-  if (isAdmin) {
-    navigate('/admin', { replace: true })
-    return 'success'
+  const isAdmin = await checkIsActiveAdmin()
+  if (!isAdmin) {
+    await supabase.auth.signOut()
+    return 'denied'
   }
-  await supabase.auth.signOut()
-  return 'denied'
+
+  await recordAdminLogin()
+
+  const mustChange = await checkMustChangePassword()
+  if (mustChange && !isMainAdminEmail((await supabase.auth.getUser()).data.user?.email)) {
+    navigate('/admin/change-password', { replace: true })
+    return 'change-password'
+  }
+
+  navigate('/admin', { replace: true })
+  return 'success'
+}
+
+export async function completeAdminPasswordChange(
+  newPassword: string,
+  navigate: NavigateFunction
+): Promise<void> {
+  const { error } = await supabase.auth.updateUser({ password: newPassword })
+  if (error) throw error
+  await clearMustChangePassword()
+  navigate('/admin', { replace: true })
 }
 
 export const ADMIN_LOGIN_DENIED_MESSAGE =
-  'You do not have permission to access this page.'
+  'This account is not authorized for admin access.'
 
-export const ADMIN_LOGIN_UNAUTHORIZED_EMAIL_MESSAGE =
-  'This email is not authorized for admin access.'
-
-export const ADMIN_FORGOT_PASSWORD_MESSAGE = `Forgot password? Contact ${MAIN_ADMIN_EMAIL} or ${SITE_EMAILS.admin}.`
+export const ADMIN_FORGOT_PASSWORD_MESSAGE = `Need help? Contact ${MAIN_ADMIN_EMAIL}.`

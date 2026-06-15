@@ -175,7 +175,11 @@ export default function AdminPathEditorPage() {
 
       {!isNew && id && (
         <div style={{ ...adminCard, marginTop: 16 }}>
-          <h3 className="font-bold mb-4">Articles in Path</h3>
+          <h3 className="font-bold mb-2">Articles in Path</h3>
+          <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4">
+            Articles unlock in this order for children. Lesson 1 is always available; each next lesson
+            unlocks after the previous lesson is completed with a quiz score of 70% or higher.
+          </p>
           <div className="mb-4 relative">
             <input style={adminInput} placeholder="Search articles to add…" value={articleSearch} onChange={(e) => setArticleSearch(e.target.value)} />
             {searchResults.length > 0 && (
@@ -203,7 +207,10 @@ export default function AdminPathEditorPage() {
                   className="flex items-center gap-3 p-3 bg-gray-50 rounded-md border border-gray-200"
                 >
                   <span className="cursor-grab text-gray-400">⠿</span>
-                  <span className="text-sm text-gray-500 w-6">{idx + 1}</span>
+                  <span className="text-sm text-gray-500 w-6" title="Unlock order">
+                    #{idx + 1}
+                  </span>
+                  <span className="text-xs text-gray-400 w-16">Order {pa.sort_order}</span>
                   <span className="flex-1 text-sm font-medium">{pa.article?.title ?? pa.article_id}</span>
                   <button type="button" style={adminBtn.danger} onClick={() => handleRemove(pa.id)}>Remove</button>
                 </li>

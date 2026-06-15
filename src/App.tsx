@@ -58,7 +58,9 @@ import AdminPayments from './pages/admin/AdminPayments'
 import AdminSupportPage from './pages/admin/AdminSupportPage'
 import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage'
 import AdminSettingsPage from './pages/admin/AdminSettingsPage'
-import AdminAdminUsersPage from './pages/admin/AdminAdminUsersPage'
+import AdminTeamPage from './pages/admin/AdminTeamPage'
+import AdminLoginPage from './pages/admin/AdminLoginPage'
+import AdminChangePasswordPage from './pages/admin/AdminChangePasswordPage'
 import AdminLogPage from './pages/admin/AdminLogPage'
 import AdminQuizzesPage from './pages/admin/AdminQuizzesPage'
 import AdminQuizEditorPage from './pages/admin/AdminQuizEditorPage'
@@ -183,10 +185,14 @@ export default function App() {
           <Route path="/article/:id" element={<ArticleReader />} />
           <Route path="/parent/dashboard" element={<ParentRoute><Dashboard /></ParentRoute>} />
           <Route path="/parent/account" element={<ParentRoute><ParentAccountSettingsPage /></ParentRoute>} />
+          <Route path="/account/settings" element={<Navigate to="/parent/account" replace />} />
           <Route path="/dashboard" element={<Navigate to="/parent/dashboard" replace />} />
           <Route path="/support" element={<ParentRoute><SupportPage /></ParentRoute>} />
           <Route path="/messages" element={<ParentRoute><MessagesPage /></ParentRoute>} />
           <Route path="/child-dashboard" element={<ProtectedRoute><ChildDashboard /></ProtectedRoute>} />
+
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin/change-password" element={<AdminChangePasswordPage />} />
 
           <Route path="/admin" element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
@@ -199,7 +205,8 @@ export default function App() {
               <Route path="analytics" element={<AdminAnalyticsPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
               <Route path="settings/profile" element={<AdminProfileSettingsPage />} />
-              <Route path="admin-users" element={<AdminAdminUsersPage />} />
+              <Route path="team" element={<AdminTeamPage />} />
+              <Route path="admin-users" element={<Navigate to="/admin/team" replace />} />
               <Route path="log" element={<AdminLogPage />} />
               <Route path="quizzes" element={<AdminQuizzesPage />} />
               <Route path="quizzes/:articleId" element={<AdminQuizEditorPage />} />
@@ -209,7 +216,7 @@ export default function App() {
               <Route path="announcements" element={<AdminAnnouncementsPage />} />
               <Route
                 path="roles"
-                element={<Navigate to="/admin/admin-users" replace />}
+                element={<Navigate to="/admin/team" replace />}
               />
               {/* Legacy direct routes preserved */}
               <Route path="articles" element={<AdminArticlesPage />} />
