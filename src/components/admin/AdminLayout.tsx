@@ -302,7 +302,7 @@ export default function AdminLayout() {
 
           <div className="p-4 border-t border-white/10 space-y-2 shrink-0">
             <Link
-              to="/"
+              to="/welcome"
               className="flex items-center justify-center gap-2 w-full py-2.5 px-3 text-sm font-semibold rounded-lg no-underline transition-colors"
               style={{ background: 'rgba(255,255,255,0.08)', color: '#fff' }}
             >
