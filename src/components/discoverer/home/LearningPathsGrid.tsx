@@ -5,6 +5,7 @@ import {
   matchPathForCategory,
   type LearningPathHome,
 } from '@/lib/discoverer'
+import { learningPathDetailUrl } from '@/lib/learningPaths'
 import type { PathWithProgress } from '@/lib/adventure/types'
 
 function PathCategoryCard({
@@ -23,8 +24,8 @@ function PathCategoryCard({
   const pct = livePath?.path_progress?.completion_percentage ?? 0
   const hasProgress = completedLessons > 0 || pct > 0
   const pathSlug = livePath?.slug ?? category.slug
-  const ctaTo = isSignedIn ? `/adventures/${pathSlug}` : '/signup'
-  const ctaLabel = isSignedIn ? (hasProgress ? 'Continue →' : 'Start →') : 'Start Free →'
+  const ctaTo = learningPathDetailUrl(pathSlug)
+  const ctaLabel = isSignedIn ? (hasProgress ? 'Continue →' : 'Start →') : 'Explore →'
 
   if (scenic) {
     return (

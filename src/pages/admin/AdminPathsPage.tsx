@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { deleteAdminPath, fetchAdminPaths, type AdminPathListItem } from '@/lib/admin/paths'
+import { LEARNING_PATHS } from '@/lib/learningPaths'
 import { adminBtn, adminCard, adminTableTd, adminTableTh } from '@/lib/admin/styles'
 import { TableSkeleton } from '@/components/admin/AdminSkeleton'
 import EmptyState from '@/components/admin/EmptyState'
@@ -23,6 +24,29 @@ export default function AdminPathsPage() {
 
   return (
     <div>
+      <div style={{ ...adminCard, marginBottom: 16 }}>
+        <h2 className="font-bold text-lg m-0 mb-2">Public learning paths</h2>
+        <p className="text-sm text-gray-600 m-0 mb-4">
+          These are the 7 marketing paths linked from the navbar. Edit the matching adventure path below or assign a public slug in the editor.
+        </p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {LEARNING_PATHS.map((p) => (
+            <div key={p.slug} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+              <div className="font-semibold text-sm">{p.icon} {p.name}</div>
+              <div className="text-xs text-gray-500 mt-1">/paths/{p.slug}</div>
+              <a
+                href={`/paths/${p.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ ...adminBtn.secondary, textDecoration: 'none', display: 'inline-block', marginTop: 8, fontSize: 12 }}
+              >
+                Preview public page
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="flex justify-end mb-4">
         <button type="button" style={adminBtn.primary} onClick={() => navigate('/admin/paths/new')}>+ New Path</button>
       </div>

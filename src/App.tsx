@@ -35,6 +35,7 @@ import HeroMatchPage from './pages/games/HeroMatchPage'
 import LibraryPage from './pages/discoverer/LibraryPage'
 import SampleStoriesPage from './pages/SampleStoriesPage'
 import PathsPage from './pages/PathsPage'
+import PathDetailPage from './pages/PathDetailPage'
 import ParentsPage from './pages/ParentsPage'
 import ProfilePage from './pages/discoverer/ProfilePage'
 import StreaksPage from './pages/discoverer/StreaksPage'
@@ -221,13 +222,7 @@ export default function App() {
           <Route path="/discoverer/explore" element={<ChildExperienceRoute><ExplorePage /></ChildExperienceRoute>} />
           <Route path="/sample-stories" element={<SampleStoriesPage />} />
           <Route path="/paths" element={<PathsPage />} />
-          <Route path="/paths/foundations-of-faith" element={<Navigate to="/adventures/faith" replace />} />
-          <Route path="/paths/science-nature" element={<Navigate to="/adventures/science-nature" replace />} />
-          <Route path="/paths/history-civilization" element={<Navigate to="/adventures/history" replace />} />
-          <Route path="/paths/geography-cultures" element={<Navigate to="/adventures/geography" replace />} />
-          <Route path="/paths/technology-ai" element={<Navigate to="/adventures/technology" replace />} />
-          <Route path="/paths/todays-world" element={<Navigate to="/adventures/current-events" replace />} />
-          <Route path="/paths/environment-stewardship" element={<Navigate to="/adventures/environment" replace />} />
+          <Route path="/paths/:pathSlug" element={<PathDetailPage />} />
           <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/explore" element={<PublicExplorePage />} />
           <Route path="/games" element={<GamesPage />} />

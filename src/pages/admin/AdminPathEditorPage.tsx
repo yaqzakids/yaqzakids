@@ -14,6 +14,7 @@ import {
   type PathArticleItem,
 } from '@/lib/admin/paths'
 import { fetchAdminPillars } from '@/lib/admin/articles'
+import { LEARNING_PATHS } from '@/lib/learningPaths'
 import { adminBtn, adminCard, adminInput, adminTextarea } from '@/lib/admin/styles'
 import { slugify } from '@/lib/admin/utils'
 import { CardSkeleton } from '@/components/admin/AdminSkeleton'
@@ -22,13 +23,22 @@ import type { Pillar } from '@/lib/adventure/types'
 const emptyForm = (): AdminPathForm => ({
   title: '',
   slug: '',
+  public_slug: '',
   description: '',
+  full_description: '',
+  mission_statement: '',
+  icon: '',
   pillar_id: '',
   difficulty_level: 'easy',
   is_free: true,
   cover_image_url: '',
   sort_order: 0,
   badge_reward_id: null,
+  status: 'published',
+  is_featured: false,
+  age_groups: ['explorer', 'discoverer', 'thinker'],
+  certificate_enabled: false,
+  certificate_title: '',
 })
 
 export default function AdminPathEditorPage() {
@@ -61,13 +71,22 @@ export default function AdminPathEditorPage() {
         setForm({
           title: path.title,
           slug: path.slug,
+          public_slug: (path as { public_slug?: string }).public_slug ?? '',
           description: path.description ?? '',
+          full_description: (path as { full_description?: string }).full_description ?? '',
+          mission_statement: (path as { mission_statement?: string }).mission_statement ?? '',
+          icon: (path as { icon?: string }).icon ?? '',
           pillar_id: path.pillar_id,
           difficulty_level: path.difficulty_level,
           is_free: path.is_free,
           cover_image_url: path.cover_image_url ?? '',
           sort_order: path.sort_order,
           badge_reward_id: path.badge_reward_id,
+          status: ((path as { status?: AdminPathForm['status'] }).status ?? 'published'),
+          is_featured: Boolean((path as { is_featured?: boolean }).is_featured),
+          age_groups: (path as { age_groups?: string[] }).age_groups ?? ['explorer', 'discoverer', 'thinker'],
+          certificate_enabled: Boolean((path as { certificate_enabled?: boolean }).certificate_enabled),
+          certificate_title: (path as { certificate_title?: string }).certificate_title ?? '',
         })
         setPathArticles(articles)
       })
@@ -139,13 +158,33 @@ export default function AdminPathEditorPage() {
       <div style={adminCard}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className="block text-sm font-semibold mb-1">Title</label><input style={adminInput} value={form.title} onChange={(e) => setField('title', e.target.value)} /></div>
-          <div><label className="block text-sm font-semibold mb-1">Slug</label><input style={adminInput} value={form.slug} onChange={(e) => setField('slug', e.target.value)} /></div>
-          <div className="md:col-span-2"><label className="block text-sm font-semibold mb-1">Description</label><textarea style={adminTextarea} value={form.description} onChange={(e) => setField('description', e.target.value)} /></div>
+          <div><label className="block text-sm font-semibold mb-1">Slug (adventure URL)</label><input style={adminInput} value={form.slug} onChange={(e) => setField('slug', e.target.value)} /></div>
           <div>
-            <label className="block text-sm font-semibold mb-1">Pillar</label>
+            <label className="block text-sm font-semibold mb-1">Public slug (/paths/…)</label>
+            <select style={adminInput} value={form.public_slug} onChange={(e) => setField('public_slug', e.target.value)}>
+              <option value="">None</option>
+              {LEARNING_PATHS.map((p) => (
+                <option key={p.slug} value={p.slug}>{p.name} ({p.slug})</option>
+              ))}
+            </select>
+          </div>
+          <div><label className="block text-sm font-semibold mb-1">Icon (emoji)</label><input style={adminInput} value={form.icon} onChange={(e) => setField('icon', e.target.value)} placeholder="🔬" /></div>
+          <div className="md:col-span-2"><label className="block text-sm font-semibold mb-1">Short description</label><textarea style={adminTextarea} value={form.description} onChange={(e) => setField('description', e.target.value)} /></div>
+          <div className="md:col-span-2"><label className="block text-sm font-semibold mb-1">Full description</label><textarea style={{ ...adminTextarea, minHeight: 100 }} value={form.full_description} onChange={(e) => setField('full_description', e.target.value)} /></div>
+          <div className="md:col-span-2"><label className="block text-sm font-semibold mb-1">Mission statement</label><textarea style={{ ...adminTextarea, minHeight: 80 }} value={form.mission_statement} onChange={(e) => setField('mission_statement', e.target.value)} /></div>
+          <div>
+            <label className="block text-sm font-semibold mb-1">Pillar / category</label>
             <select style={adminInput} value={form.pillar_id} onChange={(e) => setField('pillar_id', e.target.value)}>
               <option value="">Select…</option>
               {pillars.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1">Status</label>
+            <select style={adminInput} value={form.status} onChange={(e) => setField('status', e.target.value as AdminPathForm['status'])}>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
             </select>
           </div>
           <div>
@@ -156,20 +195,49 @@ export default function AdminPathEditorPage() {
               <option value="hard">Hard</option>
             </select>
           </div>
-          <div><label className="block text-sm font-semibold mb-1">Sort Order</label><input type="number" style={adminInput} value={form.sort_order} onChange={(e) => setField('sort_order', Number(e.target.value))} /></div>
-          <div><label className="block text-sm font-semibold mb-1">Cover Image URL</label><input style={adminInput} value={form.cover_image_url} onChange={(e) => setField('cover_image_url', e.target.value)} /></div>
+          <div><label className="block text-sm font-semibold mb-1">Display order</label><input type="number" style={adminInput} value={form.sort_order} onChange={(e) => setField('sort_order', Number(e.target.value))} /></div>
+          <div><label className="block text-sm font-semibold mb-1">Cover image URL</label><input style={adminInput} value={form.cover_image_url} onChange={(e) => setField('cover_image_url', e.target.value)} /></div>
           <div>
-            <label className="block text-sm font-semibold mb-1">Badge Reward</label>
+            <label className="block text-sm font-semibold mb-1">Badge reward</label>
             <select style={adminInput} value={form.badge_reward_id ?? ''} onChange={(e) => setField('badge_reward_id', e.target.value || null)}>
               <option value="">None</option>
               {badges.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1">Free Path</label>
-            <button type="button" style={adminBtn.secondary} onClick={() => setField('is_free', !form.is_free)}>{form.is_free ? 'Free ✓' : 'Paid — click for Free'}</button>
+            <label className="block text-sm font-semibold mb-1">Age groups</label>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {(['explorer', 'discoverer', 'thinker'] as const).map((age) => (
+                <label key={age} className="flex items-center gap-1 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.age_groups.includes(age)}
+                    onChange={(e) => {
+                      const next = e.target.checked
+                        ? [...form.age_groups, age]
+                        : form.age_groups.filter((a) => a !== age)
+                      setField('age_groups', next)
+                    }}
+                  />
+                  {age}
+                </label>
+              ))}
+            </div>
           </div>
+          <div className="flex flex-col gap-2">
+            <label className="block text-sm font-semibold">Options</label>
+            <button type="button" style={adminBtn.secondary} onClick={() => setField('is_free', !form.is_free)}>{form.is_free ? 'Free path ✓' : 'Premium — click for Free'}</button>
+            <button type="button" style={adminBtn.secondary} onClick={() => setField('is_featured', !form.is_featured)}>{form.is_featured ? 'Featured ✓' : 'Not featured'}</button>
+            <button type="button" style={adminBtn.secondary} onClick={() => setField('certificate_enabled', !form.certificate_enabled)}>{form.certificate_enabled ? 'Certificate enabled ✓' : 'Certificate off'}</button>
+          </div>
+          <div><label className="block text-sm font-semibold mb-1">Certificate title</label><input style={adminInput} value={form.certificate_title} onChange={(e) => setField('certificate_title', e.target.value)} disabled={!form.certificate_enabled} /></div>
         </div>
+        {!isNew && form.public_slug && (
+          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
+            <a href={`/paths/${form.public_slug}`} target="_blank" rel="noreferrer" style={{ ...adminBtn.secondary, textDecoration: 'none' }}>Preview public page</a>
+            <a href={`/paths/${form.public_slug}`} target="_blank" rel="noreferrer" style={{ ...adminBtn.secondary, textDecoration: 'none' }}>Preview child view (when signed in)</a>
+          </div>
+        )}
         <button type="button" style={{ ...adminBtn.primary, marginTop: 16 }} disabled={saving} onClick={handleSave}>{saving ? 'Saving…' : 'Save Path'}</button>
       </div>
 

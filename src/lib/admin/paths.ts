@@ -20,13 +20,22 @@ export interface AdminPathListItem {
 export interface AdminPathForm {
   title: string
   slug: string
+  public_slug: string
   description: string
+  full_description: string
+  mission_statement: string
+  icon: string
   pillar_id: string
   difficulty_level: 'easy' | 'medium' | 'hard'
   is_free: boolean
   cover_image_url: string
   sort_order: number
   badge_reward_id: string | null
+  status: 'draft' | 'published' | 'archived'
+  is_featured: boolean
+  age_groups: string[]
+  certificate_enabled: boolean
+  certificate_title: string
 }
 
 export interface PathArticleItem {
@@ -89,13 +98,22 @@ export async function createAdminPath(form: AdminPathForm): Promise<string> {
   const { data, error } = await supabase.from('adventure_paths').insert({
     title: form.title,
     slug: form.slug,
+    public_slug: form.public_slug || null,
     description: form.description || null,
+    full_description: form.full_description || null,
+    mission_statement: form.mission_statement || null,
+    icon: form.icon || null,
     pillar_id: form.pillar_id,
     difficulty_level: form.difficulty_level,
     is_free: form.is_free,
     cover_image_url: form.cover_image_url || null,
     sort_order: form.sort_order,
     badge_reward_id: form.badge_reward_id || null,
+    status: form.status,
+    is_featured: form.is_featured,
+    age_groups: form.age_groups,
+    certificate_enabled: form.certificate_enabled,
+    certificate_title: form.certificate_title || null,
   }).select('id').single()
   if (error) throw error
   await logAdminAction('path_created', 'path', data.id, { title: form.title })
@@ -106,13 +124,22 @@ export async function updateAdminPath(id: string, form: AdminPathForm): Promise<
   const { error } = await supabase.from('adventure_paths').update({
     title: form.title,
     slug: form.slug,
+    public_slug: form.public_slug || null,
     description: form.description || null,
+    full_description: form.full_description || null,
+    mission_statement: form.mission_statement || null,
+    icon: form.icon || null,
     pillar_id: form.pillar_id,
     difficulty_level: form.difficulty_level,
     is_free: form.is_free,
     cover_image_url: form.cover_image_url || null,
     sort_order: form.sort_order,
     badge_reward_id: form.badge_reward_id || null,
+    status: form.status,
+    is_featured: form.is_featured,
+    age_groups: form.age_groups,
+    certificate_enabled: form.certificate_enabled,
+    certificate_title: form.certificate_title || null,
   }).eq('id', id)
   if (error) throw error
   await logAdminAction('path_updated', 'path', id, { title: form.title })
