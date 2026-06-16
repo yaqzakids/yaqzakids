@@ -6,7 +6,7 @@ import {
 import type { AgeGroup, ChildProfile } from '@/lib/types'
 
 export const PUBLIC_NAV_LINKS = [
-  { label: 'Discover', to: '/discoverer' },
+  { label: 'Games', to: '/games' },
   { label: 'Learning Paths', to: '/paths' },
   { label: 'Pricing', to: '/pricing' },
   { label: 'About', to: '/about' },
@@ -94,6 +94,7 @@ export const NAVBAR_HIDDEN_PREFIXES = [
 ] as const
 
 export function shouldShowGlobalNavbar(pathname: string): boolean {
+  if (pathname === '/' || pathname === '/welcome') return false
   return !NAVBAR_HIDDEN_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   )

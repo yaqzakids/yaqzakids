@@ -26,9 +26,11 @@ const SelectedChildContext = createContext<SelectedChildContextValue | null>(nul
 function persistActiveChild(child: ChildProfile | null) {
   if (child) {
     localStorage.setItem(STORAGE_KEYS.selectedChildId, child.id)
+    localStorage.setItem(STORAGE_KEYS.activeChild, child.id)
     localStorage.setItem(APP_STORAGE_KEYS.ageGroup, child.age_group)
   } else {
     localStorage.removeItem(STORAGE_KEYS.selectedChildId)
+    localStorage.removeItem(STORAGE_KEYS.activeChild)
   }
 }
 
@@ -101,6 +103,7 @@ export function SelectedChildProvider({ children: node }: { children: ReactNode 
   const clearActiveChild = () => {
     setSelectedChild(null)
     localStorage.removeItem(STORAGE_KEYS.selectedChildId)
+    localStorage.removeItem(STORAGE_KEYS.activeChild)
     localStorage.removeItem(APP_STORAGE_KEYS.ageGroup)
   }
 

@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom'
-import { PRICING_PLANS } from '../../lib/constants'
+import type { PricingPlanDisplay } from '@/lib/platform/subscriptionPlans'
 
 type PricingVariant = 'explorer' | 'discoverer' | 'thinker'
 
 interface PricingProps {
   variant?: PricingVariant
+  plans?: PricingPlanDisplay[]
 }
 
-export default function Pricing({ variant = 'explorer' }: PricingProps) {
+export default function Pricing({ variant = 'explorer', plans }: PricingProps) {
   const isDark = variant === 'thinker'
+  const displayPlans = plans ?? []
 
   const buttonClasses = (style: string) => {
     const map: Record<string, string> = {
@@ -33,7 +35,7 @@ export default function Pricing({ variant = 'explorer' }: PricingProps) {
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-[1100px] mx-auto">
-        {PRICING_PLANS.map((plan) => (
+        {displayPlans.map((plan) => (
           <div
             key={plan.id}
             className={`rounded-[20px] p-7 ${isDark ? 'bg-[#243B6E]' : 'bg-white'} ${plan.borderColor}`}
@@ -42,12 +44,13 @@ export default function Pricing({ variant = 'explorer' }: PricingProps) {
               {plan.badge}
             </span>
             <h3 className={`font-display text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-navy'}`}>{plan.name}</h3>
+            {plan.description && (
+              <p className={`text-sm mb-3 ${isDark ? 'text-white/60' : 'text-muted'}`}>{plan.description}</p>
+            )}
             <div className="mb-4">
               <span className={`text-2xl font-extrabold ${isDark ? 'text-gold' : 'text-navy'}`}>{plan.price}</span>
               {plan.period && <span className={`text-sm ${isDark ? 'text-white/60' : 'text-muted'}`}>{plan.period}</span>}
-              {'save' in plan && plan.save && (
-                <span className="block text-sm text-coral font-bold mt-1">{plan.save}</span>
-              )}
+              {plan.save && <span className="block text-sm text-coral font-bold mt-1">{plan.save}</span>}
             </div>
             <ul className="space-y-2 mb-6">
               {plan.features.map((f) => (

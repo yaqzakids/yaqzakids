@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 /** Clear persisted child/session selection before or after Supabase sign-out. */
 export function clearPersistedChildSession(): void {
   localStorage.removeItem(ADVENTURE_STORAGE_KEYS.selectedChildId)
+  localStorage.removeItem(ADVENTURE_STORAGE_KEYS.activeChild)
   localStorage.removeItem(APP_STORAGE_KEYS.ageGroup)
 }
 

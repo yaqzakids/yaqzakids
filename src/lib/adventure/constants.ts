@@ -10,6 +10,7 @@ export const QUIZ_PASSING_SCORE = 70
 
 export const STORAGE_KEYS = {
   selectedChildId: 'yaqza_selected_child_id',
+  activeChild: 'yaqza_active_child',
   parentPinPrefix: 'yaqza_parent_pin_',
   parentUnlockUntil: 'yaqza_parent_unlock_until',
 } as const

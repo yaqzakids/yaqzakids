@@ -58,7 +58,8 @@ const navSections: NavSection[] = [
     title: 'Payments',
     items: [
       { to: '/admin/payments', label: 'Payments & Access', icon: '💳' },
-      { to: '/admin/discounts', label: 'Discount Codes', icon: '🏷️' },
+      { to: '/admin/pricing', label: 'Pricing & Plans', icon: '🏷️' },
+      { to: '/admin/discounts', label: 'Discount Codes', icon: '🎟️' },
       { to: '/admin/refunds', label: 'Refunds', icon: '↩️' },
     ],
   },
@@ -93,6 +94,7 @@ const titles: Record<string, string> = {
   '/admin/families': 'Users & Families',
   '/admin/progress': 'Progress',
   '/admin/payments': 'Payments & Access',
+  '/admin/pricing': 'Pricing & Plans',
   '/admin/refunds': 'Refunds',
   '/admin/support': 'Support',
   '/admin/messages': 'Messages',

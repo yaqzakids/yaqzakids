@@ -2,25 +2,21 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useSelectedChild } from '@/context/SelectedChildContext'
-
-const PATHS = [
-  { name: 'Foundations of Faith', slug: 'foundations-of-faith' },
-  { name: 'Science & Nature', slug: 'science-nature' },
-  { name: 'History & Civilization', slug: 'history-civilization' },
-  { name: 'Geography & Cultures', slug: 'geography-cultures' },
-  { name: 'Technology & AI', slug: 'technology-ai' },
-  { name: "Today's World", slug: 'todays-world' },
-  { name: 'Environment & Stewardship', slug: 'environment-stewardship' },
-]
+import { LEARNING_PATHS } from '@/lib/learningPaths'
+import { GAMES } from '@/lib/games'
 
 export default function Navbar() {
   const navigate = useNavigate()
   const { selectedChild: activeChild, clearActiveChild } = useSelectedChild()
   const [user, setUser] = useState<{ id: string } | null>(null)
-  const [exploreOpen, setExploreOpen] = useState(false)
+  const [pathsOpen, setPathsOpen] = useState(false)
+  const [gamesOpen, setGamesOpen] = useState(false)
+  const [mobilePathsOpen, setMobilePathsOpen] = useState(false)
+  const [mobileGamesOpen, setMobileGamesOpen] = useState(false)
   const [avatarOpen, setAvatarOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const exploreRef = useRef<HTMLDivElement>(null)
+  const pathsRef = useRef<HTMLDivElement>(null)
+  const gamesRef = useRef<HTMLDivElement>(null)
   const avatarRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -34,13 +30,24 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
+    if (!pathsOpen && !gamesOpen && !avatarOpen) return
+
     function handleClick(e: MouseEvent) {
-      if (exploreRef.current && !exploreRef.current.contains(e.target as Node)) setExploreOpen(false)
-      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) setAvatarOpen(false)
+      const target = e.target as Node
+      if (pathsRef.current && !pathsRef.current.contains(target)) setPathsOpen(false)
+      if (gamesRef.current && !gamesRef.current.contains(target)) setGamesOpen(false)
+      if (avatarRef.current && !avatarRef.current.contains(target)) setAvatarOpen(false)
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+
+    const timer = window.setTimeout(() => {
+      document.addEventListener('click', handleClick)
+    }, 0)
+
+    return () => {
+      window.clearTimeout(timer)
+      document.removeEventListener('click', handleClick)
+    }
+  }, [pathsOpen, gamesOpen, avatarOpen])
 
   const handleSignOut = async () => {
     clearActiveChild()
@@ -60,17 +67,188 @@ export default function Navbar() {
     border: 'none',
   } as const
 
-  const dropdownStyle = {
+  const pathsDropdownPanelStyle = {
+    background: '#fff',
+    borderRadius: '12px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+    minWidth: '340px',
+    padding: '8px',
+  }
+
+  const pathsDropdownShellStyle = {
     position: 'absolute' as const,
     top: '100%',
     left: 0,
+    paddingTop: '4px',
+    zIndex: 1100,
+  }
+
+  const pathDropItem = {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '12px',
+    padding: '12px',
+    borderRadius: '8px',
+    textDecoration: 'none',
+    cursor: 'pointer',
+    transition: 'background 0.15s',
+  }
+
+  const renderPathsDropdown = (onNavigate: () => void) => (
+    <div style={pathsDropdownPanelStyle}>
+      {LEARNING_PATHS.map((p) => (
+        <Link
+          key={p.slug}
+          to={`/paths/${p.slug}`}
+          style={pathDropItem}
+          onClick={onNavigate}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#F9FAFB'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+          }}
+        >
+          <span style={{ fontSize: '22px', lineHeight: 1, flexShrink: 0 }}>{p.icon}</span>
+          <div>
+            <div
+              style={{
+                fontFamily: 'Nunito, sans-serif',
+                fontSize: '14px',
+                fontWeight: 700,
+                color: p.color,
+                marginBottom: '2px',
+              }}
+            >
+              {p.name}
+            </div>
+            <div
+              style={{
+                fontFamily: 'Nunito, sans-serif',
+                fontSize: '12px',
+                fontWeight: 500,
+                color: '#6B7280',
+                lineHeight: 1.4,
+              }}
+            >
+              {p.description}
+            </div>
+          </div>
+        </Link>
+      ))}
+    </div>
+  )
+
+  const renderGamesDropdown = (onNavigate: () => void) => (
+    <div style={{ ...pathsDropdownPanelStyle, boxShadow: '0 10px 40px rgba(0,0,0,0.15)' }}>
+      {GAMES.map((game) => (
+        <Link
+          key={game.slug}
+          to={`/games/${game.slug}`}
+          style={pathDropItem}
+          onClick={onNavigate}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#F9FAFB'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+          }}
+        >
+          <span style={{ fontSize: '28px', lineHeight: 1, flexShrink: 0 }}>{game.icon}</span>
+          <div>
+            <div
+              style={{
+                fontFamily: 'Nunito, sans-serif',
+                fontSize: '14px',
+                fontWeight: 700,
+                color: '#1B2F5E',
+                marginBottom: '2px',
+              }}
+            >
+              {game.name}
+            </div>
+            <div
+              style={{
+                fontFamily: 'Nunito, sans-serif',
+                fontSize: '12px',
+                fontWeight: 500,
+                color: '#6B7280',
+                lineHeight: 1.4,
+              }}
+            >
+              {game.description}
+            </div>
+          </div>
+        </Link>
+      ))}
+      <div style={{ height: '1px', background: '#E5E7EB', margin: '4px 8px' }} />
+      <Link
+        to="/games"
+        style={{
+          ...pathDropItem,
+          justifyContent: 'center',
+          color: '#2AAFA0',
+          fontFamily: 'Nunito, sans-serif',
+          fontSize: '13px',
+          fontWeight: 700,
+        }}
+        onClick={onNavigate}
+      >
+        View All Games →
+      </Link>
+    </div>
+  )
+
+  const renderGamesNavButton = (onNavigate: () => void) => (
+    <div
+      ref={gamesRef}
+      style={{ position: 'relative' }}
+      onMouseEnter={() => setGamesOpen(true)}
+      onMouseLeave={() => setGamesOpen(false)}
+    >
+      <button
+        type="button"
+        style={{ ...navLink, display: 'flex', alignItems: 'center', gap: '4px' }}
+        onClick={() => setGamesOpen(true)}
+        aria-expanded={gamesOpen}
+        aria-haspopup="true"
+      >
+        Games <span style={{ fontSize: '10px' }}>▼</span>
+      </button>
+      {gamesOpen && (
+        <div style={pathsDropdownShellStyle}>{renderGamesDropdown(onNavigate)}</div>
+      )}
+    </div>
+  )
+
+  const renderPathsNavButton = (onNavigate: () => void) => (
+    <div
+      ref={pathsRef}
+      style={{ position: 'relative' }}
+      onMouseEnter={() => setPathsOpen(true)}
+      onMouseLeave={() => setPathsOpen(false)}
+    >
+      <button
+        type="button"
+        style={{ ...navLink, display: 'flex', alignItems: 'center', gap: '4px' }}
+        onClick={() => setPathsOpen(true)}
+        aria-expanded={pathsOpen}
+        aria-haspopup="true"
+      >
+        Learning Paths <span style={{ fontSize: '10px' }}>▼</span>
+      </button>
+      {pathsOpen && (
+        <div style={pathsDropdownShellStyle}>{renderPathsDropdown(onNavigate)}</div>
+      )}
+    </div>
+  )
+
+  const dropdownPanelStyle = {
     background: '#fff',
     borderRadius: '12px',
     boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
     minWidth: '240px',
     padding: '8px 0',
-    zIndex: 1000,
-    marginTop: '8px',
   }
 
   const dropItem = {
@@ -100,6 +278,80 @@ export default function Navbar() {
 
   const divider = <div style={{ height: '1px', background: '#E5E7EB', margin: '4px 0' }} />
 
+  const renderMobilePathsSection = () => (
+    <>
+      <button
+        type="button"
+        style={{ ...dropItem, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        onClick={() => setMobilePathsOpen((o) => !o)}
+      >
+        <span>Learning Paths</span>
+        <span style={{ fontSize: '10px' }}>{mobilePathsOpen ? '▲' : '▼'}</span>
+      </button>
+      {mobilePathsOpen &&
+        LEARNING_PATHS.map((p) => (
+          <Link
+            key={p.slug}
+            to={`/paths/${p.slug}`}
+            style={{ ...pathDropItem, paddingLeft: '20px' }}
+            onClick={() => {
+              setMobileOpen(false)
+              setMobilePathsOpen(false)
+            }}
+          >
+            <span style={{ fontSize: '20px', flexShrink: 0 }}>{p.icon}</span>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: p.color }}>{p.name}</div>
+              <div style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500 }}>{p.description}</div>
+            </div>
+          </Link>
+        ))}
+    </>
+  )
+
+  const renderMobileGamesSection = () => (
+    <>
+      <button
+        type="button"
+        style={{ ...dropItem, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        onClick={() => setMobileGamesOpen((o) => !o)}
+      >
+        <span>Games</span>
+        <span style={{ fontSize: '10px' }}>{mobileGamesOpen ? '▲' : '▼'}</span>
+      </button>
+      {mobileGamesOpen &&
+        GAMES.map((game) => (
+          <Link
+            key={game.slug}
+            to={`/games/${game.slug}`}
+            style={{ ...pathDropItem, paddingLeft: '20px' }}
+            onClick={() => {
+              setMobileOpen(false)
+              setMobileGamesOpen(false)
+            }}
+          >
+            <span style={{ fontSize: '22px', flexShrink: 0 }}>{game.icon}</span>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#1B2F5E' }}>{game.name}</div>
+              <div style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500 }}>{game.description}</div>
+            </div>
+          </Link>
+        ))}
+      {mobileGamesOpen && (
+        <Link
+          to="/games"
+          style={{ ...dropItem, paddingLeft: '20px', color: '#2AAFA0', fontSize: '13px' }}
+          onClick={() => {
+            setMobileOpen(false)
+            setMobileGamesOpen(false)
+          }}
+        >
+          View All Games →
+        </Link>
+      )}
+    </>
+  )
+
   const getInitial = (name: string) => name?.[0]?.toUpperCase() ?? '?'
 
   const ageColor =
@@ -123,6 +375,7 @@ export default function Navbar() {
           alignItems: 'center',
           padding: '0 32px',
           justifyContent: 'space-between',
+          overflow: 'visible',
         }}
       >
         <Link to="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
@@ -136,14 +389,10 @@ export default function Navbar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="hide-mobile">
           {!user ? (
             <>
-              <Link to="/discover" style={navLink}>
-                Discover
-              </Link>
-              <Link to="/paths" style={navLink}>
-                Learning Paths
-              </Link>
+              {renderGamesNavButton(() => setGamesOpen(false))}
+              {renderPathsNavButton(() => setPathsOpen(false))}
               <Link to="/pricing" style={navLink}>
-                Pricing
+                Subscription
               </Link>
               <Link to="/about" style={navLink}>
                 About
@@ -155,54 +404,9 @@ export default function Navbar() {
                 Home
               </Link>
 
-              <div ref={exploreRef} style={{ position: 'relative' }}>
-                <button
-                  style={{ ...navLink, display: 'flex', alignItems: 'center', gap: '4px' }}
-                  onClick={() => setExploreOpen((o) => !o)}
-                >
-                  Explore <span style={{ fontSize: '10px' }}>▼</span>
-                </button>
-                {exploreOpen && (
-                  <div style={dropdownStyle}>
-                    <span style={sectionLabel}>Learning Paths</span>
-                    {PATHS.map((p) => (
-                      <Link
-                        key={p.slug}
-                        to={`/paths/${p.slug}`}
-                        style={dropItem}
-                        onClick={() => setExploreOpen(false)}
-                      >
-                        {p.name}
-                      </Link>
-                    ))}
-                    {divider}
-                    <span style={sectionLabel}>Discover</span>
-                    <Link to="/discover/featured" style={dropItem} onClick={() => setExploreOpen(false)}>
-                      Featured Stories
-                    </Link>
-                    <Link to="/discover/new" style={dropItem} onClick={() => setExploreOpen(false)}>
-                      New This Week
-                    </Link>
-                    <Link to="/discover/popular" style={dropItem} onClick={() => setExploreOpen(false)}>
-                      Most Popular
-                    </Link>
-                    <Link to="/discover/recommended" style={dropItem} onClick={() => setExploreOpen(false)}>
-                      Recommended for You
-                    </Link>
-                    {divider}
-                    <span style={sectionLabel}>My Progress</span>
-                    <Link to="/achievements" style={dropItem} onClick={() => setExploreOpen(false)}>
-                      Achievements
-                    </Link>
-                    <Link to="/certificates" style={dropItem} onClick={() => setExploreOpen(false)}>
-                      Certificates
-                    </Link>
-                    <Link to="/journey" style={dropItem} onClick={() => setExploreOpen(false)}>
-                      My Journey
-                    </Link>
-                  </div>
-                )}
-              </div>
+              {renderPathsNavButton(() => setPathsOpen(false))}
+
+              {renderGamesNavButton(() => setGamesOpen(false))}
 
               <Link to="/journey" style={navLink}>
                 My Journey
@@ -214,14 +418,10 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/discover" style={navLink}>
-                Discover
-              </Link>
-              <Link to="/paths" style={navLink}>
-                Learning Paths
-              </Link>
+              {renderGamesNavButton(() => setGamesOpen(false))}
+              {renderPathsNavButton(() => setPathsOpen(false))}
               <Link to="/pricing" style={navLink}>
-                Pricing
+                Subscription
               </Link>
               <Link to="/about" style={navLink}>
                 About
@@ -299,7 +499,8 @@ export default function Navbar() {
               </button>
 
               {avatarOpen && (
-                <div style={{ ...dropdownStyle, left: 'auto', right: 0, minWidth: '260px' }}>
+                <div style={{ ...pathsDropdownShellStyle, left: 'auto', right: 0 }}>
+                  <div style={{ ...dropdownPanelStyle, minWidth: '260px' }}>
                   <div style={{ padding: '12px 16px' }}>
                     <div
                       style={{
@@ -406,6 +607,7 @@ export default function Navbar() {
                   <button style={{ ...dropItem, color: '#E85D4A' }} onClick={handleSignOut}>
                     Sign Out
                   </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -508,14 +710,10 @@ export default function Navbar() {
 
             {!user ? (
               <>
-                <Link to="/discover" style={{ ...dropItem }} onClick={() => setMobileOpen(false)}>
-                  Discover
-                </Link>
-                <Link to="/paths" style={dropItem} onClick={() => setMobileOpen(false)}>
-                  Learning Paths
-                </Link>
+                {renderMobileGamesSection()}
+                {renderMobilePathsSection()}
                 <Link to="/pricing" style={dropItem} onClick={() => setMobileOpen(false)}>
-                  Pricing
+                  Subscription
                 </Link>
                 <Link to="/about" style={dropItem} onClick={() => setMobileOpen(false)}>
                   About
@@ -536,53 +734,18 @@ export default function Navbar() {
                 <Link to="/journey" style={dropItem} onClick={() => setMobileOpen(false)}>
                   My Journey
                 </Link>
-                <Link to="/achievements" style={dropItem} onClick={() => setMobileOpen(false)}>
-                  Achievements
-                </Link>
                 <Link to="/search" style={dropItem} onClick={() => setMobileOpen(false)}>
                   Search
                 </Link>
                 {divider}
-                <span style={sectionLabel}>Learning Paths</span>
-                {PATHS.map((p) => (
-                  <Link
-                    key={p.slug}
-                    to={`/paths/${p.slug}`}
-                    style={{ ...dropItem, paddingLeft: '24px', fontSize: '13px' }}
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {p.name}
-                  </Link>
-                ))}
+                {renderMobileGamesSection()}
+                {renderMobilePathsSection()}
                 {divider}
-                <span style={sectionLabel}>Discover</span>
-                <Link
-                  to="/discover/featured"
-                  style={{ ...dropItem, paddingLeft: '24px', fontSize: '13px' }}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Featured Stories
+                <Link to="/achievements" style={dropItem} onClick={() => setMobileOpen(false)}>
+                  Achievements
                 </Link>
-                <Link
-                  to="/discover/new"
-                  style={{ ...dropItem, paddingLeft: '24px', fontSize: '13px' }}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  New This Week
-                </Link>
-                <Link
-                  to="/discover/popular"
-                  style={{ ...dropItem, paddingLeft: '24px', fontSize: '13px' }}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Most Popular
-                </Link>
-                <Link
-                  to="/discover/recommended"
-                  style={{ ...dropItem, paddingLeft: '24px', fontSize: '13px' }}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Recommended for You
+                <Link to="/certificates" style={dropItem} onClick={() => setMobileOpen(false)}>
+                  Certificates
                 </Link>
                 {divider}
                 <span style={sectionLabel}>🔒 Parent Area</span>

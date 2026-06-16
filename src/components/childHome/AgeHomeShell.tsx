@@ -23,7 +23,9 @@ function resolveActiveChild(
   children: ChildProfile[]
 ): ChildProfile | null {
   if (selectedChild) return selectedChild
-  const storedId = localStorage.getItem(STORAGE_KEYS.selectedChildId)
+  const storedId =
+    localStorage.getItem(STORAGE_KEYS.activeChild) ??
+    localStorage.getItem(STORAGE_KEYS.selectedChildId)
   if (!storedId) return null
   return children.find((c) => c.id === storedId) ?? null
 }

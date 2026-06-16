@@ -1,0 +1,51 @@
+export const LEARNING_PATHS = [
+  {
+    name: 'Foundations of Faith',
+    slug: 'foundations-of-faith',
+    icon: '🕌',
+    color: '#8B6BB1',
+    description: 'Build a strong connection with Allah and Islamic values',
+  },
+  {
+    name: 'Science & Nature',
+    slug: 'science-nature',
+    icon: '🔬',
+    color: '#16a34a',
+    description: "Explore the wonders of Allah's creation through science",
+  },
+  {
+    name: 'History & Civilization',
+    slug: 'history-civilization',
+    icon: '🏛️',
+    color: '#F5A623',
+    description: 'Discover great civilizations and their stories',
+  },
+  {
+    name: 'Geography & Cultures',
+    slug: 'geography-cultures',
+    icon: '🌍',
+    color: '#2AAFA0',
+    description: 'Learn about countries, cultures and people',
+  },
+  {
+    name: 'Technology & AI',
+    slug: 'technology-ai',
+    icon: '🤖',
+    color: '#3B82F6',
+    description: 'Understand technology and use it for good',
+  },
+  {
+    name: "Today's World",
+    slug: 'todays-world',
+    icon: '📰',
+    color: '#E85D4A',
+    description: 'Understand current events and how the world works',
+  },
+  {
+    name: 'Environment & Stewardship',
+    slug: 'environment-stewardship',
+    icon: '🌱',
+    color: '#4AAE8A',
+    description: "Take care of the Earth as Allah's trustee",
+  },
+] as const

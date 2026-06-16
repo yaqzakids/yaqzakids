@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { ProtectedRoute } from './components/ProtectedRoute'
+import { ProtectedRoute, useAuth } from './components/ProtectedRoute'
 import { SelectedChildProvider } from './context/SelectedChildContext'
 import { ParentGateProvider } from './context/ParentGateContext'
 import ParentGateRoute from './components/parent/ParentGateRoute'
@@ -10,7 +10,6 @@ import AdventurePathAccessGate from './components/adventure/AdventurePathAccessG
 import AdventureArticleAccessGate from './components/adventure/AdventureArticleAccessGate'
 import AdminRoute from './components/AdminRoute'
 import AdminLayout from './components/admin/AdminLayout'
-import { STORAGE_KEYS } from './lib/constants'
 import Welcome from './pages/Welcome'
 import Explorer from './pages/Explorer'
 import Discoverer from './pages/Discoverer'
@@ -24,6 +23,15 @@ import DailyMission from './pages/DailyMission'
 import BadgesPage from './pages/BadgesPage'
 import CertificatesPage from './pages/CertificatesPage'
 import ExplorePage from './pages/discoverer/ExplorePage'
+import DiscoverPage from './pages/DiscoverPage'
+import PublicExplorePage from './pages/PublicExplorePage'
+import GamesPage from './pages/GamesPage'
+import DailyChallengePage from './pages/games/DailyChallengePage'
+import QuizBattlePage from './pages/games/QuizBattlePage'
+import WordExplorerPage from './pages/games/WordExplorerPage'
+import StoryBuilderPage from './pages/games/StoryBuilderPage'
+import KnowledgeMapPage from './pages/games/KnowledgeMapPage'
+import HeroMatchPage from './pages/games/HeroMatchPage'
 import LibraryPage from './pages/discoverer/LibraryPage'
 import SampleStoriesPage from './pages/SampleStoriesPage'
 import PathsPage from './pages/PathsPage'
@@ -72,6 +80,7 @@ import AdminPathEditorPage from './pages/admin/AdminPathEditorPage'
 import AdminUsersPage from './pages/admin/AdminUsersPage'
 import AdminChildrenPage from './pages/admin/AdminChildrenPage'
 import AdminSubscriptionsPage from './pages/admin/AdminSubscriptionsPage'
+import AdminPricingPage from './pages/admin/AdminPricingPage'
 import AdminDiscounts from './pages/admin/AdminDiscounts'
 import AdminRefunds from './pages/admin/AdminRefunds'
 import AdminProgressPage from './pages/admin/AdminProgressPage'
@@ -88,18 +97,36 @@ import {
   hasAuthCallbackInUrl,
   authCallbackRouteWithCallback,
 } from './lib/auth/authCallback'
+import { STORAGE_KEYS as ADVENTURE_STORAGE_KEYS } from './lib/adventure/constants'
 
 function HomeRedirect() {
+  const { user, loading } = useAuth()
+
   if (hasAuthCallbackInUrl()) {
     return <Navigate to={authCallbackRouteWithCallback()} replace />
   }
 
-  const ageGroup = localStorage.getItem(STORAGE_KEYS.ageGroup)
-  if (!ageGroup) return <Navigate to="/welcome" replace />
-  if (ageGroup === 'explorer') return <Navigate to="/explorer" replace />
-  if (ageGroup === 'discoverer') return <Navigate to="/discoverer" replace />
-  if (ageGroup === 'thinker') return <Navigate to="/thinker" replace />
-  return <Navigate to="/welcome" replace />
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg">
+        <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin-slow" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <Navigate to="/welcome" replace />
+  }
+
+  const activeChildId =
+    localStorage.getItem(ADVENTURE_STORAGE_KEYS.activeChild) ??
+    localStorage.getItem(ADVENTURE_STORAGE_KEYS.selectedChildId)
+
+  if (!activeChildId) {
+    return <Navigate to="/children" replace />
+  }
+
+  return <Navigate to="/home" replace />
 }
 
 function ParentRoute({ children }: { children: ReactNode }) {
@@ -138,6 +165,44 @@ export default function App() {
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin/change-password" element={<AdminChangePasswordPage />} />
 
+          <Route path="/admin" element={<AdminRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route index element={<AdminOverviewPage />} />
+              <Route path="content" element={<AdminContentPage />} />
+              <Route path="adventures" element={<AdminAdventuresPage />} />
+              <Route path="families" element={<AdminFamiliesPage />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="support" element={<AdminSupportPage />} />
+              <Route path="analytics" element={<AdminAnalyticsPage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
+              <Route path="settings/profile" element={<AdminProfileSettingsPage />} />
+              <Route path="team" element={<AdminTeamPage />} />
+              <Route path="admin-users" element={<Navigate to="/admin/team" replace />} />
+              <Route path="log" element={<AdminLogPage />} />
+              <Route path="quizzes" element={<AdminQuizzesPage />} />
+              <Route path="quizzes/:articleId" element={<AdminQuizEditorPage />} />
+              <Route path="progress" element={<AdminProgressPage />} />
+              <Route path="refunds" element={<AdminRefunds />} />
+              <Route path="messages" element={<AdminMessagesPage />} />
+              <Route path="announcements" element={<AdminAnnouncementsPage />} />
+              <Route
+                path="roles"
+                element={<Navigate to="/admin/team" replace />}
+              />
+              <Route path="articles" element={<AdminArticlesPage />} />
+              <Route path="articles/new" element={<AdminArticleEditorPage />} />
+              <Route path="articles/:id" element={<AdminArticleEditorPage />} />
+              <Route path="paths" element={<AdminPathsPage />} />
+              <Route path="paths/new" element={<AdminPathEditorPage />} />
+              <Route path="paths/:id" element={<AdminPathEditorPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="children" element={<AdminChildrenPage />} />
+              <Route path="subscriptions" element={<AdminSubscriptionsPage />} />
+              <Route path="pricing" element={<AdminPricingPage />} />
+              <Route path="discounts" element={<AdminDiscounts />} />
+            </Route>
+          </Route>
+
           <Route element={<AppShell />}>
           <Route path="/" element={<HomeRedirect />} />
           <Route path="/welcome" element={<Welcome />} />
@@ -163,7 +228,15 @@ export default function App() {
           <Route path="/paths/technology-ai" element={<Navigate to="/adventures/technology" replace />} />
           <Route path="/paths/todays-world" element={<Navigate to="/adventures/current-events" replace />} />
           <Route path="/paths/environment-stewardship" element={<Navigate to="/adventures/environment" replace />} />
-          <Route path="/discover" element={<Navigate to="/discoverer" replace />} />
+          <Route path="/discover" element={<DiscoverPage />} />
+          <Route path="/explore" element={<PublicExplorePage />} />
+          <Route path="/games" element={<GamesPage />} />
+          <Route path="/games/daily-challenge" element={<DailyChallengePage />} />
+          <Route path="/games/quiz-battle" element={<QuizBattlePage />} />
+          <Route path="/games/word-explorer" element={<WordExplorerPage />} />
+          <Route path="/games/story-builder" element={<StoryBuilderPage />} />
+          <Route path="/games/knowledge-map" element={<KnowledgeMapPage />} />
+          <Route path="/games/hero-match" element={<HeroMatchPage />} />
           <Route path="/home" element={<ProtectedRoute><AgeAwareNavRedirect target="home" /></ProtectedRoute>} />
           <Route path="/search" element={<ProtectedRoute><AgeAwareNavRedirect target="explore" /></ProtectedRoute>} />
           <Route path="/discover/featured" element={<Navigate to="/sample-stories" replace />} />
@@ -224,44 +297,6 @@ export default function App() {
           <Route path="/messages" element={<ParentRoute><MessagesPage /></ParentRoute>} />
           <Route path="/child-dashboard" element={<ProtectedRoute><ChildDashboard /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
-
-          <Route path="/admin" element={<AdminRoute />}>
-            <Route element={<AdminLayout />}>
-              <Route index element={<AdminOverviewPage />} />
-              <Route path="content" element={<AdminContentPage />} />
-              <Route path="adventures" element={<AdminAdventuresPage />} />
-              <Route path="families" element={<AdminFamiliesPage />} />
-              <Route path="payments" element={<AdminPayments />} />
-              <Route path="support" element={<AdminSupportPage />} />
-              <Route path="analytics" element={<AdminAnalyticsPage />} />
-              <Route path="settings" element={<AdminSettingsPage />} />
-              <Route path="settings/profile" element={<AdminProfileSettingsPage />} />
-              <Route path="team" element={<AdminTeamPage />} />
-              <Route path="admin-users" element={<Navigate to="/admin/team" replace />} />
-              <Route path="log" element={<AdminLogPage />} />
-              <Route path="quizzes" element={<AdminQuizzesPage />} />
-              <Route path="quizzes/:articleId" element={<AdminQuizEditorPage />} />
-              <Route path="progress" element={<AdminProgressPage />} />
-              <Route path="refunds" element={<AdminRefunds />} />
-              <Route path="messages" element={<AdminMessagesPage />} />
-              <Route path="announcements" element={<AdminAnnouncementsPage />} />
-              <Route
-                path="roles"
-                element={<Navigate to="/admin/team" replace />}
-              />
-              {/* Legacy direct routes preserved */}
-              <Route path="articles" element={<AdminArticlesPage />} />
-              <Route path="articles/new" element={<AdminArticleEditorPage />} />
-              <Route path="articles/:id" element={<AdminArticleEditorPage />} />
-              <Route path="paths" element={<AdminPathsPage />} />
-              <Route path="paths/new" element={<AdminPathEditorPage />} />
-              <Route path="paths/:id" element={<AdminPathEditorPage />} />
-              <Route path="users" element={<AdminUsersPage />} />
-              <Route path="children" element={<AdminChildrenPage />} />
-              <Route path="subscriptions" element={<AdminSubscriptionsPage />} />
-              <Route path="discounts" element={<AdminDiscounts />} />
-            </Route>
           </Route>
         </Routes>
         </VoiceSettingsProvider>
