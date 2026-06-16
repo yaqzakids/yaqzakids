@@ -19,5 +19,13 @@ export function formatAuthError(err: unknown, fallback = 'Something went wrong. 
     return 'Please wait a minute before requesting another email, then try again.'
   }
 
+  if (/invalid api key/i.test(raw)) {
+    return 'This site is using an invalid Supabase API key. In Supabase Dashboard → Project Settings → API, copy the anon (legacy) or publishable key for project cgvzeydhhkwosphixznd, update VITE_SUPABASE_ANON_KEY in .env, run npm run prebuild, and redeploy. Also check Cloudflare Pages env vars for a stale key.'
+  }
+
+  if (/invalid path specified in request url/i.test(raw)) {
+    return 'Supabase URL is misconfigured. VITE_SUPABASE_URL must be https://cgvzeydhhkwosphixznd.supabase.co with no /rest/v1 path. Fix .env, run npm run prebuild, and redeploy.'
+  }
+
   return raw.replace(/^Failed to send password recovery:\s*/i, '').trim() || fallback
 }

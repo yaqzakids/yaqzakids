@@ -11,10 +11,8 @@ import StarsDisplay from '@/components/adventure/StarsDisplay'
 import PathCard from '@/components/adventure/PathCard'
 import BadgeDisplay from '@/components/adventure/BadgeDisplay'
 import HeroCardCollection from '@/components/adventure/HeroCardCollection'
-import LoadingSpinner from '@/components/LoadingSpinner'
 import ErrorMessage from '@/components/ErrorMessage'
-import { SiteNav } from '@/components/SiteNav'
-import PublicNav from '@/components/layout/PublicNav'
+import LoadingSpinner from '@/components/LoadingSpinner'
 import { STORAGE_KEYS } from '@/lib/constants'
 import { fetchPathsWithProgress } from '@/lib/adventure/service'
 import { DISCOVERER_PATH_FILTERS } from '@/lib/discoverer'
@@ -90,20 +88,8 @@ function AdventurePathsContent() {
     [allPaths, activeFilter]
   )
 
-  const navVariant =
-    selectedChild?.age_group === 'thinker'
-      ? 'thinker'
-      : selectedChild?.age_group === 'explorer'
-        ? 'explorer'
-        : 'discoverer'
-
   return (
     <div style={pageStyle} data-page="adventures-v3">
-      {selectedChild ? (
-        <SiteNav variant={navVariant} />
-      ) : (
-        <PublicNav />
-      )}
       <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '40px 40px 64px' }}>
         {/* Page header */}
         <header>

@@ -1,9 +1,11 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 import { useAuth } from '@/components/ProtectedRoute'
 import { getChildProfiles } from '@/lib/supabase'
 import { STORAGE_KEYS } from '@/lib/adventure/constants'
 import { dashboardPathForAgeGroup } from '@/lib/childProfiles'
 import { STORAGE_KEYS as APP_STORAGE_KEYS } from '@/lib/constants'
+import { lockParentSession } from '@/lib/parentGate'
 import type { ChildProfile } from '@/lib/types'
 
 interface SelectedChildContextValue {
@@ -42,6 +44,8 @@ export function SelectedChildProvider({ children: node }: { children: ReactNode 
     if (!user) {
       setChildren([])
       setSelectedChild(null)
+      localStorage.removeItem(STORAGE_KEYS.selectedChildId)
+      localStorage.removeItem(APP_STORAGE_KEYS.ageGroup)
       setLoading(false)
       return
     }
@@ -86,14 +90,18 @@ export function SelectedChildProvider({ children: node }: { children: ReactNode 
   const enterChildExperience = (id: string): string => {
     const child = children.find((c) => c.id === id)
     if (!child) return '/children'
-    setSelectedChild(child)
+    lockParentSession()
     persistActiveChild(child)
+    flushSync(() => {
+      setSelectedChild(child)
+    })
     return dashboardPathForAgeGroup(child.age_group)
   }
 
   const clearActiveChild = () => {
     setSelectedChild(null)
     localStorage.removeItem(STORAGE_KEYS.selectedChildId)
+    localStorage.removeItem(APP_STORAGE_KEYS.ageGroup)
   }
 
   return (

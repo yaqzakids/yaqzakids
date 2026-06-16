@@ -15,7 +15,6 @@ import {
   defaultAgeForGroup,
 } from '@/lib/childProfiles'
 import { createChildProfile, getChildProfiles, updateChildProfile } from '@/lib/supabase'
-import { setPendingAgeGroupChild } from '@/lib/onboarding'
 import { formatSupabaseError } from '@/lib/supabaseErrors'
 import { isPresetAvatarId, type PresetAvatarId } from '@/lib/avatar/presetAvatars'
 import type { AgeGroup, Language } from '@/lib/types'
@@ -120,7 +119,7 @@ export default function ChildProfileFormPage() {
           interests,
         })
       } else {
-        const created = await createChildProfile({
+        await createChildProfile({
           parent_id: user.id,
           name,
           age,
@@ -133,8 +132,7 @@ export default function ChildProfileFormPage() {
         await refreshChildren()
 
         if (isOnboarding) {
-          setPendingAgeGroupChild(created.id)
-          navigate(`/onboarding/choose-path?childId=${created.id}`, { replace: true })
+          navigate('/children', { replace: true })
           return
         }
       }
@@ -240,7 +238,7 @@ export default function ChildProfileFormPage() {
           </div>
           {isOnboarding && (
             <p className="text-sm text-[#6B7280] leading-relaxed">
-              You&apos;ll choose Explorer, Discoverer, or Thinker on the next step.
+              Age group is set automatically from your child&apos;s age (Explorer 6–8, Discoverer 9–12, Thinker 13–16).
             </p>
           )}
 

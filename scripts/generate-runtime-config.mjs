@@ -22,10 +22,19 @@ function readEnvFile(filePath) {
   return env
 }
 
+function normalizeSupabaseProjectUrl(url) {
+  return (url || '')
+    .trim()
+    .replace(/\/rest\/v1\/?$/i, '')
+    .replace(/\/+$/, '')
+}
+
 const env = readEnvFile(envPath)
 
 const config = {
-  supabaseUrl: env.VITE_SUPABASE_URL || 'https://cgvzeydhhkwosphixznd.supabase.co',
+  supabaseUrl: normalizeSupabaseProjectUrl(
+    env.VITE_SUPABASE_URL || 'https://cgvzeydhhkwosphixznd.supabase.co'
+  ),
   supabaseAnonKey: env.VITE_SUPABASE_ANON_KEY || '',
   siteUrl: env.VITE_SITE_URL || 'https://www.yaqzakids.com',
 }

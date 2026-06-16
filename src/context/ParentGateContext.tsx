@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useNavigate } from 'react-router-dom'
-import ParentGateModal from '@/components/parent/ParentGateModal'
+import ParentGate from '@/components/ParentGate'
 import { isParentUnlocked, unlockParentSession } from '@/lib/parentGate'
 
 interface ParentGateContextValue {
@@ -51,11 +51,10 @@ export function ParentGateProvider({ children }: { children: ReactNode }) {
       value={{ needsParentGate, openParentGate, refreshUnlock }}
     >
       {children}
-      <ParentGateModal
+      <ParentGate
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSuccess={handleSuccess}
-        returnPath={returnPath}
       />
     </ParentGateContext.Provider>
   )

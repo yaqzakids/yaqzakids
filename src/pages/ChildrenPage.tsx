@@ -6,7 +6,7 @@ import ParentLayout from '@/components/layout/ParentLayout'
 import ChildProfileCard from '@/components/children/ChildProfileCard'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { fetchAllChildProfileSummaries, type ChildProfileSummary } from '@/lib/childProfiles'
-import { readRedirectParam } from '@/lib/navigation'
+import { readRedirectParam, normalizeChildHomeRedirect } from '@/lib/navigation'
 
 export default function ChildrenPage() {
   const navigate = useNavigate()
@@ -43,8 +43,9 @@ export default function ChildrenPage() {
   }, [children, authLoading, childLoading, user])
 
   const handleEnter = (childId: string) => {
-    const dashboard = enterChildExperience(childId)
-    navigate(redirectTo ?? dashboard, { replace: true })
+    const home = enterChildExperience(childId)
+    const destination = redirectTo ? normalizeChildHomeRedirect(redirectTo) : home
+    navigate(destination, { replace: true })
   }
 
   if (authLoading || childLoading) {
@@ -98,8 +99,8 @@ export default function ChildrenPage() {
         ) : children.length === 0 ? (
           <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
             <p className="text-4xl mb-3" aria-hidden>👨‍👩‍👧‍👦</p>
-            <h2 className="font-display text-xl font-bold text-[#1B2F5E] mb-2">No child profiles yet</h2>
-            <p className="text-[#6B7280] mb-6">Add your first child profile to get started.</p>
+            <h2 className="font-display text-xl font-bold text-[#1B2F5E] mb-2">Create your first child profile.</h2>
+            <p className="text-[#6B7280] mb-6">Add a child to start their personalized learning journey.</p>
             <Link
               to="/children/new"
               className="inline-flex px-6 py-3 bg-[#2AAFA0] text-white rounded-full font-extrabold hover:opacity-90"

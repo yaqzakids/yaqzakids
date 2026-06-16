@@ -6,12 +6,22 @@ import type { AgeGroup, ChildProfile } from '@/lib/types'
 
 export const AGE_GROUP_META: Record<
   AgeGroup,
-  { label: string; ages: string; dashboard: string; emoji: string; accent: string }
+  {
+    label: string
+    ages: string
+    /** Age path main page (home) */
+    dashboard: string
+    /** Full progress/profile dashboard */
+    profileDashboard: string
+    emoji: string
+    accent: string
+  }
 > = {
   explorer: {
     label: 'Explorer',
     ages: '6–8',
-    dashboard: '/explorer/dashboard',
+    dashboard: '/explorer',
+    profileDashboard: '/explorer/dashboard',
     emoji: '🌱',
     accent: '#F5A623',
   },
@@ -19,20 +29,30 @@ export const AGE_GROUP_META: Record<
     label: 'Discoverer',
     ages: '9–12',
     dashboard: '/discoverer',
+    profileDashboard: '/discoverer/dashboard',
     emoji: '🔭',
     accent: '#2AAFA0',
   },
   thinker: {
     label: 'Thinker',
     ages: '13–16',
-    dashboard: '/thinker/dashboard',
+    dashboard: '/thinker',
+    profileDashboard: '/thinker/dashboard',
     emoji: '🌍',
     accent: '#8B6BB1',
   },
 }
 
-export function dashboardPathForAgeGroup(ageGroup: AgeGroup): string {
+export function childHomePathForAgeGroup(ageGroup: AgeGroup): string {
   return AGE_GROUP_META[ageGroup].dashboard
+}
+
+export function dashboardPathForAgeGroup(ageGroup: AgeGroup): string {
+  return childHomePathForAgeGroup(ageGroup)
+}
+
+export function profileDashboardPathForAgeGroup(ageGroup: AgeGroup): string {
+  return AGE_GROUP_META[ageGroup].profileDashboard
 }
 
 /** Map numeric age to YaqzaKids age band */
@@ -71,6 +91,7 @@ function levelNumber(totalStars: number): number {
 export interface ChildProfileSummary {
   childId: string
   name: string
+  age: number | null
   ageGroup: AgeGroup
   avatarId: string | null
   levelName: string
@@ -134,6 +155,7 @@ export async function fetchChildProfileSummary(child: ChildProfile): Promise<Chi
   return {
     childId: child.id,
     name: child.name,
+    age: child.age ?? null,
     ageGroup: child.age_group,
     avatarId: child.avatar_id ?? null,
     levelName: level.currentLevel,

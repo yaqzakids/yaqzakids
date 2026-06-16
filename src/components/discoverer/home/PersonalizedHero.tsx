@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom'
 import UserAvatar from '@/components/UserAvatar'
 import TealProgressBar from '@/components/discoverer/TealProgressBar'
+import { AGE_GROUP_META } from '@/lib/childProfiles'
 import { STAR_LEVELS } from '@/lib/adventure/levels'
 import type { LastUnfinishedArticle } from '@/lib/discoverer'
+import type { AgeGroup } from '@/lib/types'
 
 export interface PersonalizedHeroProps {
+  ageGroup: AgeGroup
   childName: string
   avatarId: string | null
   levelNumber: number
@@ -28,6 +31,7 @@ function xpBounds(totalStars: number) {
 }
 
 export default function PersonalizedHero({
+  ageGroup,
   childName,
   avatarId,
   levelNumber,
@@ -39,6 +43,7 @@ export default function PersonalizedHero({
   lastArticle,
   continuePathLabel,
 }: PersonalizedHeroProps) {
+  const ageMeta = AGE_GROUP_META[ageGroup]
   const { currentMin, nextMin } = xpBounds(xp)
   const xpInLevel = xp - currentMin
   const xpNeeded = nextMin - currentMin
@@ -55,13 +60,13 @@ export default function PersonalizedHero({
             <UserAvatar name={childName} avatarId={avatarId} size={64} />
             <div className="min-w-0 flex-1">
               <p className="text-[#2AAFA0] text-xs font-extrabold tracking-widest uppercase mb-1">
-                Discoverer
+                {ageMeta.label}
               </p>
               <h1 className="font-display text-2xl md:text-3xl font-bold text-[#1B2F5E] mb-1">
                 Welcome Back {childName} 👋
               </h1>
               <p className="text-sm font-bold text-[#1B2F5E]/70 mb-3">
-                Discoverer Level {levelNumber} · {levelName}
+                {ageMeta.label} Level {levelNumber} · {levelName}
               </p>
               <div className="max-w-xs mb-2">
                 <div className="flex justify-between text-xs font-bold text-[#6B7280] mb-1">

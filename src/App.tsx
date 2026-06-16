@@ -28,7 +28,6 @@ import LibraryPage from './pages/discoverer/LibraryPage'
 import SampleStoriesPage from './pages/SampleStoriesPage'
 import PathsPage from './pages/PathsPage'
 import ParentsPage from './pages/ParentsPage'
-import JourneyPage from './pages/discoverer/JourneyPage'
 import ProfilePage from './pages/discoverer/ProfilePage'
 import StreaksPage from './pages/discoverer/StreaksPage'
 import RewardsPage from './pages/discoverer/RewardsPage'
@@ -40,7 +39,9 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import VerifyEmailPage from './pages/onboarding/VerifyEmailPage'
 import ParentOnboardingPage from './pages/onboarding/ParentOnboardingPage'
+import ParentPasscodeSetupPage from './pages/onboarding/ParentPasscodeSetupPage'
 import ChooseAgeGroupPage from './pages/onboarding/ChooseAgeGroupPage'
+import ChildProfileEditGate from './components/parent/ChildProfileEditGate'
 import ParentAccountSettingsPage from './pages/ParentAccountSettingsPage'
 import Dashboard from './pages/Dashboard'
 import ChildDashboard from './pages/ChildDashboard'
@@ -81,6 +82,8 @@ import AdminMessagesPage from './pages/admin/AdminMessagesPage'
 import AdminAnnouncementsPage from './pages/admin/AdminAnnouncementsPage'
 import { DefaultSeo } from './components/seo/PageSeo'
 import AuthCallbackRedirect from './components/auth/AuthCallbackRedirect'
+import AppShell from './components/layout/AppShell'
+import AgeAwareNavRedirect from './components/routing/AgeAwareNavRedirect'
 import {
   hasAuthCallbackInUrl,
   authCallbackRouteWithCallback,
@@ -124,13 +127,25 @@ export default function App() {
         <ParentGateProvider>
         <VoiceSettingsProvider>
         <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/onboarding/parent" element={<ParentOnboardingPage />} />
+          <Route path="/onboarding/passcode" element={<ProtectedRoute><ParentPasscodeSetupPage /></ProtectedRoute>} />
+          <Route path="/onboarding/choose-path" element={<ChooseAgeGroupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin/change-password" element={<AdminChangePasswordPage />} />
+
+          <Route element={<AppShell />}>
           <Route path="/" element={<HomeRedirect />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/explorer" element={<Explorer />} />
           <Route path="/discoverer" element={<Discoverer />} />
           <Route path="/children" element={<ProtectedRoute><ChildrenPage /></ProtectedRoute>} />
           <Route path="/children/new" element={<ProtectedRoute><ChildProfileFormPage /></ProtectedRoute>} />
-          <Route path="/children/:childProfileId/edit" element={<ProtectedRoute><ChildProfileFormPage /></ProtectedRoute>} />
+          <Route path="/children/:childProfileId/edit" element={<ProtectedRoute><ChildProfileEditGate><ChildProfileFormPage /></ChildProfileEditGate></ProtectedRoute>} />
           <Route path="/explorer/dashboard" element={<ChildExperienceRoute><ExplorerDashboard /></ChildExperienceRoute>} />
           <Route path="/discoverer/dashboard" element={<ChildExperienceRoute><DiscovererDashboard /></ChildExperienceRoute>} />
           <Route path="/thinker/dashboard" element={<ChildExperienceRoute><ThinkerDashboard /></ChildExperienceRoute>} />
@@ -141,21 +156,33 @@ export default function App() {
           <Route path="/discoverer/explore" element={<ChildExperienceRoute><ExplorePage /></ChildExperienceRoute>} />
           <Route path="/sample-stories" element={<SampleStoriesPage />} />
           <Route path="/paths" element={<PathsPage />} />
+          <Route path="/paths/foundations-of-faith" element={<Navigate to="/adventures/faith" replace />} />
+          <Route path="/paths/science-nature" element={<Navigate to="/adventures/science-nature" replace />} />
+          <Route path="/paths/history-civilization" element={<Navigate to="/adventures/history" replace />} />
+          <Route path="/paths/geography-cultures" element={<Navigate to="/adventures/geography" replace />} />
+          <Route path="/paths/technology-ai" element={<Navigate to="/adventures/technology" replace />} />
+          <Route path="/paths/todays-world" element={<Navigate to="/adventures/current-events" replace />} />
+          <Route path="/paths/environment-stewardship" element={<Navigate to="/adventures/environment" replace />} />
+          <Route path="/discover" element={<Navigate to="/discoverer" replace />} />
+          <Route path="/home" element={<ProtectedRoute><AgeAwareNavRedirect target="home" /></ProtectedRoute>} />
+          <Route path="/search" element={<ProtectedRoute><AgeAwareNavRedirect target="explore" /></ProtectedRoute>} />
+          <Route path="/discover/featured" element={<Navigate to="/sample-stories" replace />} />
+          <Route path="/discover/new" element={<Navigate to="/discoverer/explore" replace />} />
+          <Route path="/discover/popular" element={<Navigate to="/discoverer/explore" replace />} />
+          <Route path="/discover/recommended" element={<Navigate to="/discoverer/explore" replace />} />
+          <Route path="/achievements" element={<ProtectedRoute><AgeAwareNavRedirect target="achievements" /></ProtectedRoute>} />
+          <Route path="/certificates" element={<ProtectedRoute><AgeAwareNavRedirect target="certificates" /></ProtectedRoute>} />
+          <Route path="/journey" element={<ProtectedRoute><AgeAwareNavRedirect target="journey" /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><AgeAwareNavRedirect target="profile" /></ProtectedRoute>} />
+          <Route path="/profile/avatar" element={<ProtectedRoute><AgeAwareNavRedirect target="profileAvatar" /></ProtectedRoute>} />
           <Route path="/parents" element={<ParentsPage />} />
-          <Route path="/discoverer/journey" element={<ChildExperienceRoute><JourneyPage /></ChildExperienceRoute>} />
+          <Route path="/discoverer/journey" element={<Navigate to="/discoverer/dashboard" replace />} />
           <Route path="/discoverer/profile" element={<ChildExperienceRoute><ProfilePage /></ChildExperienceRoute>} />
           <Route path="/discoverer/streaks" element={<ChildExperienceRoute><StreaksPage /></ChildExperienceRoute>} />
           <Route path="/discoverer/rewards" element={<ChildExperienceRoute><RewardsPage /></ChildExperienceRoute>} />
           <Route path="/thinker" element={<Thinker />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/verify-email" element={<VerifyEmailPage />} />
-          <Route path="/onboarding/parent" element={<ParentOnboardingPage />} />
-          <Route path="/onboarding/choose-path" element={<ChooseAgeGroupPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/about" element={<About />} />
-          <Route path="/pricing" element={<ParentRoute><PricingPage /></ParentRoute>} />
+          <Route path="/pricing" element={<PricingPage />} />
           <Route path="/adventures" element={<AdventurePathsPage />} />
           <Route path="/adventures/articles/:articleSlug" element={<DiscovererArticleShortLink />} />
           <Route
@@ -183,16 +210,21 @@ export default function App() {
             }
           />
           <Route path="/article/:id" element={<ArticleReader />} />
+          <Route path="/parent" element={<Navigate to="/parent/dashboard" replace />} />
           <Route path="/parent/dashboard" element={<ParentRoute><Dashboard /></ParentRoute>} />
-          <Route path="/parent/account" element={<ParentRoute><ParentAccountSettingsPage /></ParentRoute>} />
-          <Route path="/account/settings" element={<Navigate to="/parent/account" replace />} />
+          <Route path="/parent/progress" element={<Navigate to="/parent/dashboard" replace />} />
+          <Route path="/parent/messages" element={<Navigate to="/messages" replace />} />
+          <Route path="/parent/subscription" element={<Navigate to="/account/settings" replace />} />
+          <Route path="/parent/settings" element={<Navigate to="/account/settings" replace />} />
+          <Route path="/parent/support" element={<Navigate to="/support" replace />} />
+          <Route path="/parent/account" element={<Navigate to="/account/settings" replace />} />
+          <Route path="/account/settings" element={<ParentRoute><ParentAccountSettingsPage /></ParentRoute>} />
           <Route path="/dashboard" element={<Navigate to="/parent/dashboard" replace />} />
           <Route path="/support" element={<ParentRoute><SupportPage /></ParentRoute>} />
           <Route path="/messages" element={<ParentRoute><MessagesPage /></ParentRoute>} />
           <Route path="/child-dashboard" element={<ProtectedRoute><ChildDashboard /></ProtectedRoute>} />
-
-          <Route path="/admin/login" element={<AdminLoginPage />} />
-          <Route path="/admin/change-password" element={<AdminChangePasswordPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
 
           <Route path="/admin" element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
@@ -231,8 +263,6 @@ export default function App() {
               <Route path="discounts" element={<AdminDiscounts />} />
             </Route>
           </Route>
-
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </VoiceSettingsProvider>
         </ParentGateProvider>

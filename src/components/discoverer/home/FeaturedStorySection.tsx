@@ -4,9 +4,11 @@ import type { DiscovererFeaturedStory } from '@/lib/discovererHomeContent'
 export default function FeaturedStorySection({
   story,
   signedIn = false,
+  ageLabel,
 }: {
   story: DiscovererFeaturedStory
   signedIn?: boolean
+  ageLabel?: string
 }) {
   return (
     <section className="mb-10">
@@ -23,7 +25,7 @@ export default function FeaturedStorySection({
           <h3 className="font-display text-xl md:text-2xl font-bold text-[#1B2F5E] mb-3">{story.title}</h3>
           <p className="text-[#6B7280] leading-relaxed mb-4 text-sm">{story.description}</p>
           <p className="text-xs text-[#6B7280] mb-5">
-            {story.readingTime} min read · {story.ageTag}
+            {story.readingTime} min read · {ageLabel ? `Ages ${ageLabel}` : story.ageTag}
           </p>
           <Link
             to={story.url}

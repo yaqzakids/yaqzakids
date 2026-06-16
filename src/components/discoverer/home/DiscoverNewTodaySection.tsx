@@ -42,9 +42,11 @@ function RecommendedCard({ card }: { card: DiscovererStoryCard }) {
 export default function DiscoverNewTodaySection({
   articles,
   fallbackCards,
+  exploreRoute = '/discoverer/explore',
 }: {
   articles: AdventureArticle[]
   fallbackCards: DiscovererStoryCard[]
+  exploreRoute?: string
 }) {
   const [cards, setCards] = useState<DiscovererStoryCard[]>(fallbackCards)
 
@@ -75,7 +77,7 @@ export default function DiscoverNewTodaySection({
         <h2 className="font-display text-xl font-bold text-[#1B2F5E]">
           ✨ Discover Something New Today
         </h2>
-        <Link to="/discoverer/explore" className="text-[#2AAFA0] text-sm font-extrabold shrink-0">
+        <Link to={exploreRoute} className="text-[#2AAFA0] text-sm font-extrabold shrink-0">
           Explore all →
         </Link>
       </div>

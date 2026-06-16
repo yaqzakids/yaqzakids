@@ -23,7 +23,8 @@ export default function ChildProfileCard({ summary, onEnter, onEdit, isActive }:
           <div className="flex-1 min-w-0">
             <h2 className="font-display text-xl font-bold text-[#1B2F5E] truncate">{summary.name}</h2>
             <p className="text-sm font-bold mt-0.5" style={{ color: meta.accent }}>
-              {meta.emoji} {meta.label} · Ages {meta.ages}
+              {meta.emoji} {meta.label}
+              {summary.age != null ? ` · Age ${summary.age}` : ''} · Ages {meta.ages}
             </p>
             <p className="text-xs text-[#6B7280] mt-1">
               Level {summary.levelNumber} · {summary.levelName}
@@ -44,7 +45,7 @@ export default function ChildProfileCard({ summary, onEnter, onEdit, isActive }:
 
         <div className="bg-[#EEF4FF]/60 rounded-xl px-4 py-3 mb-5">
           <p className="text-[10px] font-extrabold text-[#2AAFA0] uppercase tracking-wide mb-1">
-            Last active
+            Current path
           </p>
           <p className="text-sm font-semibold text-[#1B2F5E] line-clamp-2">{summary.lastActiveLabel}</p>
         </div>
@@ -53,7 +54,7 @@ export default function ChildProfileCard({ summary, onEnter, onEdit, isActive }:
           className="inline-flex w-full items-center justify-center gap-2 px-5 py-3 rounded-full font-extrabold text-white text-sm"
           style={{ background: meta.accent }}
         >
-          Continue Learning →
+          Continue →
         </span>
       </button>
       {onEdit && (

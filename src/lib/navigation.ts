@@ -1,6 +1,6 @@
 import type { Location } from 'react-router-dom'
 import type { ChildProfile } from '@/lib/types'
-import { dashboardPathForAgeGroup } from '@/lib/childProfiles'
+import { dashboardPathForAgeGroup, profileDashboardPathForAgeGroup } from '@/lib/childProfiles'
 
 export const REDIRECT_PARAM = 'redirectTo'
 
@@ -13,10 +13,17 @@ export function sanitizeRedirectPath(raw: string | null | undefined): string | n
   return normalizeDiscovererHomeRedirect(path)
 }
 
-/** Legacy discoverer dashboard URL should land on the child home page after auth/child pick. */
-export function normalizeDiscovererHomeRedirect(path: string): string {
+/** Normalize dashboard URLs to age path home after auth/child pick. */
+export function normalizeChildHomeRedirect(path: string): string {
   if (path === '/discoverer/dashboard') return '/discoverer'
+  if (path === '/explorer/dashboard') return '/explorer'
+  if (path === '/thinker/dashboard') return '/thinker'
   return path
+}
+
+/** @deprecated Use normalizeChildHomeRedirect */
+export function normalizeDiscovererHomeRedirect(path: string): string {
+  return normalizeChildHomeRedirect(path)
 }
 
 export function currentPathWithSearch(location: Pick<Location, 'pathname' | 'search'>): string {
@@ -119,7 +126,7 @@ export function isParentPath(path: string): boolean {
     path === '/dashboard' ||
     path === '/parent/dashboard' ||
     path === '/parent/account' ||
-    path === '/account/settings' ||
+    path.startsWith('/account/settings') ||
     path.startsWith('/children') ||
     path.startsWith('/support') ||
     path.startsWith('/messages') ||
@@ -135,8 +142,6 @@ const ALWAYS_PUBLIC_NAV = [
   '/about',
   '/pricing',
   '/welcome',
-  '/explorer',
-  '/thinker',
 ] as const
 
 export function isAlwaysPublicNavPath(path: string): boolean {
@@ -145,7 +150,16 @@ export function isAlwaysPublicNavPath(path: string): boolean {
 
 export function shouldUseChildNav(pathname: string): boolean {
   if (isAlwaysPublicNavPath(pathname)) return false
-  if (pathname === '/discoverer' || pathname.startsWith('/discoverer/')) return true
+  if (
+    pathname === '/discoverer' ||
+    pathname === '/explorer' ||
+    pathname === '/thinker' ||
+    pathname.startsWith('/discoverer/') ||
+    pathname.startsWith('/explorer/') ||
+    pathname.startsWith('/thinker/')
+  ) {
+    return true
+  }
   if (requiresActiveChild(pathname)) return true
   if (pathname.startsWith('/adventures/') && pathname.split('/').filter(Boolean).length > 1) {
     return true
@@ -162,6 +176,10 @@ export function childrenPickerUrl(redirectTo?: string | null): string {
 
 export function activeChildHomePath(child: ChildProfile): string {
   return dashboardPathForAgeGroup(child.age_group)
+}
+
+export function activeChildProfileDashboardPath(child: ChildProfile): string {
+  return profileDashboardPathForAgeGroup(child.age_group)
 }
 
 export function loginDestination(path: string): string {

@@ -5,20 +5,40 @@ import {
   PUBLIC_SUPABASE_URL,
 } from '@/generated/supabase.public'
 
+function normalizeSupabaseProjectUrl(url: string): string {
+  return url
+    .trim()
+    .replace(/\/rest\/v1\/?$/i, '')
+    .replace(/\/+$/, '')
+}
+
+function isPlausibleSupabaseKey(key: string | undefined): boolean {
+  const trimmed = (key ?? '').trim()
+  if (!trimmed || trimmed === 'placeholder' || trimmed === 'your-anon-key') return false
+  // Legacy JWT anon/service keys, or newer publishable keys
+  return (
+    (trimmed.startsWith('eyJ') && trimmed.length > 80) ||
+    trimmed.startsWith('sb_publishable_')
+  )
+}
+
 function resolveSupabaseUrl(): string {
   const fromEnv = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim()
   if (fromEnv && !fromEnv.includes('placeholder') && !fromEnv.includes('your-project')) {
-    return fromEnv
+    return normalizeSupabaseProjectUrl(fromEnv)
   }
-  return PUBLIC_SUPABASE_URL
+  return normalizeSupabaseProjectUrl(PUBLIC_SUPABASE_URL)
 }
 
 function resolveAnonKey(): string {
   const fromEnv = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim()
-  if (fromEnv && fromEnv !== 'placeholder' && fromEnv !== 'your-anon-key') {
-    return fromEnv
+  if (isPlausibleSupabaseKey(fromEnv)) {
+    return fromEnv!
   }
-  return PUBLIC_SUPABASE_ANON_KEY
+  if (isPlausibleSupabaseKey(PUBLIC_SUPABASE_ANON_KEY)) {
+    return PUBLIC_SUPABASE_ANON_KEY
+  }
+  return fromEnv || PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
 }
 
 export function getActiveSiteUrl(): string {

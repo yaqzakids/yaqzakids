@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { SiteNav } from '@/components/SiteNav'
 import { SiteFooter } from '@/components/SiteFooter'
 import { Star, Rocket, Flame, Award } from 'lucide-react'
 import { useT } from '@/i18n'
@@ -206,8 +205,6 @@ export function AgeHomepage(props: AgeHomepageProps) {
 
   return (
     <div className={cfg.pageBg ?? 'bg-white'}>
-      <SiteNav variant={cfg.variant} />
-
       <section
         className="relative min-h-[580px] w-full"
         style={{ backgroundImage: `url(${cfg.heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center right' }}

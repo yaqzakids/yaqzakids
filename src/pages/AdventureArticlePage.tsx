@@ -7,7 +7,6 @@ import StarsDisplay from '@/components/adventure/StarsDisplay'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import ErrorMessage from '@/components/ErrorMessage'
 import DiscovererArticleView from '@/components/discoverer/DiscovererArticleView'
-import { SiteNav } from '@/components/SiteNav'
 import {
   fetchAdventureArticle,
   fetchArticleProgress,
@@ -85,7 +84,6 @@ export default function AdventureArticlePage() {
   if (ageGroup === 'discoverer') {
     return (
       <>
-        <SiteNav variant="discoverer" />
         <DiscovererArticleView
           path={path}
           article={article}
