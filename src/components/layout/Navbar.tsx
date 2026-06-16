@@ -1,450 +1,635 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '@/components/ProtectedRoute'
+import { useState, useRef, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { supabase } from '@/lib/supabase'
 import { useSelectedChild } from '@/context/SelectedChildContext'
-import { useParentGate } from '@/context/ParentGateContext'
-import UserAvatar from '@/components/UserAvatar'
-import NavbarSearchModal from '@/components/layout/NavbarSearchModal'
-import { useSignOut } from '@/hooks/useSignOut'
-import { isParentUnlocked } from '@/lib/parentGate'
-import {
-  PUBLIC_NAV_LINKS,
-  LEARNING_PATH_LINKS,
-  DISCOVER_LINKS,
-  PROGRESS_LINKS,
-  childNavPaths,
-  ageGroupBadgeClass,
-  ageGroupLabel,
-} from '@/lib/navLinks'
-import { STORAGE_KEYS } from '@/lib/adventure/constants'
-import type { ChildProfile } from '@/lib/types'
 
-function useClickOutside(refs: React.RefObject<HTMLElement | null>[], onClose: () => void, enabled: boolean) {
-  useEffect(() => {
-    if (!enabled) return
-    const onMouseDown = (e: MouseEvent) => {
-      const inside = refs.some((r) => r.current?.contains(e.target as Node))
-      if (!inside) onClose()
-    }
-    document.addEventListener('mousedown', onMouseDown)
-    return () => document.removeEventListener('mousedown', onMouseDown)
-  }, [refs, onClose, enabled])
-}
-
-function NavLink({
-  to,
-  children,
-  active,
-  onClick,
-}: {
-  to: string
-  children: ReactNode
-  active?: boolean
-  onClick?: () => void
-}) {
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className={`text-sm font-semibold transition-colors ${
-        active ? 'text-[#F5A623]' : 'text-[#1B2F5E] hover:text-[#F5A623]'
-      }`}
-    >
-      {children}
-    </Link>
-  )
-}
-
-function DropdownSectionLabel({ children }: { children: ReactNode }) {
-  return (
-    <p className="px-4 pt-3 pb-1 text-[10px] font-extrabold uppercase tracking-wider text-[#9CA3AF]">
-      {children}
-    </p>
-  )
-}
-
-function DropdownItem({
-  to,
-  children,
-  onClick,
-}: {
-  to: string
-  children: ReactNode
-  onClick?: () => void
-}) {
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className="block px-4 py-2.5 text-sm font-semibold text-[#1B2F5E] hover:bg-[#F8FAFC]"
-    >
-      {children}
-    </Link>
-  )
-}
-
-function resolveActiveChild(selectedChild: ChildProfile | null, children: ChildProfile[]): ChildProfile | null {
-  if (selectedChild) return selectedChild
-  const storedId = localStorage.getItem(STORAGE_KEYS.selectedChildId)
-  if (!storedId) return null
-  return children.find((c) => c.id === storedId) ?? null
-}
+const PATHS = [
+  { name: 'Foundations of Faith', slug: 'foundations-of-faith' },
+  { name: 'Science & Nature', slug: 'science-nature' },
+  { name: 'History & Civilization', slug: 'history-civilization' },
+  { name: 'Geography & Cultures', slug: 'geography-cultures' },
+  { name: 'Technology & AI', slug: 'technology-ai' },
+  { name: "Today's World", slug: 'todays-world' },
+  { name: 'Environment & Stewardship', slug: 'environment-stewardship' },
+]
 
 export default function Navbar() {
-  const location = useLocation()
   const navigate = useNavigate()
-  const { user, loading: authLoading } = useAuth()
-  const { selectedChild, children, activeChildProfileId } = useSelectedChild()
-  const { openParentGate } = useParentGate()
-  const { signOut, signingOut } = useSignOut()
-
+  const { selectedChild: activeChild, clearActiveChild } = useSelectedChild()
+  const [user, setUser] = useState<{ id: string } | null>(null)
   const [exploreOpen, setExploreOpen] = useState(false)
   const [avatarOpen, setAvatarOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [searchOpen, setSearchOpen] = useState(false)
-
   const exploreRef = useRef<HTMLDivElement>(null)
   const avatarRef = useRef<HTMLDivElement>(null)
 
-  const activeChild = resolveActiveChild(selectedChild, children)
-  const hasActiveChild = Boolean(user && activeChildProfileId && activeChild)
-  const paths = activeChild ? childNavPaths(activeChild) : null
-
-  const closeAll = () => {
-    setExploreOpen(false)
-    setAvatarOpen(false)
-    setMobileOpen(false)
-  }
-
-  useClickOutside([exploreRef], () => setExploreOpen(false), exploreOpen)
-  useClickOutside([avatarRef], () => setAvatarOpen(false), avatarOpen)
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   useEffect(() => {
-    closeAll()
-  }, [location.pathname])
-
-  const isActive = (to: string) =>
-    location.pathname === to || (to !== '/' && location.pathname.startsWith(`${to}/`))
-
-  const openParent = (path: string) => {
-    closeAll()
-    if (isParentUnlocked()) {
-      navigate(path)
-      return
+    function handleClick(e: MouseEvent) {
+      if (exploreRef.current && !exploreRef.current.contains(e.target as Node)) setExploreOpen(false)
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) setAvatarOpen(false)
     }
-    openParentGate(path)
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const handleSignOut = async () => {
+    clearActiveChild()
+    await supabase.auth.signOut()
+    navigate('/')
   }
 
-  const logo = (
-    <Link to={hasActiveChild && paths ? paths.home : '/'} className="shrink-0 flex items-center" aria-label="Yaqza Kids home">
-      <span
-        className="font-display font-bold text-[#1B2F5E] tracking-tight leading-none"
-        style={{ fontSize: '1.125rem', letterSpacing: '0.06em', height: 48, display: 'flex', alignItems: 'center' }}
-      >
-        YAQZA KIDS
-      </span>
-    </Link>
-  )
+  const navLink = {
+    fontFamily: 'Nunito, sans-serif',
+    fontSize: '14px',
+    fontWeight: 600,
+    color: '#1B2F5E',
+    textDecoration: 'none',
+    padding: '0 12px',
+    cursor: 'pointer',
+    background: 'none',
+    border: 'none',
+  } as const
 
-  const signedOutCenter = (
-    <div className="hidden md:flex items-center gap-6 flex-1 justify-center">
-      {PUBLIC_NAV_LINKS.map((link) => (
-        <NavLink key={link.to} to={link.to} active={isActive(link.to)}>
-          {link.label}
-        </NavLink>
-      ))}
-    </div>
-  )
-
-  const signedOutRight = (
-    <div className="hidden md:flex items-center gap-3">
-      <Link
-        to="/login"
-        className="px-4 py-2 border-2 border-[#1B2F5E] text-[#1B2F5E] rounded-full text-sm font-semibold hover:opacity-80"
-      >
-        Sign In
-      </Link>
-      <Link
-        to="/signup"
-        className="px-4 py-2 bg-[#F5A623] text-white rounded-full text-sm font-semibold hover:opacity-90"
-      >
-        Start Free
-      </Link>
-    </div>
-  )
-
-  const signedInNoChildRight = (
-    <div className="hidden md:flex items-center gap-3">
-      <Link
-        to="/children"
-        className="px-4 py-2 bg-[#2AAFA0] text-white rounded-full text-sm font-semibold hover:opacity-90"
-      >
-        Select Child
-      </Link>
-      <button
-        type="button"
-        onClick={() => void signOut()}
-        disabled={signingOut}
-        className="px-4 py-2 border-2 border-[#1B2F5E] text-[#1B2F5E] rounded-full text-sm font-semibold hover:opacity-80 disabled:opacity-50"
-      >
-        {signingOut ? 'Signing out…' : 'Sign Out'}
-      </button>
-    </div>
-  )
-
-  const signedInChildCenter = paths && (
-    <div className="hidden md:flex items-center gap-5 flex-1 justify-center">
-      <NavLink to={paths.home} active={isActive(paths.home)}>
-        Home
-      </NavLink>
-
-      <div className="relative" ref={exploreRef}>
-        <button
-          type="button"
-          onClick={() => setExploreOpen((o) => !o)}
-          className={`flex items-center gap-1 text-sm font-semibold ${
-            exploreOpen ? 'text-[#F5A623]' : 'text-[#1B2F5E] hover:text-[#F5A623]'
-          }`}
-          aria-expanded={exploreOpen}
-        >
-          Explore <span aria-hidden>▼</span>
-        </button>
-        {exploreOpen && (
-          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 min-w-[260px] bg-white rounded-xl shadow-lg border border-[#E5E7EB] py-2 z-50">
-            <DropdownSectionLabel>Learning Paths</DropdownSectionLabel>
-            {LEARNING_PATH_LINKS.map((item) => (
-              <DropdownItem key={item.to} to={item.to} onClick={closeAll}>
-                {item.label}
-              </DropdownItem>
-            ))}
-            <div className="my-2 border-t border-[#E5E7EB]" />
-            <DropdownSectionLabel>Discover</DropdownSectionLabel>
-            {DISCOVER_LINKS.map((item) => (
-              <DropdownItem key={item.to} to={item.to} onClick={closeAll}>
-                {item.label}
-              </DropdownItem>
-            ))}
-            <div className="my-2 border-t border-[#E5E7EB]" />
-            <DropdownSectionLabel>My Progress</DropdownSectionLabel>
-            {PROGRESS_LINKS.map((item) => {
-              const to =
-                item.to === '/achievements'
-                  ? paths.achievements
-                  : item.to === '/certificates'
-                    ? paths.certificates
-                    : paths.journey
-              return (
-                <DropdownItem key={item.label} to={to} onClick={closeAll}>
-                  {item.label}
-                </DropdownItem>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      <NavLink to={paths.journey} active={isActive(paths.journey)}>
-        My Journey
-      </NavLink>
-
-      <button
-        type="button"
-        onClick={() => setSearchOpen(true)}
-        className="p-2 rounded-lg hover:bg-[#F8FAFC] text-lg"
-        aria-label="Search"
-      >
-        🔍
-      </button>
-    </div>
-  )
-
-  const signedInChildRight = activeChild && paths && (
-    <div className="hidden md:flex items-center relative" ref={avatarRef}>
-      <button
-        type="button"
-        onClick={() => setAvatarOpen((o) => !o)}
-        className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-[#F8FAFC]"
-        aria-expanded={avatarOpen}
-        aria-label="Child menu"
-      >
-        <UserAvatar name={activeChild.name} avatarId={activeChild.avatar_id ?? null} size={36} />
-        <span className="text-sm font-semibold text-[#1B2F5E] max-w-[120px] truncate">{activeChild.name}</span>
-        <span className="text-[#6B7280] text-xs" aria-hidden>
-          ▼
-        </span>
-      </button>
-      {avatarOpen && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-lg border border-[#E5E7EB] py-2 z-50">
-          <div className="px-4 py-3 border-b border-[#E5E7EB]">
-            <p className="font-bold text-[#1B2F5E]">{activeChild.name}</p>
-            <span
-              className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${ageGroupBadgeClass(activeChild.age_group)}`}
-            >
-              {ageGroupLabel(activeChild.age_group)}
-            </span>
-          </div>
-          <DropdownItem to={paths.profile} onClick={closeAll}>
-            My Profile
-          </DropdownItem>
-          <DropdownItem to={paths.profileAvatar} onClick={closeAll}>
-            Choose Avatar
-          </DropdownItem>
-          <DropdownItem to="/children" onClick={closeAll}>
-            Switch Child
-          </DropdownItem>
-          <DropdownItem to={paths.achievements} onClick={closeAll}>
-            Achievements
-          </DropdownItem>
-          <DropdownItem to={paths.certificates} onClick={closeAll}>
-            Certificates
-          </DropdownItem>
-          <div className="my-2 border-t border-[#E5E7EB]" />
-          <p className="px-4 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[#9CA3AF] flex items-center gap-1">
-            Parent Area <span aria-hidden>🔒</span>
-          </p>
-          {[
-            { label: 'Parent Dashboard', to: '/parent/dashboard' },
-            { label: 'Child Progress', to: '/parent/progress' },
-            { label: 'Messages & Announcements', to: '/parent/messages' },
-            { label: 'Subscription', to: '/parent/subscription' },
-            { label: 'Settings', to: '/parent/settings' },
-          ].map((item) => (
-            <button
-              key={item.to}
-              type="button"
-              onClick={() => openParent(item.to)}
-              className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-[#1B2F5E] hover:bg-[#F8FAFC]"
-            >
-              {item.label}
-            </button>
-          ))}
-          <DropdownItem to="/parent/support" onClick={closeAll}>
-            Support
-          </DropdownItem>
-          <div className="my-2 border-t border-[#E5E7EB]" />
-          <button
-            type="button"
-            onClick={() => {
-              closeAll()
-              void signOut()
-            }}
-            disabled={signingOut}
-            className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-[#E85D4A] hover:bg-[#F8FAFC] disabled:opacity-50"
-          >
-            {signingOut ? 'Signing out…' : 'Sign Out'}
-          </button>
-        </div>
-      )}
-    </div>
-  )
-
-  const mobileToggle = (
-    <button
-      type="button"
-      className="md:hidden p-2 text-[#1B2F5E]"
-      onClick={() => setMobileOpen(true)}
-      aria-label="Open menu"
-    >
-      ☰
-    </button>
-  )
-
-  let center: ReactNode = signedOutCenter
-  let right: ReactNode = signedOutRight
-
-  if (authLoading) {
-    center = <div className="hidden md:block flex-1" />
-    right = <div className="hidden md:block w-32 h-9 bg-gray-100 animate-pulse rounded-full" />
-  } else if (user && hasActiveChild) {
-    center = signedInChildCenter
-    right = signedInChildRight
-  } else if (user) {
-    center = signedOutCenter
-    right = signedInNoChildRight
+  const dropdownStyle = {
+    position: 'absolute' as const,
+    top: '100%',
+    left: 0,
+    background: '#fff',
+    borderRadius: '12px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+    minWidth: '240px',
+    padding: '8px 0',
+    zIndex: 1000,
+    marginTop: '8px',
   }
+
+  const dropItem = {
+    display: 'block',
+    padding: '10px 16px',
+    fontFamily: 'Nunito, sans-serif',
+    fontSize: '14px',
+    fontWeight: 600,
+    color: '#1B2F5E',
+    textDecoration: 'none',
+    cursor: 'pointer',
+    background: 'none',
+    border: 'none',
+    width: '100%',
+    textAlign: 'left' as const,
+  }
+
+  const sectionLabel = {
+    display: 'block',
+    padding: '8px 16px 4px',
+    fontSize: '10px',
+    fontWeight: 800,
+    color: '#9CA3AF',
+    letterSpacing: '1px',
+    textTransform: 'uppercase' as const,
+  }
+
+  const divider = <div style={{ height: '1px', background: '#E5E7EB', margin: '4px 0' }} />
+
+  const getInitial = (name: string) => name?.[0]?.toUpperCase() ?? '?'
+
+  const ageColor =
+    activeChild?.age_group === 'explorer'
+      ? '#F5A623'
+      : activeChild?.age_group === 'discoverer'
+        ? '#2AAFA0'
+        : '#8B6BB1'
 
   return (
     <>
-      <NavbarSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
-      <header className="sticky top-0 z-50 bg-white border-b border-[#E5E7EB] h-14 md:h-16">
-        <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-8 gap-4">
-          {logo}
-          {center}
-          <div className="flex items-center gap-2">
-            {right}
-            {mobileToggle}
-          </div>
+      <nav
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 900,
+          background: '#fff',
+          borderBottom: '1px solid #E5E7EB',
+          height: '64px',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 32px',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Link to="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
+          <img
+            src="https://i.ibb.co/Z1KtZ2rN/Chat-GPT-Image-Jun-2-2026-08-37-45-PM.png"
+            alt="Yaqza Kids"
+            style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
+          />
+        </Link>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="hide-mobile">
+          {!user ? (
+            <>
+              <Link to="/discover" style={navLink}>
+                Discover
+              </Link>
+              <Link to="/paths" style={navLink}>
+                Learning Paths
+              </Link>
+              <Link to="/pricing" style={navLink}>
+                Pricing
+              </Link>
+              <Link to="/about" style={navLink}>
+                About
+              </Link>
+            </>
+          ) : activeChild ? (
+            <>
+              <Link to="/home" style={navLink}>
+                Home
+              </Link>
+
+              <div ref={exploreRef} style={{ position: 'relative' }}>
+                <button
+                  style={{ ...navLink, display: 'flex', alignItems: 'center', gap: '4px' }}
+                  onClick={() => setExploreOpen((o) => !o)}
+                >
+                  Explore <span style={{ fontSize: '10px' }}>▼</span>
+                </button>
+                {exploreOpen && (
+                  <div style={dropdownStyle}>
+                    <span style={sectionLabel}>Learning Paths</span>
+                    {PATHS.map((p) => (
+                      <Link
+                        key={p.slug}
+                        to={`/paths/${p.slug}`}
+                        style={dropItem}
+                        onClick={() => setExploreOpen(false)}
+                      >
+                        {p.name}
+                      </Link>
+                    ))}
+                    {divider}
+                    <span style={sectionLabel}>Discover</span>
+                    <Link to="/discover/featured" style={dropItem} onClick={() => setExploreOpen(false)}>
+                      Featured Stories
+                    </Link>
+                    <Link to="/discover/new" style={dropItem} onClick={() => setExploreOpen(false)}>
+                      New This Week
+                    </Link>
+                    <Link to="/discover/popular" style={dropItem} onClick={() => setExploreOpen(false)}>
+                      Most Popular
+                    </Link>
+                    <Link to="/discover/recommended" style={dropItem} onClick={() => setExploreOpen(false)}>
+                      Recommended for You
+                    </Link>
+                    {divider}
+                    <span style={sectionLabel}>My Progress</span>
+                    <Link to="/achievements" style={dropItem} onClick={() => setExploreOpen(false)}>
+                      Achievements
+                    </Link>
+                    <Link to="/certificates" style={dropItem} onClick={() => setExploreOpen(false)}>
+                      Certificates
+                    </Link>
+                    <Link to="/journey" style={dropItem} onClick={() => setExploreOpen(false)}>
+                      My Journey
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              <Link to="/journey" style={navLink}>
+                My Journey
+              </Link>
+
+              <button style={{ ...navLink, fontSize: '18px' }} onClick={() => navigate('/search')}>
+                🔍
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/discover" style={navLink}>
+                Discover
+              </Link>
+              <Link to="/paths" style={navLink}>
+                Learning Paths
+              </Link>
+              <Link to="/pricing" style={navLink}>
+                Pricing
+              </Link>
+              <Link to="/about" style={navLink}>
+                About
+              </Link>
+            </>
+          )}
         </div>
-      </header>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {!user ? (
+            <>
+              <Link
+                to="/login"
+                style={{
+                  ...navLink,
+                  border: '1.5px solid #1B2F5E',
+                  borderRadius: '999px',
+                  padding: '7px 18px',
+                }}
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/signup"
+                style={{
+                  background: '#F5A623',
+                  color: '#fff',
+                  fontFamily: 'Nunito, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  borderRadius: '999px',
+                  padding: '8px 20px',
+                  textDecoration: 'none',
+                }}
+              >
+                Start Free →
+              </Link>
+            </>
+          ) : activeChild ? (
+            <div ref={avatarRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setAvatarOpen((o) => !o)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: '999px',
+                }}
+              >
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: ageColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fff',
+                    fontWeight: 800,
+                    fontSize: '15px',
+                    fontFamily: 'Nunito, sans-serif',
+                  }}
+                >
+                  {getInitial(activeChild.name)}
+                </div>
+                <span style={{ fontFamily: 'Nunito', fontSize: '14px', fontWeight: 700, color: '#1B2F5E' }}>
+                  {activeChild.name}
+                </span>
+                <span style={{ fontSize: '10px', color: '#6B7280' }}>▼</span>
+              </button>
+
+              {avatarOpen && (
+                <div style={{ ...dropdownStyle, left: 'auto', right: 0, minWidth: '260px' }}>
+                  <div style={{ padding: '12px 16px' }}>
+                    <div
+                      style={{
+                        fontFamily: 'Playfair Display, serif',
+                        fontSize: '16px',
+                        fontWeight: 700,
+                        color: '#1B2F5E',
+                      }}
+                    >
+                      {activeChild.name}
+                    </div>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        marginTop: '4px',
+                        background: ageColor,
+                        color: '#fff',
+                        borderRadius: '999px',
+                        padding: '2px 10px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        textTransform: 'capitalize',
+                      }}
+                    >
+                      {activeChild.age_group}
+                    </span>
+                  </div>
+                  {divider}
+
+                  <Link to="/profile" style={dropItem} onClick={() => setAvatarOpen(false)}>
+                    My Profile
+                  </Link>
+                  <Link to="/profile/avatar" style={dropItem} onClick={() => setAvatarOpen(false)}>
+                    Choose Avatar
+                  </Link>
+                  <Link to="/children" style={dropItem} onClick={() => setAvatarOpen(false)}>
+                    Switch Child
+                  </Link>
+                  <Link to="/achievements" style={dropItem} onClick={() => setAvatarOpen(false)}>
+                    Achievements
+                  </Link>
+                  <Link to="/certificates" style={dropItem} onClick={() => setAvatarOpen(false)}>
+                    Certificates
+                  </Link>
+                  {divider}
+
+                  <span style={sectionLabel}>🔒 Parent Area</span>
+                  <button
+                    style={{ ...dropItem, color: '#6B7280' }}
+                    onClick={() => {
+                      setAvatarOpen(false)
+                      navigate('/parent')
+                    }}
+                  >
+                    Parent Dashboard
+                  </button>
+                  <button
+                    style={{ ...dropItem, color: '#6B7280' }}
+                    onClick={() => {
+                      setAvatarOpen(false)
+                      navigate('/parent/progress')
+                    }}
+                  >
+                    Child Progress
+                  </button>
+                  <button
+                    style={{ ...dropItem, color: '#6B7280' }}
+                    onClick={() => {
+                      setAvatarOpen(false)
+                      navigate('/parent/messages')
+                    }}
+                  >
+                    Messages & Announcements
+                  </button>
+                  <button
+                    style={{ ...dropItem, color: '#6B7280' }}
+                    onClick={() => {
+                      setAvatarOpen(false)
+                      navigate('/parent/subscription')
+                    }}
+                  >
+                    Subscription 🔒
+                  </button>
+                  <button
+                    style={{ ...dropItem, color: '#6B7280' }}
+                    onClick={() => {
+                      setAvatarOpen(false)
+                      navigate('/parent/settings')
+                    }}
+                  >
+                    Settings 🔒
+                  </button>
+                  <button
+                    style={{ ...dropItem, color: '#6B7280' }}
+                    onClick={() => {
+                      setAvatarOpen(false)
+                      navigate('/parent/support')
+                    }}
+                  >
+                    Support
+                  </button>
+                  {divider}
+
+                  <button style={{ ...dropItem, color: '#E85D4A' }} onClick={handleSignOut}>
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link
+                to="/children"
+                style={{
+                  ...navLink,
+                  border: '1.5px solid #F5A623',
+                  borderRadius: '999px',
+                  padding: '7px 18px',
+                  color: '#F5A623',
+                }}
+              >
+                Select Child
+              </Link>
+              <button style={{ ...navLink, color: '#E85D4A' }} onClick={handleSignOut}>
+                Sign Out
+              </button>
+            </>
+          )}
+
+          <button
+            className="show-mobile"
+            onClick={() => setMobileOpen(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '24px',
+              cursor: 'pointer',
+              color: '#1B2F5E',
+              marginLeft: '8px',
+            }}
+          >
+            ☰
+          </button>
+        </div>
+      </nav>
 
       {mobileOpen && (
-        <div className="fixed inset-0 z-[120] md:hidden">
-          <div className="absolute inset-0 bg-[#1B2F5E]/40" onClick={closeAll} aria-hidden />
-          <div className="absolute right-0 top-0 bottom-0 w-[min(100%,320px)] bg-white shadow-xl flex flex-col animate-slide-in-right">
-            <div className="flex items-center justify-between px-4 h-14 border-b border-[#E5E7EB]">
-              <span className="font-display font-bold text-[#1B2F5E]">Menu</span>
-              <button type="button" onClick={closeAll} className="p-2 text-[#1B2F5E] font-bold" aria-label="Close menu">
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(0,0,0,0.5)',
+          }}
+          onClick={() => setMobileOpen(false)}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: '280px',
+              background: '#fff',
+              padding: '20px 0',
+              overflowY: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '0 16px 16px',
+              }}
+            >
+              {activeChild && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      background: ageColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#fff',
+                      fontWeight: 800,
+                    }}
+                  >
+                    {getInitial(activeChild.name)}
+                  </div>
+                  <span style={{ fontWeight: 700, color: '#1B2F5E' }}>{activeChild.name}</span>
+                </div>
+              )}
+              <button
+                onClick={() => setMobileOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}
+              >
                 ✕
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
-              {activeChild && paths && (
-                <div className="flex items-center gap-3 pb-4 mb-4 border-b border-[#E5E7EB]">
-                  <UserAvatar name={activeChild.name} avatarId={activeChild.avatar_id ?? null} size={40} />
-                  <div>
-                    <p className="font-bold text-[#1B2F5E]">{activeChild.name}</p>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${ageGroupBadgeClass(activeChild.age_group)}`}>
-                      {ageGroupLabel(activeChild.age_group)}
-                    </span>
-                  </div>
-                </div>
-              )}
+            {divider}
 
-              {user && hasActiveChild && paths ? (
-                <>
-                  <MobileLink to={paths.home} onClick={closeAll}>Home</MobileLink>
-                  <MobileLink to={paths.explore} onClick={closeAll}>Explore</MobileLink>
-                  <MobileLink to={paths.journey} onClick={closeAll}>My Journey</MobileLink>
-                  <button type="button" onClick={() => { setSearchOpen(true); closeAll() }} className="mobile-nav-btn">🔍 Search</button>
-                  <div className="pt-4 mt-4 border-t border-[#E5E7EB] space-y-1">
-                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#9CA3AF] px-1 pb-2">Parent Area 🔒</p>
-                    <button type="button" onClick={() => openParent('/parent/dashboard')} className="mobile-nav-btn">Parent Dashboard</button>
-                    <button type="button" onClick={() => openParent('/parent/progress')} className="mobile-nav-btn">Child Progress</button>
-                    <button type="button" onClick={() => openParent('/parent/messages')} className="mobile-nav-btn">Messages</button>
-                    <button type="button" onClick={() => openParent('/parent/settings')} className="mobile-nav-btn">Settings</button>
-                    <MobileLink to="/parent/support" onClick={closeAll}>Support</MobileLink>
-                  </div>
-                  <button type="button" onClick={() => { closeAll(); void signOut() }} className="mobile-nav-btn text-[#E85D4A] mt-4">Sign Out</button>
-                </>
-              ) : user ? (
-                <>
-                  {PUBLIC_NAV_LINKS.map((link) => (
-                    <MobileLink key={link.to} to={link.to} onClick={closeAll}>{link.label}</MobileLink>
-                  ))}
-                  <MobileLink to="/children" onClick={closeAll}>Select Child</MobileLink>
-                  <button type="button" onClick={() => { closeAll(); void signOut() }} className="mobile-nav-btn text-[#E85D4A]">Sign Out</button>
-                </>
-              ) : (
-                <>
-                  {PUBLIC_NAV_LINKS.map((link) => (
-                    <MobileLink key={link.to} to={link.to} onClick={closeAll}>{link.label}</MobileLink>
-                  ))}
-                  <MobileLink to="/login" onClick={closeAll}>Sign In</MobileLink>
-                  <MobileLink to="/signup" onClick={closeAll}>Start Free</MobileLink>
-                </>
-              )}
-            </div>
+            {!user ? (
+              <>
+                <Link to="/discover" style={{ ...dropItem }} onClick={() => setMobileOpen(false)}>
+                  Discover
+                </Link>
+                <Link to="/paths" style={dropItem} onClick={() => setMobileOpen(false)}>
+                  Learning Paths
+                </Link>
+                <Link to="/pricing" style={dropItem} onClick={() => setMobileOpen(false)}>
+                  Pricing
+                </Link>
+                <Link to="/about" style={dropItem} onClick={() => setMobileOpen(false)}>
+                  About
+                </Link>
+                {divider}
+                <Link to="/login" style={dropItem} onClick={() => setMobileOpen(false)}>
+                  Sign In
+                </Link>
+                <Link to="/signup" style={{ ...dropItem, color: '#F5A623' }} onClick={() => setMobileOpen(false)}>
+                  Start Free →
+                </Link>
+              </>
+            ) : activeChild ? (
+              <>
+                <Link to="/home" style={dropItem} onClick={() => setMobileOpen(false)}>
+                  Home
+                </Link>
+                <Link to="/journey" style={dropItem} onClick={() => setMobileOpen(false)}>
+                  My Journey
+                </Link>
+                <Link to="/achievements" style={dropItem} onClick={() => setMobileOpen(false)}>
+                  Achievements
+                </Link>
+                <Link to="/search" style={dropItem} onClick={() => setMobileOpen(false)}>
+                  Search
+                </Link>
+                {divider}
+                <span style={sectionLabel}>Learning Paths</span>
+                {PATHS.map((p) => (
+                  <Link
+                    key={p.slug}
+                    to={`/paths/${p.slug}`}
+                    style={{ ...dropItem, paddingLeft: '24px', fontSize: '13px' }}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {p.name}
+                  </Link>
+                ))}
+                {divider}
+                <span style={sectionLabel}>Discover</span>
+                <Link
+                  to="/discover/featured"
+                  style={{ ...dropItem, paddingLeft: '24px', fontSize: '13px' }}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Featured Stories
+                </Link>
+                <Link
+                  to="/discover/new"
+                  style={{ ...dropItem, paddingLeft: '24px', fontSize: '13px' }}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  New This Week
+                </Link>
+                <Link
+                  to="/discover/popular"
+                  style={{ ...dropItem, paddingLeft: '24px', fontSize: '13px' }}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Most Popular
+                </Link>
+                <Link
+                  to="/discover/recommended"
+                  style={{ ...dropItem, paddingLeft: '24px', fontSize: '13px' }}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Recommended for You
+                </Link>
+                {divider}
+                <span style={sectionLabel}>🔒 Parent Area</span>
+                <Link to="/parent" style={{ ...dropItem, color: '#6B7280' }} onClick={() => setMobileOpen(false)}>
+                  Parent Dashboard
+                </Link>
+                <Link
+                  to="/parent/subscription"
+                  style={{ ...dropItem, color: '#6B7280' }}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Subscription
+                </Link>
+                <Link
+                  to="/parent/settings"
+                  style={{ ...dropItem, color: '#6B7280' }}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Settings
+                </Link>
+                {divider}
+                <Link to="/children" style={dropItem} onClick={() => setMobileOpen(false)}>
+                  Switch Child
+                </Link>
+                <button style={{ ...dropItem, color: '#E85D4A' }} onClick={handleSignOut}>
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/children" style={{ ...dropItem, color: '#F5A623' }} onClick={() => setMobileOpen(false)}>
+                  Select Child
+                </Link>
+                <button style={{ ...dropItem, color: '#E85D4A' }} onClick={handleSignOut}>
+                  Sign Out
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
-    </>
-  )
-}
 
-function MobileLink({ to, children, onClick }: { to: string; children: ReactNode; onClick?: () => void }) {
-  return (
-    <Link to={to} onClick={onClick} className="mobile-nav-btn block">
-      {children}
-    </Link>
+      <style>{`
+        @media (max-width: 768px) { .hide-mobile { display: none !important; } }
+        @media (min-width: 769px) { .show-mobile { display: none !important; } }
+        a:hover, button:hover { opacity: 0.8; }
+      `}</style>
+    </>
   )
 }
