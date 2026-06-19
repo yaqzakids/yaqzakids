@@ -13,6 +13,7 @@ import {
   fetchConversationDetail,
   fetchParentConversations,
   markConversationRead,
+  markConversationUnread,
   sendParentReply,
   unarchiveConversation,
 } from '@/lib/messaging/parentMessaging'
@@ -106,14 +107,30 @@ export default function MessagesPage() {
     }
   }
 
+  const handleMarkUnread = async () => {
+    if (!user || !selectedId) return
+    try {
+      await markConversationUnread(user.id, selectedId)
+      await refreshUnread()
+      await loadList()
+    } catch (err) {
+      setError(formatSupabaseError(err))
+    }
+  }
+
   return (
     <ParentLayout active="messages">
-      <div className="max-w-6xl mx-auto px-4 md:px-10 py-6 md:py-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-10 py-6 md:py-10">
+        <div className="mb-6">
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-navy m-0">Messages</h1>
+          <p className="text-sm text-muted mt-1 m-0">Direct messages from the Yaqza Kids team</p>
+        </div>
+
         <AnnouncementBanner compact />
 
         {error && <ErrorMessage message={error} onRetry={() => void loadList()} />}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 min-h-[560px]">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,360px)_1fr] gap-4 min-h-[560px]">
           <div className="bg-white rounded-[20px] shadow-lg border border-gray-100 overflow-hidden flex flex-col">
             <div className="p-3 border-b border-gray-100 flex flex-wrap gap-1">
               {INBOX_FILTERS.map((f) => (
@@ -131,7 +148,7 @@ export default function MessagesPage() {
                       : 'bg-white text-navy border-gray-200'
                   }`}
                 >
-                  {f.label}
+                  {f.icon} {f.label}
                 </button>
               ))}
             </div>
@@ -151,13 +168,15 @@ export default function MessagesPage() {
                         type="button"
                         onClick={() => setSelectedId(c.id)}
                         className={`w-full text-left p-4 border-b border-gray-50 hover:bg-teal/5 transition-colors ${
-                          selectedId === c.id ? 'bg-teal/10' : ''
+                          selectedId === c.id ? 'bg-teal/10 border-l-4 border-l-teal' : 'border-l-4 border-l-transparent'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <span className="font-bold text-sm text-navy line-clamp-1">
                             {c.broadcast_id && (
-                              <span className="text-gold mr-1" title="Broadcast">📢</span>
+                              <span className="text-gold mr-1" title="Announcement">
+                                📢
+                              </span>
                             )}
                             {c.subject}
                           </span>
@@ -185,7 +204,7 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-[20px] shadow-lg border border-gray-100 overflow-hidden flex flex-col">
+          <div className="bg-white rounded-[20px] shadow-lg border border-gray-100 overflow-hidden flex flex-col min-h-[480px]">
             {!selectedId ? (
               <p className="text-sm text-muted text-center py-20 m-0">
                 Select a conversation to read and reply.
@@ -194,23 +213,32 @@ export default function MessagesPage() {
               <MessagingThreadSkeleton />
             ) : (
               <>
-                <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2">
+                <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2 bg-[#FAFBFD]">
                   <div>
                     {detail.broadcast_id && (
                       <span className="inline-block text-[10px] font-extrabold uppercase tracking-wide text-gold bg-gold/10 px-2 py-0.5 rounded-full mb-1">
-                        📢 Broadcast
+                        📢 Announcement
                       </span>
                     )}
                     <h2 className="font-display font-bold text-navy m-0 text-lg">{detail.subject}</h2>
-                    <p className="text-xs text-muted m-0">{formatDateTime(detail.updated_at)}</p>
+                    <p className="text-xs text-muted m-0">From Yaqza Kids · {formatDateTime(detail.updated_at)}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => void handleArchive()}
-                    className="text-xs font-bold text-teal border border-teal rounded-full px-3 py-1.5 bg-white cursor-pointer hover:bg-teal/5"
-                  >
-                    {filter === 'archived' ? 'Unarchive' : 'Archive'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleMarkUnread()}
+                      className="text-xs font-bold text-navy border border-gray-200 rounded-full px-3 py-1.5 bg-white cursor-pointer hover:bg-gray-50"
+                    >
+                      Mark unread
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleArchive()}
+                      className="text-xs font-bold text-teal border border-teal rounded-full px-3 py-1.5 bg-white cursor-pointer hover:bg-teal/5"
+                    >
+                      {filter === 'archived' ? 'Unarchive' : 'Archive'}
+                    </button>
+                  </div>
                 </div>
                 <MessageThread
                   detail={detail}

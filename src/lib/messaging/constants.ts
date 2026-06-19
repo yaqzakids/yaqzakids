@@ -10,12 +10,44 @@ export const MESSAGE_ALLOWED_ATTACHMENT_TYPES = [
 ]
 
 export const INBOX_FILTERS = [
-  { value: 'inbox', label: 'Inbox' },
-  { value: 'unread', label: 'Unread' },
-  { value: 'archived', label: 'Archived' },
+  { value: 'inbox', label: 'Inbox', icon: '📥' },
+  { value: 'announcements', label: 'Announcements', icon: '📢' },
+  { value: 'unread', label: 'Unread', icon: '●' },
+  { value: 'archived', label: 'Archived', icon: '📦' },
 ] as const
 
 export type InboxFilter = (typeof INBOX_FILTERS)[number]['value']
+
+export const ADMIN_INBOX_FOLDERS = [
+  { value: 'inbox', label: 'Inbox', icon: '📥' },
+  { value: 'sent', label: 'Sent', icon: '📤' },
+  { value: 'important', label: 'Important', icon: '⭐' },
+  { value: 'todo', label: 'To Do', icon: '📌' },
+  { value: 'scheduled', label: 'Scheduled', icon: '⏰' },
+  { value: 'archived', label: 'Archived', icon: '📦' },
+  { value: 'trash', label: 'Trash', icon: '🗑' },
+] as const
+
+export type AdminInboxFolder = (typeof ADMIN_INBOX_FOLDERS)[number]['value']
+
+export const CONVERSATION_CATEGORIES = [
+  { value: 'general', label: 'General' },
+  { value: 'support', label: 'Support' },
+  { value: 'billing', label: 'Billing' },
+  { value: 'learning', label: 'Learning' },
+  { value: 'feedback', label: 'Feedback' },
+] as const
+
+export type ConversationCategory = (typeof CONVERSATION_CATEGORIES)[number]['value']
+
+export const CONVERSATION_STATUSES = [
+  { value: 'open', label: 'Open' },
+  { value: 'closed', label: 'Closed' },
+  { value: 'archived', label: 'Archived' },
+  { value: 'trashed', label: 'Trashed' },
+] as const
+
+export type ConversationStatus = (typeof CONVERSATION_STATUSES)[number]['value']
 
 export const ADMIN_SEND_AUDIENCES = [
   { value: 'one', label: 'One parent' },
@@ -88,6 +120,10 @@ export type BroadcastAudience = (typeof BROADCAST_AUDIENCES)[number]['value']
 
 export function broadcastTypeLabel(type: BroadcastType): string {
   return BROADCAST_TYPES.find((t) => t.value === type)?.label ?? type
+}
+
+export function categoryLabel(category: string): string {
+  return CONVERSATION_CATEGORIES.find((c) => c.value === category)?.label ?? category
 }
 
 export type MessageDeliveryStatus = 'sent' | 'delivered' | 'read'

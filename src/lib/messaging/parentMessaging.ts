@@ -29,8 +29,6 @@ export async function fetchParentConversations(
 ): Promise<PaginatedResult<ConversationSummary>> {
   const page = options.page ?? 1
   const pageSize = options.pageSize ?? 15
-  const from = (page - 1) * pageSize
-  const to = from + pageSize - 1
 
   let participantQuery = supabase
     .from('conversation_participants')
@@ -51,16 +49,25 @@ export async function fetchParentConversations(
     return { data: [], total: 0, page, pageSize }
   }
 
-  const { data: conversations, error, count } = await supabase
+  const { data: conversations, error } = await supabase
     .from('conversations')
     .select('*', { count: 'exact' })
     .in('id', conversationIds)
     .order('updated_at', { ascending: false })
-    .range(from, to)
 
   if (error) throw error
 
-  const summaries = await enrichConversations(conversations ?? [], userId, memberships ?? [])
+  let convList = conversations ?? []
+  if (options.filter === 'announcements') {
+    convList = convList.filter((c) => c.broadcast_id)
+  } else if (options.filter === 'inbox' || options.filter === 'unread') {
+    convList = convList.filter((c) => !c.broadcast_id)
+  }
+
+  const from = (page - 1) * pageSize
+  const paged = convList.slice(from, from + pageSize)
+
+  const summaries = await enrichConversations(paged, userId, memberships ?? [])
 
   let filtered = summaries
   if (options.filter === 'unread') {
@@ -69,7 +76,7 @@ export async function fetchParentConversations(
 
   return {
     data: filtered,
-    total: options.filter === 'unread' ? filtered.length : count ?? filtered.length,
+    total: options.filter === 'unread' ? filtered.length : convList.length,
     page,
     pageSize,
   }
@@ -191,6 +198,16 @@ export async function unarchiveConversation(userId: string, conversationId: stri
   const { error } = await supabase
     .from('conversation_participants')
     .update({ archived_at: null })
+    .eq('conversation_id', conversationId)
+    .eq('user_id', userId)
+
+  if (error) throw error
+}
+
+export async function markConversationUnread(userId: string, conversationId: string): Promise<void> {
+  const { error } = await supabase
+    .from('conversation_participants')
+    .update({ last_read_at: null })
     .eq('conversation_id', conversationId)
     .eq('user_id', userId)
 

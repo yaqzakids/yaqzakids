@@ -1,61 +1,79 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import ErrorMessage from '@/components/ErrorMessage'
 import BroadcastCenterCard from '@/components/admin/BroadcastCenterCard'
-import MessageThread from '@/components/messaging/MessageThread'
-import { MessagingListSkeleton, MessagingThreadSkeleton } from '@/components/messaging/MessagingSkeleton'
-import SupportPagination from '@/components/support/SupportPagination'
+import AdminInboxSidebar from '@/components/admin/messaging/AdminInboxSidebar'
+import AdminConversationList from '@/components/admin/messaging/AdminConversationList'
+import AdminConversationPanel from '@/components/admin/messaging/AdminConversationPanel'
+import AdminNewMessageModal from '@/components/admin/messaging/AdminNewMessageModal'
 import { useAuth } from '@/components/ProtectedRoute'
 import {
   adminCreateConversation,
   fetchAdminConversationDetail,
   fetchAdminConversations,
-  fetchParentsForSelect,
+  fetchAdminFolderCounts,
   markAdminConversationRead,
-  resolveRecipientIds,
   sendAdminReply,
+  setAdminConversationFolder,
+  updateAdminConversation,
 } from '@/lib/admin/messaging'
-import { adminBtn, adminCard, adminInput, adminTextarea } from '@/lib/admin/styles'
-import { ADMIN_SEND_AUDIENCES, type AdminSendAudience } from '@/lib/messaging/constants'
-import type { ConversationDetail, ConversationSummary } from '@/lib/messaging/types'
-import { formatDateTime } from '@/lib/admin/utils'
+import type { AdminInboxFolder } from '@/lib/messaging/constants'
+import type { AdminFolderCounts, ConversationDetail, ConversationSummary } from '@/lib/messaging/types'
 import { formatSupabaseError } from '@/lib/supabaseErrors'
+
+const EMPTY_COUNTS: AdminFolderCounts = {
+  inbox: 0,
+  sent: 0,
+  important: 0,
+  todo: 0,
+  scheduled: 0,
+  archived: 0,
+  trash: 0,
+}
 
 export default function AdminMessagesPage() {
   const { user } = useAuth()
+  const [folder, setFolder] = useState<AdminInboxFolder>('inbox')
   const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
   const [conversations, setConversations] = useState<ConversationSummary[]>([])
-  const [total, setTotal] = useState(0)
+  const [counts, setCounts] = useState<AdminFolderCounts>(EMPTY_COUNTS)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detail, setDetail] = useState<ConversationDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [sending, setSending] = useState(false)
-
   const [showCompose, setShowCompose] = useState(false)
-  const [audience, setAudience] = useState<AdminSendAudience>('one')
-  const [selectedParents, setSelectedParents] = useState<string[]>([])
-  const [parents, setParents] = useState<{ id: string; full_name: string; email: string | null }[]>([])
-  const [composeSubject, setComposeSubject] = useState('')
-  const [composeMessage, setComposeMessage] = useState('')
   const [composing, setComposing] = useState(false)
 
-  const pageSize = 15
+  const refreshCounts = useCallback(async () => {
+    if (!user) return
+    try {
+      const next = await fetchAdminFolderCounts(user.id)
+      setCounts(next)
+    } catch {
+      /* non-fatal */
+    }
+  }, [user])
 
   const loadList = useCallback(async () => {
+    if (!user) return
     setLoading(true)
     setError(null)
     try {
-      const result = await fetchAdminConversations({ search, page, pageSize })
+      const result = await fetchAdminConversations({
+        folder,
+        search,
+        adminId: user.id,
+        pageSize: 50,
+      })
       setConversations(result.data)
-      setTotal(result.total)
+      await refreshCounts()
     } catch (err) {
       setError(formatSupabaseError(err))
     } finally {
       setLoading(false)
     }
-  }, [search, page, pageSize])
+  }, [user, folder, search, refreshCounts])
 
   const loadDetail = useCallback(async () => {
     if (!selectedId || !user) return
@@ -64,12 +82,13 @@ export default function AdminMessagesPage() {
       const data = await fetchAdminConversationDetail(selectedId)
       setDetail(data)
       await markAdminConversationRead(user.id, selectedId)
+      await refreshCounts()
     } catch (err) {
       setError(formatSupabaseError(err))
     } finally {
       setDetailLoading(false)
     }
-  }, [selectedId, user])
+  }, [selectedId, user, refreshCounts])
 
   useEffect(() => {
     void loadList()
@@ -80,15 +99,12 @@ export default function AdminMessagesPage() {
     else setDetail(null)
   }, [selectedId, loadDetail])
 
-  useEffect(() => {
-    void fetchParentsForSelect().then(setParents)
-  }, [])
-
   const handleSend = async (message: string) => {
-    if (!user || !selectedId) return
+    if (!user || !selectedId || !detail) return
     setSending(true)
     try {
-      await sendAdminReply(user.id, selectedId, message)
+      const parentId = detail.parent_user_id ?? detail.parent?.id ?? null
+      await sendAdminReply(user.id, selectedId, message, parentId)
       await loadDetail()
       await loadList()
     } catch (err) {
@@ -98,202 +114,107 @@ export default function AdminMessagesPage() {
     }
   }
 
-  const handleCompose = async (e: FormEvent) => {
-    e.preventDefault()
+  const handleCompose = async (payload: {
+    recipientId: string
+    childProfileId: string | null
+    subject: string
+    message: string
+    category: import('@/lib/messaging/constants').ConversationCategory
+  }) => {
     if (!user) return
     setComposing(true)
     setError(null)
     try {
-      const recipientIds = await resolveRecipientIds(audience, selectedParents)
       const conversationId = await adminCreateConversation(
         user.id,
-        composeSubject,
-        composeMessage,
-        recipientIds
+        payload.subject,
+        payload.message,
+        [payload.recipientId],
+        { childProfileId: payload.childProfileId, category: payload.category }
       )
       setShowCompose(false)
-      setComposeSubject('')
-      setComposeMessage('')
-      setSelectedParents([])
+      setFolder('sent')
       setSelectedId(conversationId)
       await loadList()
     } catch (err) {
       setError(formatSupabaseError(err))
+      throw err
     } finally {
       setComposing(false)
     }
   }
 
-  const toggleParent = (id: string) => {
-    setSelectedParents((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
-    )
+  const handleAction = async (
+    action: 'archive' | 'unarchive' | 'trash' | 'restore' | 'important' | 'unimportant' | 'todo' | 'untodo'
+  ) => {
+    if (!user || !selectedId) return
+    try {
+      await setAdminConversationFolder(user.id, selectedId, action)
+      await loadDetail()
+      await loadList()
+    } catch (err) {
+      setError(formatSupabaseError(err))
+    }
+  }
+
+  const handleNotesChange = async (notes: string) => {
+    if (!selectedId) return
+    await updateAdminConversation(selectedId, { internal_notes: notes })
+    await loadDetail()
   }
 
   return (
-    <div>
+    <div className="space-y-4">
       <BroadcastCenterCard onRefreshConversations={() => void loadList()} />
-
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <input
-          style={{ ...adminInput, maxWidth: 320, flex: 1 }}
-          placeholder="Search parent, email, subject, message…"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value)
-            setPage(1)
-          }}
-        />
-        <button type="button" style={adminBtn.primary} onClick={() => setShowCompose(true)}>
-          New Conversation
-        </button>
-      </div>
-
-      <h3
-        className="font-bold m-0 mb-3 text-sm uppercase tracking-wide text-gray-500"
-        style={{ letterSpacing: '0.06em' }}
-      >
-        One-to-One Conversations
-      </h3>
 
       {error && <ErrorMessage message={error} onRetry={() => void loadList()} />}
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <div style={adminCard}>
-          {loading ? (
-            <MessagingListSkeleton />
-          ) : conversations.length === 0 ? (
-            <p className="text-sm text-gray-500 m-0">No conversations found.</p>
-          ) : (
-            <>
-              <div style={{ overflow: 'auto', maxHeight: 520 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <tbody>
-                    {conversations.map((c) => {
-                      const parent = c.participants?.find((p) => p.user_type === 'parent')
-                      return (
-                        <tr
-                          key={c.id}
-                          onClick={() => setSelectedId(c.id)}
-                          style={{
-                            cursor: 'pointer',
-                            background: selectedId === c.id ? '#fffbeb' : undefined,
-                          }}
-                        >
-                          <td style={{ padding: '12px 8px', borderBottom: '1px solid #f3f4f6' }}>
-                            <div className="font-semibold text-sm">{c.subject}</div>
-                            <div className="text-xs text-gray-500">
-                              {parent?.profile?.full_name ?? 'Parent'} · {formatDateTime(c.updated_at)}
-                            </div>
-                            <div className="text-xs text-gray-400 line-clamp-1">
-                              {c.last_message?.message}
-                            </div>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              <SupportPagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} />
-            </>
-          )}
-        </div>
+      <div
+        className="grid gap-3 min-h-[680px]"
+        style={{ gridTemplateColumns: '220px minmax(280px, 340px) 1fr' }}
+      >
+        <AdminInboxSidebar
+          folder={folder}
+          counts={counts}
+          onFolderChange={(f) => {
+            setFolder(f)
+            setSelectedId(null)
+          }}
+          onNewMessage={() => setShowCompose(true)}
+        />
 
-        <div style={adminCard}>
-          {!selectedId ? (
-            <p className="text-sm text-gray-500 m-0 py-16 text-center">
-              Select a conversation or start a new one.
-            </p>
-          ) : detailLoading || !detail ? (
-            <MessagingThreadSkeleton />
-          ) : (
-            <>
-              <h3 className="font-bold m-0 mb-1" style={{ fontFamily: 'Playfair Display, serif', color: '#1B2F5E' }}>
-                {detail.subject}
-              </h3>
-              <p className="text-xs text-gray-500 mb-3">
-                {detail.participants
-                  .filter((p) => p.user_type === 'parent')
-                  .map((p) => p.profile?.full_name ?? p.user_id)
-                  .join(', ')}
-              </p>
-              <MessageThread
-                detail={detail}
-                currentUserId={user!.id}
-                onSend={handleSend}
-                sending={sending}
-                variant="admin"
-              />
-            </>
-          )}
-        </div>
+        <AdminConversationList
+          conversations={conversations}
+          selectedId={selectedId}
+          loading={loading}
+          search={search}
+          onSearchChange={setSearch}
+          onSelect={setSelectedId}
+        />
+
+        {!selectedId ? (
+          <div className="flex items-center justify-center bg-white border border-gray-200 rounded-xl text-sm text-gray-500">
+            Select a conversation or click ➕ New Message
+          </div>
+        ) : (
+          <AdminConversationPanel
+            detail={detail}
+            loading={detailLoading}
+            currentUserId={user!.id}
+            sending={sending}
+            onSend={handleSend}
+            onAction={handleAction}
+            onNotesChange={handleNotesChange}
+          />
+        )}
       </div>
 
-      {showCompose && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(9, 38, 74, 0.45)' }}
-        >
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-navy m-0 mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-              New Conversation
-            </h3>
-            <form onSubmit={(e) => void handleCompose(e)} className="space-y-3">
-              <div>
-                <label className="block text-sm font-semibold mb-1">Send To</label>
-                <select
-                  style={adminInput}
-                  value={audience}
-                  onChange={(e) => setAudience(e.target.value as AdminSendAudience)}
-                >
-                  {ADMIN_SEND_AUDIENCES.map((a) => (
-                    <option key={a.value} value={a.value}>
-                      {a.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {(audience === 'one' || audience === 'multiple') && (
-                <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2 space-y-1">
-                  {parents.map((p) => (
-                    <label key={p.id} className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type={audience === 'one' ? 'radio' : 'checkbox'}
-                        name="parent"
-                        checked={selectedParents.includes(p.id)}
-                        onChange={() => {
-                          if (audience === 'one') setSelectedParents([p.id])
-                          else toggleParent(p.id)
-                        }}
-                      />
-                      {p.full_name} ({p.email ?? 'no email'})
-                    </label>
-                  ))}
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-semibold mb-1">Subject</label>
-                <input style={adminInput} value={composeSubject} onChange={(e) => setComposeSubject(e.target.value)} required />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1">Message</label>
-                <textarea style={adminTextarea} value={composeMessage} onChange={(e) => setComposeMessage(e.target.value)} required />
-              </div>
-              <div className="flex justify-end gap-2">
-                <button type="button" style={adminBtn.secondary} onClick={() => setShowCompose(false)}>
-                  Cancel
-                </button>
-                <button type="submit" style={adminBtn.primary} disabled={composing}>
-                  {composing ? 'Sending…' : 'Send'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AdminNewMessageModal
+        open={showCompose}
+        composing={composing}
+        onClose={() => setShowCompose(false)}
+        onSend={handleCompose}
+      />
     </div>
   )
 }
