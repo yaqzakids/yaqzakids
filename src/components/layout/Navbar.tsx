@@ -477,27 +477,32 @@ export default function Navbar() {
               </Link>
             )}
 
-            <button
-              type="button"
-              style={{
-                ...dropItem,
-                width: '100%',
-                margin: '4px 12px 8px',
-                padding: '8px 12px',
-                borderRadius: '999px',
-                border: '1.5px solid #2AAFA0',
-                color: '#2AAFA0',
-                fontWeight: 800,
-                fontSize: '13px',
-                textAlign: 'center',
-              }}
-              onClick={() => {
-                setAvatarOpen(false)
-                navigate('/children/new')
-              }}
-            >
-              + Add child
-            </button>
+            <div style={{ padding: '4px 16px 8px' }}>
+              <button
+                type="button"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '8px 12px',
+                  borderRadius: '999px',
+                  border: '1.5px solid #2AAFA0',
+                  color: '#2AAFA0',
+                  fontFamily: 'Nunito, sans-serif',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  background: 'none',
+                }}
+                onClick={() => {
+                  setAvatarOpen(false)
+                  navigate('/children/new')
+                }}
+              >
+                + Add child
+              </button>
+            </div>
 
             {child && (
               <>
