@@ -1,4 +1,7 @@
-const DEFAULT_OG_IMAGE = 'https://i.ibb.co/YTbzfdLX/Yaffa-4.png'
+const SITE_URL =
+  (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') ?? 'https://www.yaqzakids.com'
+
+const DEFAULT_OG_IMAGE = `${SITE_URL}/logo.png`
 
 export const SITE_SEO = {
   brandName: 'YaqzaKids',
@@ -20,7 +23,7 @@ export const SITE_SEO = {
     description:
       'Rooted in Faith. Awake to the World. A safe learning platform helping Muslim children discover science, history, technology, and the world through an Islamic worldview.',
   },
-  siteUrl: (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') ?? 'https://www.yaqzakids.com',
+  siteUrl: SITE_URL,
   defaultImage: DEFAULT_OG_IMAGE,
   locale: 'en_US',
   twitterCard: 'summary_large_image' as const,

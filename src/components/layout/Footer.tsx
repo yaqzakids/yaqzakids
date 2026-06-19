@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom'
+import { PUBLIC_HOME_PATH } from '@/lib/navigation'
 import { SITE_EMAILS } from '@/lib/constants'
 import { useLanguage, type Language } from '@/i18n'
 import ParentGateLink from '@/components/parent/ParentGateLink'
+import BrandLogo from '@/components/BrandLogo'
 
 interface FooterProps {
   variant?: 'light' | 'dark'
+  logoHeight?: number
 }
 
 const LEARN_LINKS = [
@@ -27,7 +30,6 @@ const LEGAL_LINKS = [
   { label: 'Privacy Policy', to: '/about#privacy', external: false },
   { label: 'Terms of Use', to: '/about#terms', external: false },
   { label: 'Contact', to: `mailto:${SITE_EMAILS.contact}`, external: true },
-  { label: 'Admin', to: '/admin/login', external: false },
 ] as const
 
 function FooterLink({
@@ -83,7 +85,7 @@ function FooterLanguageSwitcher({ isDark }: { isDark: boolean }) {
   )
 }
 
-export default function Footer({ variant = 'light' }: FooterProps) {
+export default function Footer({ variant = 'light', logoHeight = 40 }: FooterProps) {
   const isDark = variant === 'dark'
   const year = new Date().getFullYear()
 
@@ -104,14 +106,7 @@ export default function Footer({ variant = 'light' }: FooterProps) {
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
         {/* Brand */}
         <div className="sm:col-span-2 lg:col-span-1">
-          <Link
-            to="/"
-            className={`inline-block font-display font-bold text-lg tracking-tight mb-2 ${
-              isDark ? 'text-white' : 'text-[#1B2F5E]'
-            }`}
-          >
-            YAQZA KIDS
-          </Link>
+          <BrandLogo to={PUBLIC_HOME_PATH} height={logoHeight} className="mb-3" />
           <p className={`text-sm font-bold mb-2 ${isDark ? 'text-gold' : 'text-[#1B2F5E]'}`}>
             Rooted in Faith. Awake to the World.
           </p>

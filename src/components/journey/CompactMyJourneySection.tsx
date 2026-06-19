@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { learningPathDetailUrl } from '@/lib/learningPaths'
 import TealProgressBar from '@/components/discoverer/TealProgressBar'
 import type { AgeGroup } from '@/lib/types'
 import { profileDashboardPathForAgeGroup } from '@/lib/childProfiles'
@@ -47,7 +48,7 @@ export default function CompactMyJourneySection({
             <ul className="space-y-3">
               {previewCategories.map((category) => (
                 <li key={category.pillarId}>
-                  <Link to={category.pathSlug ? `/adventures/${category.pathSlug}` : '/adventures'} className="block group">
+                  <Link to={category.pathSlug ? learningPathDetailUrl(category.pathSlug) : '/paths'} className="block group">
                     <div className="flex items-center gap-2 mb-1">
                       <span aria-hidden>{category.icon ?? '📚'}</span>
                       <span className="text-sm font-bold text-[#1B2F5E] truncate group-hover:text-[#2AAFA0]">

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   addArticleToPath,
   createAdminPath,
+  deleteAdminPath,
   fetchAdminPath,
   fetchBadges,
   fetchPathArticles,
@@ -10,6 +11,7 @@ import {
   reorderPathArticles,
   searchArticles,
   updateAdminPath,
+  updatePathArticleRequired,
   type AdminPathForm,
   type PathArticleItem,
 } from '@/lib/admin/paths'
@@ -138,6 +140,15 @@ export default function AdminPathEditorPage() {
     setPathArticles(await fetchPathArticles(id))
   }
 
+  const handleDeletePath = async () => {
+    if (!id || isNew) return
+    if (!confirm(`Delete path "${form.title}"? This cannot be undone.`)) return
+    await deleteAdminPath(id)
+    navigate('/admin/paths')
+  }
+
+  const previewPathSlug = form.public_slug || form.slug
+
   const handleDrop = async (targetIdx: number) => {
     if (dragIdx === null || dragIdx === targetIdx || !id) return
     const items = [...pathArticles]
@@ -196,7 +207,11 @@ export default function AdminPathEditorPage() {
             </select>
           </div>
           <div><label className="block text-sm font-semibold mb-1">Display order</label><input type="number" style={adminInput} value={form.sort_order} onChange={(e) => setField('sort_order', Number(e.target.value))} /></div>
-          <div><label className="block text-sm font-semibold mb-1">Cover image URL</label><input style={adminInput} value={form.cover_image_url} onChange={(e) => setField('cover_image_url', e.target.value)} /></div>
+          <div><label className="block text-sm font-semibold mb-1">Cover image URL</label><input style={adminInput} value={form.cover_image_url} onChange={(e) => setField('cover_image_url', e.target.value)} />
+            {form.cover_image_url && (
+              <img src={form.cover_image_url} alt="" className="mt-2 rounded-lg max-h-32 object-cover border border-gray-200" />
+            )}
+          </div>
           <div>
             <label className="block text-sm font-semibold mb-1">Badge reward</label>
             <select style={adminInput} value={form.badge_reward_id ?? ''} onChange={(e) => setField('badge_reward_id', e.target.value || null)}>
@@ -232,13 +247,17 @@ export default function AdminPathEditorPage() {
           </div>
           <div><label className="block text-sm font-semibold mb-1">Certificate title</label><input style={adminInput} value={form.certificate_title} onChange={(e) => setField('certificate_title', e.target.value)} disabled={!form.certificate_enabled} /></div>
         </div>
-        {!isNew && form.public_slug && (
+        {previewPathSlug && (
           <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
-            <a href={`/paths/${form.public_slug}`} target="_blank" rel="noreferrer" style={{ ...adminBtn.secondary, textDecoration: 'none' }}>Preview public page</a>
-            <a href={`/paths/${form.public_slug}`} target="_blank" rel="noreferrer" style={{ ...adminBtn.secondary, textDecoration: 'none' }}>Preview child view (when signed in)</a>
+            <a href={`/paths/${previewPathSlug}`} target="_blank" rel="noreferrer" style={{ ...adminBtn.secondary, textDecoration: 'none' }}>Preview Public Page</a>
           </div>
         )}
-        <button type="button" style={{ ...adminBtn.primary, marginTop: 16 }} disabled={saving} onClick={handleSave}>{saving ? 'Saving…' : 'Save Path'}</button>
+        <div className="flex flex-wrap gap-2 mt-4">
+          <button type="button" style={{ ...adminBtn.primary, background: '#F5A623' }} disabled={saving} onClick={() => void handleSave()}>{saving ? 'Saving…' : 'Save Path'}</button>
+          {!isNew && (
+            <button type="button" style={adminBtn.danger} onClick={() => void handleDeletePath()}>Delete Path</button>
+          )}
+        </div>
       </div>
 
       {!isNew && id && (
@@ -279,8 +298,25 @@ export default function AdminPathEditorPage() {
                     #{idx + 1}
                   </span>
                   <span className="text-xs text-gray-400 w-16">Order {pa.sort_order}</span>
-                  <span className="flex-1 text-sm font-medium">{pa.article?.title ?? pa.article_id}</span>
-                  <button type="button" style={adminBtn.danger} onClick={() => handleRemove(pa.id)}>Remove</button>
+                  <span className="flex-1 text-sm font-medium">
+                    {pa.article?.title ?? pa.article_id}
+                    {pa.article?.reading_time_minutes != null && (
+                      <span className="text-xs text-gray-500 ml-2">· {pa.article.reading_time_minutes} min</span>
+                    )}
+                  </span>
+                  <label className="flex items-center gap-1 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={pa.is_required !== false}
+                      onChange={(e) => {
+                        void updatePathArticleRequired(pa.id, e.target.checked).then(async () => {
+                          if (id) setPathArticles(await fetchPathArticles(id))
+                        })
+                      }}
+                    />
+                    Required
+                  </label>
+                  <button type="button" style={adminBtn.danger} onClick={() => void handleRemove(pa.id)}>Remove</button>
                 </li>
               ))}
             </ul>

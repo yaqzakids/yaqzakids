@@ -3,7 +3,9 @@ import UserAvatar from '@/components/UserAvatar'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import MyJourneySection from '@/components/journey/MyJourneySection'
 import ContinueLearningSection from '@/components/discoverer/home/ContinueLearningSection'
+import LearningPathsSection from '@/components/learningPaths/LearningPathsSection'
 import { useSignedInChildHomeData } from '@/hooks/useSignedInChildHomeData'
+import DailyDuaCard from '@/components/parent/DailyDuaCard'
 import { AGE_GROUP_META, childHomePathForAgeGroup } from '@/lib/childProfiles'
 import type { AgeGroup, ChildProfile } from '@/lib/types'
 
@@ -52,6 +54,8 @@ export default function AgeProfileDashboard({ ageGroup, selectedChild, userId }:
         </div>
       </div>
 
+      <LearningPathsSection isSignedIn ageGroup={ageGroup} allPaths={homeData.allPaths} />
+
       <MyJourneySection
         ageGroup={ageGroup}
         childProfileId={selectedChild.id}
@@ -68,6 +72,10 @@ export default function AgeProfileDashboard({ ageGroup, selectedChild, userId }:
         activePath={activePath}
         pathLabel={pathLabel}
       />
+
+      <div className="mt-10">
+        <DailyDuaCard />
+      </div>
 
       <div className="mt-10 text-center">
         <Link

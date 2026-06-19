@@ -1,4 +1,5 @@
 export const IMAGES = {
+  logo: '/logo.png',
   welcomeBg: 'https://i.ibb.co/YTbzfdLX/Yaffa-4.png',
   explorerCard: 'https://i.ibb.co/1fvKwtzD/Chat-GPT-Image-Jun-3-2026-07-24-06-PM.png',
   discovererCard: 'https://i.ibb.co/bMNpNMxx/Chat-GPT-Image-Jun-3-2026-07-15-02-PM.png',

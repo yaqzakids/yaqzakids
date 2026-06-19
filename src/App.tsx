@@ -26,6 +26,10 @@ import ExplorePage from './pages/discoverer/ExplorePage'
 import DiscoverPage from './pages/DiscoverPage'
 import PublicExplorePage from './pages/PublicExplorePage'
 import GamesPage from './pages/GamesPage'
+import ColouringGalleryPage from './pages/colouring/ColouringGalleryPage'
+import ColouringEditorPage from './pages/colouring/ColouringEditorPage'
+import DrawingGalleryPage from './pages/drawing/DrawingGalleryPage'
+import DrawingEditorPage from './pages/drawing/DrawingEditorPage'
 import DailyChallengePage from './pages/games/DailyChallengePage'
 import QuizBattlePage from './pages/games/QuizBattlePage'
 import WordExplorerPage from './pages/games/WordExplorerPage'
@@ -36,6 +40,7 @@ import LibraryPage from './pages/discoverer/LibraryPage'
 import SampleStoriesPage from './pages/SampleStoriesPage'
 import PathsPage from './pages/PathsPage'
 import PathDetailPage from './pages/PathDetailPage'
+import AvatarPage from './pages/profile/AvatarPage'
 import ParentsPage from './pages/ParentsPage'
 import ProfilePage from './pages/discoverer/ProfilePage'
 import StreaksPage from './pages/discoverer/StreaksPage'
@@ -232,6 +237,10 @@ export default function App() {
           <Route path="/games/story-builder" element={<StoryBuilderPage />} />
           <Route path="/games/knowledge-map" element={<KnowledgeMapPage />} />
           <Route path="/games/hero-match" element={<HeroMatchPage />} />
+          <Route path="/colouring" element={<ColouringGalleryPage />} />
+          <Route path="/colouring/:illustrationId" element={<ColouringEditorPage />} />
+          <Route path="/drawing" element={<DrawingGalleryPage />} />
+          <Route path="/drawing/:referenceId" element={<DrawingEditorPage />} />
           <Route path="/home" element={<ProtectedRoute><AgeAwareNavRedirect target="home" /></ProtectedRoute>} />
           <Route path="/search" element={<ProtectedRoute><AgeAwareNavRedirect target="explore" /></ProtectedRoute>} />
           <Route path="/discover/featured" element={<Navigate to="/sample-stories" replace />} />
@@ -242,7 +251,7 @@ export default function App() {
           <Route path="/certificates" element={<ProtectedRoute><AgeAwareNavRedirect target="certificates" /></ProtectedRoute>} />
           <Route path="/journey" element={<ProtectedRoute><AgeAwareNavRedirect target="journey" /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><AgeAwareNavRedirect target="profile" /></ProtectedRoute>} />
-          <Route path="/profile/avatar" element={<ProtectedRoute><AgeAwareNavRedirect target="profileAvatar" /></ProtectedRoute>} />
+          <Route path="/profile/avatar" element={<ChildExperienceRoute><AvatarPage /></ChildExperienceRoute>} />
           <Route path="/parents" element={<ParentsPage />} />
           <Route path="/discoverer/journey" element={<Navigate to="/discoverer/dashboard" replace />} />
           <Route path="/discoverer/profile" element={<ChildExperienceRoute><ProfilePage /></ChildExperienceRoute>} />
@@ -291,7 +300,7 @@ export default function App() {
           <Route path="/support" element={<ParentRoute><SupportPage /></ParentRoute>} />
           <Route path="/messages" element={<ParentRoute><MessagesPage /></ParentRoute>} />
           <Route path="/child-dashboard" element={<ProtectedRoute><ChildDashboard /></ProtectedRoute>} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/welcome" replace />} />
           </Route>
         </Routes>
         </VoiceSettingsProvider>

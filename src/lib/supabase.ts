@@ -1,4 +1,5 @@
 import type { AgeGroup, Article, ChildProfile, Language, Profile, Progress, Quiz, Subscription } from './types'
+import type { AvatarConfig } from './avatarOptions'
 import { formatSupabaseError } from './supabaseErrors'
 import { supabase } from './supabaseClientCore'
 
@@ -162,6 +163,32 @@ export async function getChildProfiles(parentId: string): Promise<ChildProfile[]
   return data ?? []
 }
 
+/** Wait for auth + retry — avoids false "no children" right after sign-in. */
+export async function getChildProfilesReliably(parentId: string): Promise<ChildProfile[]> {
+  const delays = [0, 150, 300, 500]
+  let lastError: unknown
+
+  for (const delayMs of delays) {
+    if (delayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs))
+    }
+    await supabase.auth.refreshSession().catch(() => {})
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    const effectiveParentId = user?.id ?? parentId
+
+    try {
+      return await getChildProfiles(effectiveParentId)
+    } catch (err) {
+      lastError = err
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Could not load child profiles')
+}
+
 export async function createChildProfile(
   child: Omit<
     ChildProfile,
@@ -210,6 +237,7 @@ export async function updateChildProfile(
     age?: number | null
     age_group?: AgeGroup
     avatar_id?: string | null
+    avatar_config?: AvatarConfig | null
     language?: Language
     interests?: string[]
   },
@@ -230,6 +258,10 @@ export async function updateChildProfile(
   if (update.avatar_id !== undefined) {
     payload.avatar_id = update.avatar_id
     console.log('saving avatar id:', update.avatar_id)
+  }
+
+  if (update.avatar_config !== undefined) {
+    payload.avatar_config = update.avatar_config
   }
 
   console.log('saving for child profile:', childId)

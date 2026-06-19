@@ -35,10 +35,28 @@ export const GAMES = [
     icon: '🃏',
     description: 'Match the hero to their trait.',
   },
+  {
+    name: 'Colouring Studio',
+    slug: 'colouring',
+    icon: '🖍️',
+    description: 'Colour Islamic illustrations and download them',
+    route: '/colouring',
+  },
+  {
+    name: 'Drawing Studio',
+    slug: 'drawing',
+    icon: '✏️',
+    description: 'Follow step-by-step guides and learn to draw',
+    route: '/drawing',
+  },
 ] as const
 
 export type GameSlug = (typeof GAMES)[number]['slug']
 
 export function gameBySlug(slug: string) {
   return GAMES.find((g) => g.slug === slug)
+}
+
+export function gameHref(game: (typeof GAMES)[number]): string {
+  return 'route' in game && game.route ? game.route : `/games/${game.slug}`
 }

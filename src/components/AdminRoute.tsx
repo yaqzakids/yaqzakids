@@ -9,13 +9,60 @@ import {
   type AdminRole,
 } from '@/context/AdminRoleContext'
 import {
-  checkIsActiveAdmin,
+  checkIsAuthorizedAdmin,
   checkMustChangePassword,
   isMainAdminEmail,
   linkAdminUserAccount,
 } from '@/lib/admin/adminUsers'
 
 type AdminRouteStatus = 'loading' | 'admin' | 'not-admin' | 'not-logged-in' | 'change-password'
+
+function AccessDeniedPage() {
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: 20,
+        background: '#1B2F5E',
+        padding: 24,
+      }}
+    >
+      <h1
+        style={{
+          fontFamily: 'Playfair Display, serif',
+          color: '#fff',
+          fontSize: 32,
+          margin: 0,
+          textAlign: 'center',
+        }}
+      >
+        Access Denied
+      </h1>
+      <p style={{ color: 'rgba(255,255,255,0.75)', margin: 0, textAlign: 'center', maxWidth: 480, lineHeight: 1.6 }}>
+        You are not authorised to access this area.
+      </p>
+      <Link
+        to="/admin/login"
+        style={{
+          display: 'inline-flex',
+          padding: '12px 24px',
+          background: '#F5A623',
+          color: '#fff',
+          borderRadius: 999,
+          fontWeight: 800,
+          textDecoration: 'none',
+          fontSize: 14,
+        }}
+      >
+        Back to Admin Login
+      </Link>
+    </div>
+  )
+}
 
 export default function AdminRoute() {
   const location = useLocation()
@@ -35,7 +82,7 @@ export default function AdminRoute() {
 
       try {
         await linkAdminUserAccount()
-        const isAdmin = await checkIsActiveAdmin()
+        const isAdmin = await checkIsAuthorizedAdmin(user)
         if (!isAdmin) {
           await supabase.auth.signOut()
           setStatus('not-admin')
@@ -53,6 +100,7 @@ export default function AdminRoute() {
         setAdminRole(role)
         setStatus('admin')
       } catch {
+        await supabase.auth.signOut()
         setStatus('not-admin')
       }
     }
@@ -94,50 +142,7 @@ export default function AdminRoute() {
   }
 
   if (status === 'not-admin') {
-    return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          gap: 20,
-          background: '#F8FAFC',
-          padding: 24,
-        }}
-      >
-        <h1
-          style={{
-            fontFamily: 'Playfair Display, serif',
-            color: '#1B2F5E',
-            fontSize: 32,
-            margin: 0,
-            textAlign: 'center',
-          }}
-        >
-          Access Denied
-        </h1>
-        <p style={{ color: '#6B7280', margin: 0, textAlign: 'center', maxWidth: 480, lineHeight: 1.6 }}>
-          This account is not authorized for admin access.
-        </p>
-        <Link
-          to="/"
-          style={{
-            display: 'inline-flex',
-            padding: '12px 24px',
-            background: '#2AAFA0',
-            color: '#fff',
-            borderRadius: 999,
-            fontWeight: 800,
-            textDecoration: 'none',
-            fontSize: 14,
-          }}
-        >
-          Back to Homepage
-        </Link>
-      </div>
-    )
+    return <AccessDeniedPage />
   }
 
   if (!adminRole) {

@@ -1,7 +1,7 @@
 import SignedInDiscovererHero from '@/components/discoverer/SignedInDiscovererHero'
 import PersonalizedHero from '@/components/discoverer/home/PersonalizedHero'
 import CompactMyJourneySection from '@/components/journey/CompactMyJourneySection'
-import LearningPathsGrid from '@/components/discoverer/home/LearningPathsGrid'
+import LearningPathsSection from '@/components/learningPaths/LearningPathsSection'
 import ContinueLearningSection from '@/components/discoverer/home/ContinueLearningSection'
 import DiscoverNewTodaySection from '@/components/discoverer/home/DiscoverNewTodaySection'
 import FeaturedStorySection from '@/components/discoverer/home/FeaturedStorySection'
@@ -79,14 +79,14 @@ export default function SignedInChildHome({ ageGroup, selectedChild, userId }: S
         />
       )}
 
+      <LearningPathsSection isSignedIn ageGroup={ageGroup} allPaths={homeData.allPaths} />
+
       <CompactMyJourneySection
         ageGroup={ageGroup}
         categoryProgress={journeyData.categoryProgress}
         recentAchievements={journeyData.recentAchievements}
         certificateProgress={journeyData.certificateProgress}
       />
-
-      <LearningPathsGrid isSignedIn allPaths={homeData.allPaths} />
 
       <ContinueLearningSection
         lastArticle={lastArticle}

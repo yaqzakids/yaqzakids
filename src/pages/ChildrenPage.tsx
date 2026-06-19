@@ -1,54 +1,108 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/components/ProtectedRoute'
 import { useSelectedChild } from '@/context/SelectedChildContext'
 import ParentLayout from '@/components/layout/ParentLayout'
 import ChildProfileCard from '@/components/children/ChildProfileCard'
+import BrandLogo from '@/components/BrandLogo'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import { fetchAllChildProfileSummaries, type ChildProfileSummary } from '@/lib/childProfiles'
+import { fetchAllChildProfileSummaries, profilePathForAgeGroup, type ChildProfileSummary } from '@/lib/childProfiles'
 import { readRedirectParam, normalizeChildHomeRedirect } from '@/lib/navigation'
+import { getChildProfilesReliably } from '@/lib/supabase'
 
+/** Child picker — shown after login when the family has 2+ child profiles. */
 export default function ChildrenPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const redirectTo = readRedirectParam(searchParams.toString())
-  const { user, loading: authLoading } = useAuth()
+  const forcePicker = searchParams.get('pick') === '1'
   const {
     children,
     selectedChild,
     activeChildProfileId,
-    loading: childLoading,
     enterChildExperience,
+    refreshChildren,
+    loading,
   } = useSelectedChild()
   const [summaries, setSummaries] = useState<ChildProfileSummary[]>([])
-  const [loadingSummaries, setLoadingSummaries] = useState(true)
+  const [summariesLoading, setSummariesLoading] = useState(true)
+  const [confirmingEmpty, setConfirmingEmpty] = useState(false)
+  const [emptyConfirmed, setEmptyConfirmed] = useState(false)
 
   useEffect(() => {
-    if (authLoading || childLoading) return
-    if (!user) return
+    if (loading || confirmingEmpty) return
+
+    if (children.length === 0) {
+      if (!user?.id) return
+
+      let cancelled = false
+      setConfirmingEmpty(true)
+      void getChildProfilesReliably(user.id)
+        .then((rows) => {
+          if (cancelled) return
+          if (rows.length === 0) {
+            setEmptyConfirmed(true)
+            return
+          }
+          if (rows.length === 1 && !forcePicker) {
+            enterChildExperience(rows[0].id)
+            const profile = profilePathForAgeGroup(rows[0].age_group)
+            const destination = redirectTo ? normalizeChildHomeRedirect(redirectTo) : profile
+            navigate(destination, { replace: true })
+            return
+          }
+          void refreshChildren()
+        })
+        .catch(() => {
+          if (!cancelled) setEmptyConfirmed(true)
+        })
+        .finally(() => {
+          if (!cancelled) setConfirmingEmpty(false)
+        })
+      return () => {
+        cancelled = true
+      }
+    }
+
+    if (children.length === 1 && !forcePicker) {
+      enterChildExperience(children[0].id)
+      const profile = profilePathForAgeGroup(children[0].age_group)
+      const destination = redirectTo ? normalizeChildHomeRedirect(redirectTo) : profile
+      navigate(destination, { replace: true })
+    }
+  }, [loading, confirmingEmpty, children, forcePicker, redirectTo, navigate, enterChildExperience, refreshChildren, user?.id])
+
+  useEffect(() => {
+    if (loading || children.length < 2) {
+      setSummaries([])
+      setSummariesLoading(false)
+      return
+    }
 
     let cancelled = false
-    setLoadingSummaries(true)
-    fetchAllChildProfileSummaries(children)
-      .then((rows) => {
-        if (!cancelled) setSummaries(rows)
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingSummaries(false)
-      })
+    setSummariesLoading(true)
+    void fetchAllChildProfileSummaries(children).then((rows) => {
+      if (!cancelled) {
+        setSummaries(rows)
+        setSummariesLoading(false)
+      }
+    })
 
     return () => {
       cancelled = true
     }
-  }, [children, authLoading, childLoading, user])
+  }, [children, loading])
 
   const handleEnter = (childId: string) => {
-    const home = enterChildExperience(childId)
-    const destination = redirectTo ? normalizeChildHomeRedirect(redirectTo) : home
+    const child = children.find((c) => c.id === childId)
+    enterChildExperience(childId)
+    const profile = child ? profilePathForAgeGroup(child.age_group) : '/profile'
+    const destination = redirectTo ? normalizeChildHomeRedirect(redirectTo) : profile
     navigate(destination, { replace: true })
   }
 
-  if (authLoading || childLoading) {
+  if (loading || confirmingEmpty) {
     return (
       <div className="min-h-screen bg-[#EEF4FF] flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -56,15 +110,33 @@ export default function ChildrenPage() {
     )
   }
 
-  if (!user) {
+  if (emptyConfirmed || children.length === 0) {
     return (
-      <div className="min-h-screen bg-[#EEF4FF] flex items-center justify-center px-6">
-        <div className="text-center">
-          <p className="text-[#1B2F5E] font-bold mb-4">Sign in to choose a child profile.</p>
-          <Link to="/login" className="text-[#2AAFA0] font-extrabold hover:underline">
-            Sign in →
-          </Link>
+      <ParentLayout active="children" bg="bg-[#EEF4FF]">
+        <div className="max-w-lg mx-auto px-6 py-16 text-center">
+          <BrandLogo height={44} className="mx-auto mb-6" />
+          <h1 className="font-display text-2xl font-bold text-[#1B2F5E] mb-3">
+            No child profiles yet
+          </h1>
+          <p className="text-[#1B2F5E]/70 leading-relaxed mb-8">
+            Add your first child when you&apos;re ready — or sign in again if you already have profiles.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/children/new')}
+            className="px-8 py-3.5 bg-gold text-white rounded-full text-base font-extrabold hover:opacity-90"
+          >
+            Add a child →
+          </button>
         </div>
+      </ParentLayout>
+    )
+  }
+
+  if (children.length <= 1 || summariesLoading) {
+    return (
+      <div className="min-h-screen bg-[#EEF4FF] flex items-center justify-center">
+        <LoadingSpinner size="lg" />
       </div>
     )
   }
@@ -73,7 +145,7 @@ export default function ChildrenPage() {
     <ParentLayout active="children" bg="bg-[#EEF4FF]">
       <div className="max-w-5xl mx-auto px-6 py-10">
         <div className="mb-8">
-          <p className="text-[#2AAFA0] text-xs font-extrabold tracking-widest uppercase mb-2">YaqzaKids</p>
+          <BrandLogo height={44} className="mb-4" />
           <h1 className="font-display text-2xl md:text-3xl font-bold text-[#1B2F5E]">
             Who&apos;s learning today?
           </h1>
@@ -83,56 +155,21 @@ export default function ChildrenPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center justify-end gap-4 mb-8">
-          <Link
-            to="/children/new"
-            className="inline-flex px-5 py-2.5 bg-[#F5A623] text-white rounded-full text-sm font-extrabold hover:opacity-90 shrink-0"
-          >
-            + Add child
-          </Link>
+        <div className="grid sm:grid-cols-2 gap-6">
+          {summaries.map((summary) => (
+            <ChildProfileCard
+              key={summary.childId}
+              summary={summary}
+              onEnter={handleEnter}
+              onEdit={(id) => navigate(`/children/${id}/edit`)}
+              isActive={activeChildProfileId === summary.childId}
+            />
+          ))}
         </div>
-
-        {loadingSummaries ? (
-          <div className="py-20 flex justify-center">
-            <LoadingSpinner size="lg" />
-          </div>
-        ) : children.length === 0 ? (
-          <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
-            <p className="text-4xl mb-3" aria-hidden>👨‍👩‍👧‍👦</p>
-            <h2 className="font-display text-xl font-bold text-[#1B2F5E] mb-2">Create your first child profile.</h2>
-            <p className="text-[#6B7280] mb-6">Add a child to start their personalized learning journey.</p>
-            <Link
-              to="/children/new"
-              className="inline-flex px-6 py-3 bg-[#2AAFA0] text-white rounded-full font-extrabold hover:opacity-90"
-            >
-              Add a child
-            </Link>
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 gap-6">
-            {summaries.map((summary) => (
-              <ChildProfileCard
-                key={summary.childId}
-                summary={summary}
-                onEnter={handleEnter}
-                onEdit={(id) => navigate(`/children/${id}/edit`)}
-                isActive={activeChildProfileId === summary.childId}
-              />
-            ))}
-          </div>
-        )}
 
         {selectedChild && (
           <p className="text-center text-sm text-[#6B7280] mt-8">
-            Currently active: <span className="font-bold text-[#1B2F5E]">{selectedChild.name}</span>
-            {' · '}
-            <button
-              type="button"
-              onClick={() => handleEnter(selectedChild.id)}
-              className="text-[#2AAFA0] font-extrabold hover:underline"
-            >
-              Continue as {selectedChild.name}
-            </button>
+            Last active: <span className="font-bold text-[#1B2F5E]">{selectedChild.name}</span>
           </p>
         )}
       </div>

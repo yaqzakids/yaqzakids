@@ -5,10 +5,10 @@ import PasswordCreateFields from '@/components/auth/PasswordCreateFields'
 import { authUrl, resolveAuthRedirect } from '@/lib/navigation'
 import { navigateAfterAuth } from '@/lib/postLoginRedirect'
 import { isPasswordValid, passwordsMatch, validateNewPassword } from '@/lib/auth/passwordPolicy'
-import { supabase } from '../lib/supabase'
+import { supabase, upsertParentProfile } from '../lib/supabase'
 import {
+  signUpEmailConfirmUrl,
   storePendingVerifyEmail,
-  verifyEmailCallbackUrl,
 } from '@/lib/auth/authCallback'
 import PageSeo from '@/components/seo/PageSeo'
 import { PAGE_SEO_PRESETS } from '@/lib/seo/siteSeo'
@@ -18,6 +18,7 @@ export default function Signup() {
   const location = useLocation()
   const redirectTo = resolveAuthRedirect(location.search, null)
   const [email, setEmail] = useState('')
+  const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -25,6 +26,7 @@ export default function Signup() {
 
   const canSubmit =
     email.trim().length > 0 &&
+    fullName.trim().length > 0 &&
     isPasswordValid(password) &&
     passwordsMatch(password, confirmPassword) &&
     !loading
@@ -56,7 +58,7 @@ export default function Signup() {
         email,
         password,
         options: {
-          emailRedirectTo: verifyEmailCallbackUrl(),
+          emailRedirectTo: signUpEmailConfirmUrl(),
         },
       })
 
@@ -70,6 +72,7 @@ export default function Signup() {
           navigate('/verify-email', { replace: true })
           return
         }
+        await upsertParentProfile(data.user.id, fullName.trim(), 'en')
         await navigateAfterAuth(data.user.id, navigate, redirectTo, data.user)
       }
     } catch (err) {
@@ -101,6 +104,15 @@ export default function Signup() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="w-full px-4 py-3 border-[1.5px] border-gray-200 rounded-xl focus:border-teal focus:outline-none transition-colors"
+          />
+          <input
+            type="text"
+            placeholder="Your full name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+            autoComplete="name"
             className="w-full px-4 py-3 border-[1.5px] border-gray-200 rounded-xl focus:border-teal focus:outline-none transition-colors"
           />
           <PasswordCreateFields

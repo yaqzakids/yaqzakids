@@ -12,6 +12,7 @@ import {
   fetchLastUnfinishedArticle,
   type LastUnfinishedArticle,
 } from '@/lib/discoverer'
+import { learningPathDetailUrl } from '@/lib/learningPaths'
 import type { Certificate } from '@/lib/types'
 import type { PathWithProgress } from '@/lib/adventure/types'
 
@@ -116,7 +117,7 @@ export default function JourneyPage() {
             {paths.map((p) => (
               <Link
                 key={p.id}
-                to={`/adventures/${p.slug}`}
+                to={learningPathDetailUrl(p.slug)}
                 className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
               >
                 <h3 className="font-bold text-navy mb-2">{p.title}</h3>
@@ -125,7 +126,7 @@ export default function JourneyPage() {
             ))}
           </div>
         )}
-        <Link to="/adventures" className="inline-block mt-6 text-teal font-extrabold hover:underline">
+        <Link to="/paths" className="inline-block mt-6 text-teal font-extrabold hover:underline">
           Browse all paths →
         </Link>
       </div>

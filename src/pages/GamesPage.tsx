@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import PublicLayout from '@/components/layout/PublicLayout'
 import PageSeo from '@/components/seo/PageSeo'
-import { GAMES } from '@/lib/games'
+import { GAMES, gameHref } from '@/lib/games'
 
 export default function GamesPage() {
   return (
@@ -34,7 +34,7 @@ export default function GamesPage() {
               <h2 className="font-display text-xl font-bold text-[#1B2F5E] mb-2">{game.name}</h2>
               <p className="text-sm text-[#6B7280] flex-1 mb-5">{game.description}</p>
               <Link
-                to={`/games/${game.slug}`}
+                to={gameHref(game)}
                 className="inline-flex justify-center px-6 py-2.5 bg-[#F5A623] text-white rounded-full text-sm font-extrabold hover:opacity-90"
               >
                 Play Now →

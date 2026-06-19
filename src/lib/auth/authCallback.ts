@@ -21,6 +21,21 @@ export function isPasswordRecoveryCallback(): boolean {
   return hash.includes('type=recovery') || search.includes('type=recovery')
 }
 
+/** Email confirmation links from signup — not OAuth sign-in. */
+export function isEmailVerificationCallback(): boolean {
+  if (typeof window === 'undefined') return false
+  const hash = window.location.hash
+  const search = window.location.search
+  return (
+    hash.includes('type=signup') ||
+    hash.includes('type=email') ||
+    hash.includes('type=magiclink') ||
+    search.includes('type=signup') ||
+    search.includes('type=email') ||
+    search.includes('token_hash=')
+  )
+}
+
 import { getActiveSiteUrl } from '@/lib/supabase'
 
 function siteOrigin(): string {
@@ -38,8 +53,14 @@ function siteOrigin(): string {
   return 'https://www.yaqzakids.com'
 }
 
+/** Supabase redirect after clicking the signup confirmation link — lands on login, not verify-email. */
+export function signUpEmailConfirmUrl(): string {
+  return `${siteOrigin()}/login`
+}
+
+/** @deprecated Use signUpEmailConfirmUrl */
 export function verifyEmailCallbackUrl(): string {
-  return `${siteOrigin()}/verify-email`
+  return signUpEmailConfirmUrl()
 }
 
 export function passwordResetCallbackUrl(): string {
@@ -48,8 +69,12 @@ export function passwordResetCallbackUrl(): string {
 
 /** Route auth callback tokens to the correct handler page. */
 export function authCallbackRouteWithCallback(): string {
-  const base = isPasswordRecoveryCallback() ? '/reset-password' : '/verify-email'
-  return `${base}${window.location.search}${window.location.hash}`
+  const suffix = `${window.location.search}${window.location.hash}`
+  if (isPasswordRecoveryCallback()) {
+    return `/reset-password${suffix}`
+  }
+  // Email confirmation, OAuth, and other sign-in callbacks
+  return `/login${suffix}`
 }
 
 export function verifyEmailRouteWithCallback(): string {
@@ -68,6 +93,12 @@ export function readPendingVerifyEmail(): string | null {
 
 export function clearPendingVerifyEmail(): void {
   sessionStorage.removeItem(PENDING_VERIFY_EMAIL_KEY)
+}
+
+/** Verify-email page is only shown immediately after sign-up (pending flag) or legacy email links. */
+export function shouldShowVerifyEmailPage(): boolean {
+  if (readPendingVerifyEmail()) return true
+  return hasAuthCallbackInUrl() && isEmailVerificationCallback()
 }
 
 /** Wait for Supabase client to exchange URL tokens for a session. */

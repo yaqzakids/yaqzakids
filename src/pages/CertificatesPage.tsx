@@ -3,6 +3,7 @@ import DiscovererPageShell from '@/components/discoverer/DiscovererPageShell'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { useSelectedChild } from '@/context/SelectedChildContext'
 import { fetchChildCertificates } from '@/lib/discoverer'
+import BrandLogo from '@/components/BrandLogo'
 import type { Certificate } from '@/lib/types'
 
 function CertificateCard({ cert }: { cert: Certificate }) {
@@ -28,7 +29,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         ref={printRef}
         className="certificate-print p-8 md:p-12 text-center bg-[#FFF8ED]"
       >
-        <p className="text-teal font-extrabold tracking-widest text-sm mb-4">YAQZAKIDS</p>
+        <BrandLogo height={36} className="mx-auto mb-4" />
         <h2 className="font-display text-2xl font-bold text-navy mb-6">
           Certificate of Completion
         </h2>

@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { PUBLIC_HOME_PATH } from '@/lib/navigation'
 
 interface PageBackNavProps {
   fallbackTo?: string
@@ -9,10 +10,10 @@ interface PageBackNavProps {
 }
 
 export default function PageBackNav({
-  fallbackTo = '/',
+  fallbackTo = PUBLIC_HOME_PATH,
   backLabel = '← Back',
   showHome = true,
-  homeTo = '/',
+  homeTo = PUBLIC_HOME_PATH,
   className = '',
 }: PageBackNavProps) {
   const navigate = useNavigate()

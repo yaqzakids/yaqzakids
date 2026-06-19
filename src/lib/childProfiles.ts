@@ -1,6 +1,7 @@
 import { fetchChildDashboardAnalytics, fetchChildStarsTotal } from '@/lib/adventure/engagement'
 import { getLevelProgress, STAR_LEVELS } from '@/lib/adventure/levels'
 import { fetchLastUnfinishedArticle, resolveArticleUrl } from '@/lib/discoverer'
+import { learningPathDetailUrl } from '@/lib/learningPaths'
 import { supabase } from '@/lib/supabase'
 import type { AgeGroup, ChildProfile } from '@/lib/types'
 
@@ -53,6 +54,12 @@ export function dashboardPathForAgeGroup(ageGroup: AgeGroup): string {
 
 export function profileDashboardPathForAgeGroup(ageGroup: AgeGroup): string {
   return AGE_GROUP_META[ageGroup].profileDashboard
+}
+
+/** Child profile page (Daily Du'a, stats, family reflection). */
+export function profilePathForAgeGroup(ageGroup: AgeGroup): string {
+  if (ageGroup === 'discoverer') return '/discoverer/profile'
+  return profileDashboardPathForAgeGroup(ageGroup)
 }
 
 /** Map numeric age to YaqzaKids age band */
@@ -136,7 +143,7 @@ async function fetchLastActiveLabel(childId: string): Promise<{ label: string; u
   const path = pathRow?.path as { title?: string; slug?: string } | { title?: string; slug?: string }[] | null
   const pathObj = Array.isArray(path) ? path[0] : path
   if (pathObj?.title && pathObj.slug) {
-    return { label: pathObj.title, url: `/adventures/${pathObj.slug}` }
+    return { label: pathObj.title, url: learningPathDetailUrl(pathObj.slug) }
   }
 
   return { label: 'Ready to start a new adventure', url: null }

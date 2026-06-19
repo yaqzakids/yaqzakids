@@ -10,6 +10,7 @@ import {
 import { AdminShellContext } from '@/context/AdminShellContext'
 import { dashboardTheme } from '@/lib/admin/dashboardTheme'
 import AdminAvatar from '@/components/admin/AdminAvatar'
+import BrandLogo from '@/components/BrandLogo'
 import Breadcrumbs from '@/components/navigation/Breadcrumbs'
 import {
   DEFAULT_ADMIN_DISPLAY_NAME,
@@ -147,12 +148,14 @@ function SidebarLink({ item, onNavigate }: { item: NavLinkItem; onNavigate: () =
 function AdminProfileDetails({
   variant,
   name,
+  authEmail,
   title,
   contactEmail,
   roleLabel,
 }: {
   variant: 'sidebar' | 'header'
   name: string
+  authEmail: string | null
   title: string
   contactEmail: string
   roleLabel: string
@@ -167,6 +170,18 @@ function AdminProfileDetails({
       >
         {name}
       </div>
+      {authEmail && (
+        <div
+          className="truncate mt-0.5"
+          style={{
+            fontSize: 12,
+            color: isSidebar ? 'rgba(255,255,255,0.55)' : '#6B7280',
+          }}
+          title={authEmail}
+        >
+          {authEmail}
+        </div>
+      )}
       <div
         className={`truncate text-[11px] mt-0.5 ${isSidebar ? 'text-white/55' : 'text-[#6B7280]'}`}
       >
@@ -200,6 +215,7 @@ export default function AdminLayout() {
   const [adminTitle, setAdminTitle] = useState(DEFAULT_ADMIN_TITLE)
   const [publicContactEmail, setPublicContactEmail] = useState(DEFAULT_PUBLIC_CONTACT_EMAIL)
   const [avatarId, setAvatarId] = useState<string | null>(null)
+  const [authEmail, setAuthEmail] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
@@ -213,6 +229,12 @@ export default function AdminLayout() {
     setPublicContactEmail(display.publicContactEmail)
     setAvatarId(display.avatarId)
   }, [user])
+
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => {
+      setAuthEmail(data.user?.email ?? null)
+    })
+  }, [user?.id])
 
   useEffect(() => {
     loadAdminProfile().catch(() => {})
@@ -276,10 +298,8 @@ export default function AdminLayout() {
           style={{ background: dashboardTheme.sidebar }}
         >
           <div className="px-5 py-5 border-b border-white/10 shrink-0">
-            <div className="font-bold text-lg text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Yaqza Kids
-            </div>
-            <div className="text-[11px] text-white/50 mt-0.5 tracking-wide uppercase">Admin Control Center</div>
+            <BrandLogo height={36} />
+            <div className="text-[11px] text-white/50 mt-2 tracking-wide uppercase">Admin Control Center</div>
           </div>
 
           <nav className="flex-1 min-h-0 px-3 py-4 overflow-y-auto overscroll-contain">
@@ -313,6 +333,7 @@ export default function AdminLayout() {
               <AdminProfileDetails
                 variant="sidebar"
                 name={adminName}
+                authEmail={authEmail}
                 title={adminTitle}
                 contactEmail={publicContactEmail}
                 roleLabel={roleLabel}
@@ -412,6 +433,7 @@ export default function AdminLayout() {
                   <AdminProfileDetails
                     variant="header"
                     name={adminName}
+                    authEmail={authEmail}
                     title={adminTitle}
                     contactEmail={publicContactEmail}
                     roleLabel={roleLabel}

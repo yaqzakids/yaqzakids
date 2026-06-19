@@ -1,15 +1,35 @@
 import type { Location } from 'react-router-dom'
 import type { ChildProfile } from '@/lib/types'
-import { dashboardPathForAgeGroup, profileDashboardPathForAgeGroup } from '@/lib/childProfiles'
+import { dashboardPathForAgeGroup, profilePathForAgeGroup } from '@/lib/childProfiles'
 
 export const REDIRECT_PARAM = 'redirectTo'
 
-/** Internal paths only — blocks open redirects */
+/** Public marketing homepage — safe for all users (no auth/onboarding redirects). */
+export const PUBLIC_HOME_PATH = '/welcome'
+
+export function appHomePath(hasActiveChild: boolean): string {
+  return hasActiveChild ? '/home' : PUBLIC_HOME_PATH
+}
+
+/** Internal paths only — blocks open redirects and onboarding trap loops */
 export function sanitizeRedirectPath(raw: string | null | undefined): string | null {
   if (!raw || typeof raw !== 'string') return null
   const path = raw.trim()
   if (!path.startsWith('/') || path.startsWith('//')) return null
   if (path.includes('://')) return null
+
+  const pathname = path.split('?')[0]
+  const blocked = [
+    '/verify-email',
+    '/onboarding/parent',
+    '/onboarding/passcode',
+    '/onboarding/choose-path',
+    '/children/new',
+  ]
+  if (blocked.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+    return null
+  }
+
   return normalizeDiscovererHomeRedirect(path)
 }
 
@@ -179,7 +199,7 @@ export function activeChildHomePath(child: ChildProfile): string {
 }
 
 export function activeChildProfileDashboardPath(child: ChildProfile): string {
-  return profileDashboardPathForAgeGroup(child.age_group)
+  return profilePathForAgeGroup(child.age_group)
 }
 
 export function loginDestination(path: string): string {

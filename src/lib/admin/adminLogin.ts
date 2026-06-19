@@ -1,7 +1,6 @@
 import type { NavigateFunction } from 'react-router-dom'
-import { MAIN_ADMIN_EMAIL } from '@/lib/constants'
 import {
-  checkIsActiveAdmin,
+  checkIsAuthorizedAdmin,
   checkMustChangePassword,
   clearMustChangePassword,
   isMainAdminEmail,
@@ -10,13 +9,14 @@ import {
 } from '@/lib/admin/adminUsers'
 import { supabase } from '@/lib/supabase'
 
-export function normalizeEmail(email: string | null | undefined): string {
-  return (email ?? '').trim().toLowerCase()
-}
-
 export async function completeAdminLogin(navigate: NavigateFunction): Promise<'success' | 'denied' | 'change-password'> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return 'denied'
+
   await linkAdminUserAccount()
-  const isAdmin = await checkIsActiveAdmin()
+  const isAdmin = await checkIsAuthorizedAdmin(user)
   if (!isAdmin) {
     await supabase.auth.signOut()
     return 'denied'
@@ -25,7 +25,7 @@ export async function completeAdminLogin(navigate: NavigateFunction): Promise<'s
   await recordAdminLogin()
 
   const mustChange = await checkMustChangePassword()
-  if (mustChange && !isMainAdminEmail((await supabase.auth.getUser()).data.user?.email)) {
+  if (mustChange && !isMainAdminEmail(user.email)) {
     navigate('/admin/change-password', { replace: true })
     return 'change-password'
   }
@@ -45,6 +45,4 @@ export async function completeAdminPasswordChange(
 }
 
 export const ADMIN_LOGIN_DENIED_MESSAGE =
-  'This account is not authorized for admin access.'
-
-export const ADMIN_FORGOT_PASSWORD_MESSAGE = `Need help? Contact ${MAIN_ADMIN_EMAIL}.`
+  'Access denied. You are not authorised to access this area.'

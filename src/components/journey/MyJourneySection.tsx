@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { learningPathDetailUrl } from '@/lib/learningPaths'
 import TealProgressBar from '@/components/discoverer/TealProgressBar'
 import type { AgeGroup } from '@/lib/types'
 import {
@@ -77,7 +78,7 @@ function CategoryProgressRow({ category }: { category: PillarCategoryProgress })
   const statusLabel =
     category.status === 'complete' ? 'Complete' : category.status === 'continue' ? 'Continue' : 'Start'
 
-  const linkTo = category.pathSlug ? `/adventures/${category.pathSlug}` : '/adventures'
+  const linkTo = category.pathSlug ? learningPathDetailUrl(category.pathSlug) : '/paths'
 
   return (
     <Link
@@ -221,7 +222,7 @@ function MyCertificatePanel({
               : 'Keep learning to earn your certificate.'}
           </p>
           <Link
-            to={`/adventures/${certificateProgress.pathSlug}`}
+            to={learningPathDetailUrl(certificateProgress.pathSlug)}
             className="inline-flex justify-center px-5 py-2.5 border-2 border-[#2AAFA0] text-[#2AAFA0] rounded-full text-sm font-extrabold hover:bg-[#2AAFA0]/5"
           >
             View Certificate

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Lock } from 'lucide-react'
+import { learningPathDetailUrl } from '@/lib/learningPaths'
 import type { PathWithProgress } from '@/lib/adventure/types'
 
 const difficultyStyles = {
@@ -32,7 +33,7 @@ export default function PathCard({ path }: PathCardProps) {
 
   let ctaLabel = 'Start Adventure →'
   let ctaBg = '#F5A623'
-  let ctaTo = `/adventures/${path.slug}`
+  let ctaTo = learningPathDetailUrl(path.slug)
 
   if (locked) {
     ctaLabel = 'Unlock with Family Plan 🔒'

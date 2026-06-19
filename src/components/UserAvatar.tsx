@@ -1,10 +1,13 @@
 import PresetAvatarIllustration from '@/components/avatar/PresetAvatarIllustration'
+import AvatarPreview from '@/components/avatar/AvatarPreview'
 import { isPresetAvatarId } from '@/lib/avatar/presetAvatars'
+import { hasAvatarConfig, parseAvatarConfig, type AvatarConfig } from '@/lib/avatarOptions'
 import { dashboardTheme } from '@/lib/admin/dashboardTheme'
 
 interface UserAvatarProps {
   name: string
   avatarId?: string | null
+  avatarConfig?: AvatarConfig | unknown | null
   size?: number
   variant?: 'header' | 'sidebar' | 'profile' | 'default'
 }
@@ -12,6 +15,7 @@ interface UserAvatarProps {
 export default function UserAvatar({
   name,
   avatarId,
+  avatarConfig,
   size = 36,
   variant = 'default',
 }: UserAvatarProps) {
@@ -34,6 +38,18 @@ export default function UserAvatar({
 
   if (isPresetAvatarId(avatarId)) {
     return <PresetAvatarIllustration id={avatarId} size={size} />
+  }
+
+  const parsedConfig = parseAvatarConfig(avatarConfig)
+  if (hasAvatarConfig(parsedConfig)) {
+    return (
+      <div
+        className="rounded-full overflow-hidden shrink-0"
+        style={{ width: size, height: size }}
+      >
+        <AvatarPreview config={parsedConfig} size={size} />
+      </div>
+    )
   }
 
   return (

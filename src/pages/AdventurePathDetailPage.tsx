@@ -9,6 +9,7 @@ import LoadingSpinner from '@/components/LoadingSpinner'
 import ErrorMessage from '@/components/ErrorMessage'
 import Breadcrumbs from '@/components/navigation/Breadcrumbs'
 import PageBackNav from '@/components/navigation/PageBackNav'
+import BrandLogo from '@/components/BrandLogo'
 import {
   articleStatusLabel,
   SEQUENTIAL_LOCK_MESSAGE,
@@ -80,10 +81,8 @@ export default function AdventurePathDetailPage() {
     <div className="min-h-screen bg-bg page-transition">
       <div className="bg-white border-b border-gray-200 px-6 md:px-10 py-3">
         <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <Link to="/" className="font-display font-bold text-navy no-underline">
-            YAQZA KIDS
-          </Link>
-          <PageBackNav fallbackTo="/adventures" homeTo="/" />
+          <BrandLogo to="/home" height={40} />
+          <PageBackNav fallbackTo="/adventures" homeTo="/home" />
         </div>
       </div>
       {path.cover_image_url && (

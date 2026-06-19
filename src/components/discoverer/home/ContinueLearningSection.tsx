@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import TealProgressBar from '@/components/discoverer/TealProgressBar'
 import type { LastUnfinishedArticle } from '@/lib/discoverer'
 import type { PathWithProgress } from '@/lib/adventure/types'
+import { learningPathDetailUrl } from '@/lib/learningPaths'
 
 export default function ContinueLearningSection({
   lastArticle,
@@ -25,7 +26,7 @@ export default function ContinueLearningSection({
             Choose a path above and complete your first lesson to begin earning stars.
           </p>
           <Link
-            to="/adventures"
+            to="/paths"
             className="inline-flex px-6 py-2.5 bg-[#2AAFA0] text-white rounded-full font-extrabold text-sm shadow-sm hover:opacity-90"
           >
             Browse Paths →
@@ -36,7 +37,7 @@ export default function ContinueLearningSection({
   }
 
   const title = lastArticle?.title ?? activePath?.nextArticleTitle ?? activePath?.title ?? 'Continue learning'
-  const url = lastArticle?.url ?? (activePath ? `/adventures/${activePath.slug}` : '/adventures')
+  const url = lastArticle?.url ?? (activePath ? learningPathDetailUrl(activePath.slug) : '/paths')
   const category = pathLabel ?? activePath?.title ?? 'Learning Path'
   const totalLessons = activePath?.lessonCount ?? activePath?.path_progress?.total_articles ?? 0
   const completedLessons = activePath?.path_progress?.completed_articles ?? 0

@@ -10,6 +10,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorMessage from '../components/ErrorMessage'
 import PageBackNav from '@/components/navigation/PageBackNav'
 import Breadcrumbs from '@/components/navigation/Breadcrumbs'
+import BrandLogo from '@/components/BrandLogo'
 
 const ageTabs: { id: AgeGroup; label: string; emoji: string }[] = [
   { id: 'explorer', label: 'Explorer', emoji: '🌱' },
@@ -75,10 +76,8 @@ export default function ArticleReader() {
     <div className="min-h-screen bg-bg page-transition">
       <nav className="bg-white border-b border-gray-200 px-6 md:px-10 py-3 sticky top-0 z-50">
         <div className="max-w-[800px] mx-auto flex flex-wrap items-center justify-between gap-3">
-          <Link to="/" className="font-display font-bold text-navy tracking-tight no-underline">
-            YAQZA KIDS
-          </Link>
-          <PageBackNav fallbackTo="/discoverer" homeTo="/" />
+          <BrandLogo to="/discoverer" height={40} />
+          <PageBackNav fallbackTo="/discoverer" homeTo="/discoverer" />
         </div>
       </nav>
 

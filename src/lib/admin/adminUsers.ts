@@ -112,12 +112,50 @@ export async function checkIsAdminOwner(): Promise<boolean> {
   return Boolean(data)
 }
 
-export async function checkIsActiveAdmin(): Promise<boolean> {
-  const { data, error } = await supabase.rpc('is_active_admin_user')
-  if (error) {
-    return checkIsAdmin()
+export async function checkIsAuthorizedAdmin(
+  user?: { id: string; email?: string | null } | null
+): Promise<boolean> {
+  let authUser = user
+  if (!authUser) {
+    const {
+      data: { user: fetched },
+    } = await supabase.auth.getUser()
+    authUser = fetched
   }
-  return Boolean(data)
+  if (!authUser) return false
+
+  if (isMainAdminEmail(authUser.email)) return true
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', authUser.id)
+    .maybeSingle()
+  if (profile?.role === 'admin') return true
+
+  const normalized = (authUser.email ?? '').trim().toLowerCase()
+  if (normalized) {
+    const { data: adminUser, error } = await supabase
+      .from('admin_users')
+      .select('id, status')
+      .eq('email', normalized)
+      .maybeSingle()
+
+    if (!error && adminUser?.status === 'active') return true
+  }
+
+  try {
+    await linkAdminUserAccount()
+    const { data, error } = await supabase.rpc('is_active_admin_user')
+    if (!error && data) return true
+    return checkIsAdmin()
+  } catch {
+    return false
+  }
+}
+
+export async function checkIsActiveAdmin(): Promise<boolean> {
+  return checkIsAuthorizedAdmin()
 }
 
 async function invokeAdminFunction<T>(name: string, body: Record<string, unknown>): Promise<T> {

@@ -1,10 +1,11 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { useAuth } from '@/components/ProtectedRoute'
-import { getChildProfiles } from '@/lib/supabase'
+import { getChildProfilesReliably } from '@/lib/supabase'
 import { STORAGE_KEYS } from '@/lib/adventure/constants'
 import { dashboardPathForAgeGroup } from '@/lib/childProfiles'
 import { STORAGE_KEYS as APP_STORAGE_KEYS } from '@/lib/constants'
+import { persistActiveChildSelection, ACTIVE_CHILD_CHANGED } from '@/lib/activeChild'
 import { lockParentSession } from '@/lib/parentGate'
 import type { ChildProfile } from '@/lib/types'
 
@@ -25,12 +26,11 @@ const SelectedChildContext = createContext<SelectedChildContextValue | null>(nul
 
 function persistActiveChild(child: ChildProfile | null) {
   if (child) {
-    localStorage.setItem(STORAGE_KEYS.selectedChildId, child.id)
-    localStorage.setItem(STORAGE_KEYS.activeChild, child.id)
-    localStorage.setItem(APP_STORAGE_KEYS.ageGroup, child.age_group)
+    persistActiveChildSelection(child)
   } else {
     localStorage.removeItem(STORAGE_KEYS.selectedChildId)
     localStorage.removeItem(STORAGE_KEYS.activeChild)
+    window.dispatchEvent(new CustomEvent(ACTIVE_CHILD_CHANGED))
   }
 }
 
@@ -54,7 +54,7 @@ export function SelectedChildProvider({ children: node }: { children: ReactNode 
 
     setLoading(true)
     try {
-      const kids = await getChildProfiles(user.id)
+      const kids = await getChildProfilesReliably(user.id)
       setChildren(kids)
       const stored = localStorage.getItem(STORAGE_KEYS.selectedChildId)
       let match = stored ? kids.find((k) => k.id === stored) ?? null : null
@@ -81,6 +81,14 @@ export function SelectedChildProvider({ children: node }: { children: ReactNode 
 
   useEffect(() => {
     void refreshChildren()
+  }, [user?.id, authLoading])
+
+  useEffect(() => {
+    const onActiveChildChanged = () => {
+      void refreshChildren()
+    }
+    window.addEventListener(ACTIVE_CHILD_CHANGED, onActiveChildChanged)
+    return () => window.removeEventListener(ACTIVE_CHILD_CHANGED, onActiveChildChanged)
   }, [user?.id, authLoading])
 
   const setSelectedChildId = (id: string) => {

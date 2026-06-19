@@ -7,6 +7,7 @@ import TealProgressBar from '@/components/discoverer/TealProgressBar'
 import { useSelectedChild } from '@/context/SelectedChildContext'
 import { fetchChildStats } from '@/lib/discoverer'
 import { getLevelProgress, STAR_LEVELS } from '@/lib/adventure/levels'
+import DailyDuaCard from '@/components/parent/DailyDuaCard'
 
 function levelNumber(totalStars: number): number {
   let idx = 0
@@ -65,7 +66,11 @@ export default function ProfilePage() {
     <DiscovererPageShell>
       <div className="max-w-lg mx-auto px-6 py-12">
         <div className="bg-white rounded-2xl shadow-sm p-8 text-center mb-6">
-          <UserAvatar name={selectedChild.name} avatarId={selectedChild.avatar_id ?? null} size={80} />
+          <UserAvatar
+            name={selectedChild.name}
+            avatarId={selectedChild.avatar_id ?? null}
+            size={80}
+          />
           <h1 className="font-display text-2xl font-bold text-navy mt-4">{selectedChild.name}</h1>
           <p className="text-muted text-sm mt-1">
             Discoverer · Level {lvl} · {levelInfo.currentLevel}
@@ -76,6 +81,12 @@ export default function ProfilePage() {
               {stars.toLocaleString()} / {xpTarget.toLocaleString()} XP
             </p>
           </div>
+          <Link
+            to="/profile/avatar"
+            className="inline-block mt-6 text-sm font-extrabold text-teal hover:underline"
+          >
+            Customize avatar →
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-8">
@@ -91,6 +102,10 @@ export default function ProfilePage() {
               <p className="text-xs text-muted font-bold">{s.label}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mb-8">
+          <DailyDuaCard />
         </div>
 
         <div className="space-y-2">

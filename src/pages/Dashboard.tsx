@@ -13,7 +13,6 @@ import ErrorMessage from '../components/ErrorMessage'
 import AnnouncementBanner from '@/components/messaging/AnnouncementBanner'
 import ParentLayout from '@/components/layout/ParentLayout'
 import Breadcrumbs from '@/components/navigation/Breadcrumbs'
-import DailyDuaCard from '@/components/parent/DailyDuaCard'
 import ParentPasscodeGate from '@/components/parent/ParentPasscodeGate'
 import ParentGateLink from '@/components/parent/ParentGateLink'
 import { USUL_THEMES } from '@/lib/parent/dailyDuaContent'
@@ -298,11 +297,6 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        </section>
-
-        {/* D. Daily Du'a */}
-        <section className="mb-10">
-          <DailyDuaCard />
         </section>
 
         {/* E. Messages & Announcements */}

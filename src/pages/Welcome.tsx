@@ -3,6 +3,7 @@ import { STORAGE_KEYS } from '../lib/constants'
 import { LanguagePickerOnboarding } from '../components/ui/LanguageSwitcher'
 import { SiteFooter } from '@/components/SiteFooter'
 import PageSeo from '@/components/seo/PageSeo'
+import BrandLogo from '@/components/BrandLogo'
 import { useT } from '../i18n'
 
 const cardStyles = [
@@ -86,7 +87,8 @@ export default function Welcome() {
           flexDirection: 'column',
           alignItems: 'center',
         }}>
-          <div style={{ textAlign: 'center', paddingTop: '60px' }}>
+          <div style={{ textAlign: 'center', paddingTop: '48px' }}>
+            <BrandLogo height={168} className="mx-auto mb-6" />
             <h1 style={{
               fontFamily: "'Playfair Display', Georgia, serif",
               fontSize: '42px',
@@ -215,7 +217,7 @@ export default function Welcome() {
           </p>
         </div>
       </div>
-      <SiteFooter variant="light" />
+      <SiteFooter variant="light" logoHeight={168} />
     </div>
     </>
   )

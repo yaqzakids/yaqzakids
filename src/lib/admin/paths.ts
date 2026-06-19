@@ -7,12 +7,15 @@ export interface AdminPathListItem {
   pillar_id: string
   title: string
   slug: string
+  public_slug?: string | null
+  icon?: string | null
   description: string | null
   difficulty_level: 'easy' | 'medium' | 'hard'
   is_free: boolean
   badge_reward_id: string | null
   cover_image_url: string | null
   sort_order: number
+  status?: 'draft' | 'published' | 'archived'
   pillar: Pillar | null
   article_count: number
 }
@@ -42,7 +45,8 @@ export interface PathArticleItem {
   id: string
   article_id: string
   sort_order: number
-  article: { id: string; title: string; slug: string } | null
+  is_required?: boolean
+  article: { id: string; title: string; slug: string; reading_time_minutes?: number } | null
 }
 
 export async function fetchAdminPaths(): Promise<AdminPathListItem[]> {
@@ -74,7 +78,7 @@ export async function fetchAdminPath(id: string): Promise<AdventurePath> {
 export async function fetchPathArticles(pathId: string): Promise<PathArticleItem[]> {
   const { data, error } = await supabase
     .from('path_articles')
-    .select('id, article_id, sort_order, article:articles(id, title, slug)')
+    .select('id, article_id, sort_order, is_required, article:articles(id, title, slug, reading_time_minutes)')
     .eq('adventure_path_id', pathId)
     .order('sort_order')
   if (error) throw error
@@ -186,4 +190,29 @@ export async function fetchBadges() {
   const { data, error } = await supabase.from('badges').select('id, name').order('name')
   if (error) throw error
   return data ?? []
+}
+
+export async function togglePathStatus(id: string, status: 'draft' | 'published' | 'archived'): Promise<void> {
+  const { error } = await supabase.from('adventure_paths').update({ status }).eq('id', id)
+  if (error) throw error
+  await logAdminAction('path_status_updated', 'path', id, { status })
+}
+
+export async function movePathOrder(id: string, direction: 'up' | 'down', paths: AdminPathListItem[]): Promise<void> {
+  const index = paths.findIndex((p) => p.id === id)
+  if (index < 0) return
+  const swapIndex = direction === 'up' ? index - 1 : index + 1
+  if (swapIndex < 0 || swapIndex >= paths.length) return
+
+  const current = paths[index]
+  const other = paths[swapIndex]
+  await Promise.all([
+    supabase.from('adventure_paths').update({ sort_order: other.sort_order }).eq('id', current.id),
+    supabase.from('adventure_paths').update({ sort_order: current.sort_order }).eq('id', other.id),
+  ])
+}
+
+export async function updatePathArticleRequired(pathArticleId: string, isRequired: boolean): Promise<void> {
+  const { error } = await supabase.from('path_articles').update({ is_required: isRequired }).eq('id', pathArticleId)
+  if (error) throw error
 }

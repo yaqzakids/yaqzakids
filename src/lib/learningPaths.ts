@@ -32,7 +32,7 @@ export const LEARNING_PATHS: LearningPathDefinition[] = [
     ageGroups: ['Explorer', 'Discoverer', 'Thinker'],
     islamicThemes: ['Tawhid', 'Prophetic stories', 'Character (akhlaq)', 'Purposeful living'],
     adventureSlug: 'search-for-truth',
-    coverImageUrl: 'https://i.ibb.co/gFRNB3Jk/Chat-GPT-Image-Jun-4-2026-02-42-51-PM.png',
+    coverImageUrl: '/paths/covers/foundations-of-faith.png',
   },
   {
     name: 'Science & Nature',
@@ -51,7 +51,7 @@ export const LEARNING_PATHS: LearningPathDefinition[] = [
     ageGroups: ['Explorer', 'Discoverer', 'Thinker'],
     islamicThemes: ['Signs in creation (ayat)', 'Stewardship (khilafah)', 'Gratitude (shukr)', 'Wonder and reflection'],
     adventureSlug: 'wonders-creation',
-    coverImageUrl: 'https://i.ibb.co/8qrSkyC/Chat-GPT-Image-Jun-4-2026-02-47-03-PM.png',
+    coverImageUrl: '/paths/covers/science-nature.png',
   },
   {
     name: 'History & Civilization',
@@ -70,7 +70,7 @@ export const LEARNING_PATHS: LearningPathDefinition[] = [
     ageGroups: ['Explorer', 'Discoverer', 'Thinker'],
     islamicThemes: ['Historical consciousness', 'Justice across eras', 'Learning from the ummah\'s legacy'],
     adventureSlug: 'ancient-egypt',
-    coverImageUrl: 'https://i.ibb.co/ns4zjTjM/Chat-GPT-Image-Jun-4-2026-02-44-34-PM.png',
+    coverImageUrl: '/paths/covers/history-civilization.png',
   },
   {
     name: 'Geography & Cultures',
@@ -89,7 +89,7 @@ export const LEARNING_PATHS: LearningPathDefinition[] = [
     ageGroups: ['Explorer', 'Discoverer', 'Thinker'],
     islamicThemes: ['Ummah as a global community', 'Respect for peoples (shu\'ub)', 'Travel and knowledge'],
     adventureSlug: 'ancient-egypt',
-    coverImageUrl: 'https://i.ibb.co/ns4zjTjM/Chat-GPT-Image-Jun-4-2026-02-44-34-PM.png',
+    coverImageUrl: '/paths/covers/geography-cultures.png',
   },
   {
     name: 'Technology & AI',
@@ -108,7 +108,7 @@ export const LEARNING_PATHS: LearningPathDefinition[] = [
     ageGroups: ['Explorer', 'Discoverer', 'Thinker'],
     islamicThemes: ['Ethical use of tools', 'Intention (niyyah) online', 'Knowledge as trust'],
     adventureSlug: 'building-character',
-    coverImageUrl: 'https://i.ibb.co/gFRNB3Jk/Chat-GPT-Image-Jun-4-2026-02-42-51-PM.png',
+    coverImageUrl: '/paths/covers/technology-ai.png',
   },
   {
     name: "Today's World",
@@ -127,7 +127,7 @@ export const LEARNING_PATHS: LearningPathDefinition[] = [
     ageGroups: ['Explorer', 'Discoverer', 'Thinker'],
     islamicThemes: ['Justice in public life', 'Truthfulness (sidq)', 'Community responsibility'],
     adventureSlug: 'understanding-news',
-    coverImageUrl: 'https://i.ibb.co/Qwk4M1Q/Chat-GPT-Image-Jun-4-2026-02-40-30-PM.png',
+    coverImageUrl: '/paths/covers/todays-world.png',
   },
   {
     name: 'Environment & Stewardship',
@@ -146,7 +146,7 @@ export const LEARNING_PATHS: LearningPathDefinition[] = [
     ageGroups: ['Explorer', 'Discoverer', 'Thinker'],
     islamicThemes: ['Stewardship (khalifah)', 'Balance (mizan)', 'Gratitude for provision'],
     adventureSlug: 'signs-in-nature',
-    coverImageUrl: 'https://i.ibb.co/HDhQ9Wxk/Chat-GPT-Image-Jun-4-2026-02-47-50-PM.png',
+    coverImageUrl: '/paths/covers/environment-stewardship.png',
   },
 ]
 

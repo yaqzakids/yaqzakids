@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { learningPathDetailUrl } from '@/lib/learningPaths'
 import UserAvatar from '@/components/UserAvatar'
 import BadgeHexagon from '@/components/discoverer/BadgeHexagon'
 import TealProgressBar from '@/components/discoverer/TealProgressBar'
@@ -122,7 +123,7 @@ export default function DiscovererProgressSnapshot({
             ) : (
               <div className="space-y-4">
                 {paths.slice(0, 4).map((p) => (
-                  <Link key={p.id} to={`/adventures/${p.slug}`} className="block group">
+                  <Link key={p.id} to={learningPathDetailUrl(p.slug)} className="block group">
                     <p className="text-sm font-bold text-navy mb-1 group-hover:text-teal transition-colors">
                       {p.title}
                     </p>

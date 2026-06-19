@@ -33,11 +33,11 @@ function SignedOutDiscovererHome() {
   return (
     <>
       <SignedOutDiscovererHero />
+      <div className="max-w-[1280px] mx-auto px-5 md:px-8 bg-[#EEF4FF]">
+        <LearningPathsGrid isSignedIn={false} allPaths={allPaths} ageGroup="discoverer" />
+      </div>
       <RootedInFaithSection />
       <SignedOutFeaturedSection />
-      <div className="max-w-[1280px] mx-auto px-5 md:px-8 bg-[#EEF4FF]">
-        <LearningPathsGrid isSignedIn={false} allPaths={allPaths} />
-      </div>
     </>
   )
 }

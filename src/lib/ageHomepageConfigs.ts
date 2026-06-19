@@ -18,7 +18,7 @@ export const explorerHomepageConfig: AgeHomepageConfig = {
   trustText: '🎯 Easy to Read · 🎨 Fun Activities · 🏆 Earn Badges · ☪️ Islamic Values',
   features: [
     { icon: '📖', title: 'Short fun stories' },
-    { icon: '🎨', title: 'Drawing activities' },
+    { icon: '🎨', title: 'Drawing & colouring activities' },
     { icon: '⭐', title: 'Earn gold stars' },
     { icon: '☪️', title: 'Islamic lessons' },
   ],

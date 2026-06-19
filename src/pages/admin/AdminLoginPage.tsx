@@ -1,14 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import AuthPageShell from '@/components/navigation/AuthPageShell'
-import {
-  ADMIN_FORGOT_PASSWORD_MESSAGE,
-  ADMIN_LOGIN_DENIED_MESSAGE,
-  completeAdminLogin,
-} from '@/lib/admin/adminLogin'
+import { completeAdminLogin, ADMIN_LOGIN_DENIED_MESSAGE } from '@/lib/admin/adminLogin'
 import { supabase, isSupabaseReady, SUPABASE_CONFIG_ERROR } from '@/lib/supabase'
 import { formatAuthError } from '@/lib/supabaseConfig'
 import PageSeo from '@/components/seo/PageSeo'
+import BrandLogo from '@/components/BrandLogo'
 
 export default function AdminLoginPage() {
   const navigate = useNavigate()
@@ -23,22 +19,6 @@ export default function AdminLoginPage() {
       setError(SUPABASE_CONFIG_ERROR)
     }
   }, [])
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (!session?.user) return
-
-      const result = await completeAdminLogin(navigate)
-      if (result === 'denied') {
-        setAccessDenied(true)
-        setError(ADMIN_LOGIN_DENIED_MESSAGE)
-      }
-    }
-    void checkSession()
-  }, [navigate])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,19 +45,48 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <AuthPageShell>
-      <PageSeo title="Admin & Team Sign In" noIndex path="/admin/login" />
-      <div className="bg-white rounded-[20px] p-8 md:p-12 max-w-[420px] w-full shadow-lg">
-        <h1 className="font-display text-[28px] font-bold text-navy text-center mb-1">
-          Admin &amp; Team Sign In
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-10"
+      style={{ background: '#1B2F5E' }}
+    >
+      <PageSeo title="Admin Sign In" noIndex path="/admin/login" />
+
+      <div
+        className="w-full bg-white shadow-xl relative"
+        style={{ maxWidth: 420, borderRadius: 20, padding: 48 }}
+      >
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-1.5 mb-6 p-0 border-0 bg-transparent cursor-pointer text-sm font-semibold text-[#1B2F5E] hover:text-[#0F1A33] hover:underline transition-colors"
+        >
+          <span aria-hidden>←</span>
+          Back to Home
+        </button>
+
+        <div className="flex flex-col items-center mb-8">
+          <BrandLogo height={52} />
+          <p
+            className="mt-4 mb-0 text-xs font-extrabold tracking-widest uppercase"
+            style={{ color: '#F5A623' }}
+          >
+            Admin Control Center
+          </p>
+        </div>
+
+        <h1
+          className="text-center mb-6 m-0"
+          style={{ fontFamily: 'Playfair Display, serif', fontSize: 28, fontWeight: 700, color: '#1B2F5E' }}
+        >
+          Admin Sign In
         </h1>
-        <p className="text-muted text-center mb-6">
-          Sign in with your team credentials. Parent accounts use the public login page.
-        </p>
 
         <form onSubmit={handleLogin} className="space-y-4">
           {error && (
-            <p className={`text-sm text-center ${accessDenied ? 'text-navy font-semibold' : 'text-coral'}`}>
+            <p
+              className={`text-sm text-center m-0 ${accessDenied ? 'font-semibold' : ''}`}
+              style={{ color: accessDenied ? '#1B2F5E' : '#E85D4A' }}
+            >
               {error}
             </p>
           )}
@@ -89,7 +98,7 @@ export default function AdminLoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="w-full px-4 py-3 border-[1.5px] border-gray-200 rounded-xl focus:border-teal focus:outline-none transition-colors"
+            className="w-full px-4 py-3 border-[1.5px] border-gray-200 rounded-xl focus:border-[#F5A623] focus:outline-none transition-colors"
           />
           <input
             type="password"
@@ -98,28 +107,31 @@ export default function AdminLoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="current-password"
-            className="w-full px-4 py-3 border-[1.5px] border-gray-200 rounded-xl focus:border-teal focus:outline-none transition-colors"
+            className="w-full px-4 py-3 border-[1.5px] border-gray-200 rounded-xl focus:border-[#F5A623] focus:outline-none transition-colors"
           />
-
-          <p className="text-[13px] text-muted text-center leading-relaxed">{ADMIN_FORGOT_PASSWORD_MESSAGE}</p>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-gold text-white rounded-full text-base font-extrabold hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="w-full py-3.5 text-white rounded-full text-base font-extrabold hover:opacity-90 transition-opacity disabled:opacity-50"
+            style={{ background: '#F5A623' }}
           >
             {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
 
+        <p className="text-center mt-6 mb-0 text-[13px] leading-relaxed" style={{ color: '#6B7280' }}>
+          This area is restricted to authorised administrators only.
+        </p>
+
         {accessDenied && (
-          <p className="text-center mt-4">
-            <Link to="/" className="text-teal font-semibold hover:opacity-80">
-              Back to Homepage
+          <p className="text-center mt-4 mb-0">
+            <Link to="/admin/login" className="font-semibold hover:opacity-80" style={{ color: '#F5A623' }}>
+              Back to Admin Login
             </Link>
           </p>
         )}
       </div>
-    </AuthPageShell>
+    </div>
   )
 }

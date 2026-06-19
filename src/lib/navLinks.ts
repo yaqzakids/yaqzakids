@@ -1,6 +1,7 @@
 import {
   childHomePathForAgeGroup,
   profileDashboardPathForAgeGroup,
+  profilePathForAgeGroup,
   AGE_GROUP_META,
 } from '@/lib/childProfiles'
 import type { AgeGroup, ChildProfile } from '@/lib/types'
@@ -53,7 +54,7 @@ export function childNavPaths(child: ChildProfile): ChildNavPaths {
     return {
       home,
       journey,
-      profile: '/discoverer/profile',
+      profile: profilePathForAgeGroup('discoverer'),
       profileAvatar: '/profile/avatar',
       achievements: '/discoverer/badges',
       certificates: '/discoverer/certificates',
@@ -64,7 +65,7 @@ export function childNavPaths(child: ChildProfile): ChildNavPaths {
   return {
     home,
     journey,
-    profile: journey,
+    profile: profilePathForAgeGroup(child.age_group),
     profileAvatar: `/children/${child.id}/edit`,
     achievements: journey,
     certificates: journey,

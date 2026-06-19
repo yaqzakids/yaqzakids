@@ -137,13 +137,6 @@ export default function Login() {
             New to Yaqza Kids? Create your free account →
           </Link>
         </p>
-
-        <p className="text-center mt-4 text-[13px] text-muted">
-          Team member?{' '}
-          <Link to="/admin/login" className="text-teal font-semibold hover:opacity-80">
-            Admin sign in
-          </Link>
-        </p>
       </div>
     </AuthPageShell>
   )

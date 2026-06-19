@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import TealProgressBar from '@/components/discoverer/TealProgressBar'
 import BadgeHexagon from '@/components/discoverer/BadgeHexagon'
 import { DISCOVERER_HERO_IMAGE } from '@/components/discoverer/DiscovererHeroShell'
-import LearningPathsGrid from '@/components/discoverer/home/LearningPathsGrid'
+import LearningPathsSection from '@/components/learningPaths/LearningPathsSection'
 import { STAR_LEVELS } from '@/lib/adventure/levels'
 import {
   DISCOVERER_BADGE_DISPLAY,
@@ -15,6 +15,7 @@ import {
 } from '@/lib/discoverer'
 import { SIGNED_IN_RECOMMENDED, type DiscovererStoryCard } from '@/lib/discovererHomeContent'
 import type { AdventureArticle } from '@/lib/adventure/types'
+import { learningPathDetailUrl } from '@/lib/learningPaths'
 import type { PathWithProgress } from '@/lib/adventure/types'
 
 export interface SignedInDiscovererDashboardProps {
@@ -137,7 +138,7 @@ export default function SignedInDiscovererDashboard({
   const continueTitle =
     lastArticle?.title ?? activePath?.nextArticleTitle ?? activePath?.title ?? 'Start your adventure'
   const continueUrl =
-    lastArticle?.url ?? (activePath ? `/adventures/${activePath.slug}` : '/adventures')
+    lastArticle?.url ?? (activePath ? learningPathDetailUrl(activePath.slug) : '/paths')
   const continuePct = activePath?.path_progress?.completion_percentage ?? 0
   const continueImage =
     activePath?.cover_image_url ??
@@ -198,6 +199,8 @@ export default function SignedInDiscovererDashboard({
           </div>
         </div>
       </section>
+
+      <LearningPathsSection isSignedIn ageGroup="discoverer" allPaths={allPaths} />
 
       {/* Stats row */}
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -327,7 +330,7 @@ export default function SignedInDiscovererDashboard({
             <ul className="space-y-3">
               {pathRows.map(({ category, live, pct }) => (
                 <li key={category.slug}>
-                  <Link to={`/adventures/${live?.slug ?? category.slug}`} className="block group">
+                  <Link to={learningPathDetailUrl(live?.slug ?? category.slug)} className="block group">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-lg" aria-hidden>
                         {category.emoji}
@@ -355,9 +358,6 @@ export default function SignedInDiscovererDashboard({
           <RecommendedStrip articles={recommendedArticles} fallbackCards={SIGNED_IN_RECOMMENDED} />
         </DashboardCard>
       </div>
-
-      {/* Scenic learning paths — bottom */}
-      <LearningPathsGrid isSignedIn allPaths={allPaths} variant="scenic" />
     </div>
   )
 }

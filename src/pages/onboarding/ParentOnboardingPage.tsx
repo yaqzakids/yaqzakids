@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AuthPageShell from '@/components/navigation/AuthPageShell'
 import { useAuth } from '@/components/ProtectedRoute'
-import { upsertParentProfile } from '@/lib/supabase'
+import { getProfile, upsertParentProfile } from '@/lib/supabase'
+import { redirectAfterLogin } from '@/lib/postLoginRedirect'
 import type { Language } from '@/lib/types'
 
 export default function ParentOnboardingPage() {
@@ -12,11 +13,27 @@ export default function ParentOnboardingPage() {
   const [language, setLanguage] = useState<Language>('en')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [checkingProfile, setCheckingProfile] = useState(true)
 
   useEffect(() => {
     if (authLoading) return
     if (!user) {
       navigate('/login', { replace: true })
+      return
+    }
+
+    let cancelled = false
+    void getProfile(user.id).then(async (profile) => {
+      if (cancelled) return
+      if (profile?.full_name?.trim()) {
+        await redirectAfterLogin(user.id, navigate)
+        return
+      }
+      setCheckingProfile(false)
+    })
+
+    return () => {
+      cancelled = true
     }
   }, [authLoading, user, navigate])
 
@@ -37,6 +54,11 @@ export default function ParentOnboardingPage() {
 
   return (
     <AuthPageShell>
+      {checkingProfile ? (
+        <div className="bg-white rounded-[20px] p-8 md:p-12 max-w-[420px] w-full shadow-lg text-center text-muted">
+          Loading…
+        </div>
+      ) : (
       <div className="bg-white rounded-[20px] p-8 md:p-12 max-w-[420px] w-full shadow-lg">
         <h1 className="font-display text-[28px] font-bold text-navy text-center mb-1">Create parent account</h1>
         <p className="text-muted text-center mb-6">Tell us a little about you before adding your child.</p>
@@ -71,6 +93,7 @@ export default function ParentOnboardingPage() {
           </button>
         </form>
       </div>
+      )}
     </AuthPageShell>
   )
 }

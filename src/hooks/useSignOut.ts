@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelectedChild } from '@/context/SelectedChildContext'
 import { signOutAndClearLocalState } from '@/lib/auth/signOut'
+import { PUBLIC_HOME_PATH } from '@/lib/navigation'
 
 export function useSignOut() {
   const navigate = useNavigate()
@@ -14,7 +15,7 @@ export function useSignOut() {
     try {
       clearActiveChild()
       await signOutAndClearLocalState()
-      navigate('/', { replace: true })
+      navigate(PUBLIC_HOME_PATH, { replace: true })
     } catch (err) {
       console.error('Sign out failed:', err)
       setSigningOut(false)

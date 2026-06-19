@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import type { ReactNode } from 'react'
 import { SiteFooter } from '@/components/SiteFooter'
 import { Star, Rocket, Flame, Award } from 'lucide-react'
 import { useT } from '@/i18n'
@@ -30,7 +31,10 @@ export interface AgeHomepageConfig {
   sectionHeadlineCls?: string
 }
 
-type AgeHomepageProps = Partial<Omit<AgeHomepageConfig, 'variant'>> & Pick<AgeHomepageConfig, 'variant'>
+type AgeHomepageProps = Partial<Omit<AgeHomepageConfig, 'variant'>> &
+  Pick<AgeHomepageConfig, 'variant'> & {
+    afterHero?: ReactNode
+  }
 
 const EXPLORER_HERO =
   'https://i.ibb.co/bj7FdD4Z/Chat-GPT-Image-Jun-3-2026-11-34-07-PM.png'
@@ -71,8 +75,9 @@ function buildExplorerConfig(t: TranslationKeys): AgeHomepageConfig {
 
 export function AgeHomepage(props: AgeHomepageProps) {
   const t = useT()
+  const { afterHero, ...restProps } = props
   const explorerDefaults = props.variant === 'explorer' ? buildExplorerConfig(t) : null
-  const cfg = { ...explorerDefaults, ...props } as AgeHomepageConfig
+  const cfg = { ...explorerDefaults, ...restProps } as AgeHomepageConfig
 
   const isThinker = cfg.variant === 'thinker'
   const isExplorer = cfg.variant === 'explorer'
@@ -193,16 +198,6 @@ export function AgeHomepage(props: AgeHomepageProps) {
     },
   ]
 
-  const explorerCategories = [
-    { name: ex.catAmazingAnimals, bg: '#FEF9C3', img: 'https://i.ibb.co/HfGGfqTb/Chat-GPT-Image-Jun-4-2026-02-40-58-PM.png' },
-    { name: ex.catOurWorld, bg: '#DBEAFE', img: 'https://i.ibb.co/Qwk4M1Q/Chat-GPT-Image-Jun-4-2026-02-40-30-PM.png' },
-    { name: ex.catIslam, bg: '#EDE9FE', img: 'https://i.ibb.co/gFRNB3Jk/Chat-GPT-Image-Jun-4-2026-02-42-51-PM.png' },
-    { name: ex.catSpace, bg: '#DBEAFE', img: 'https://i.ibb.co/ns4zjTjM/Chat-GPT-Image-Jun-4-2026-02-44-34-PM.png' },
-    { name: ex.catNature, bg: '#DCFCE7', img: 'https://i.ibb.co/8qrSkyC/Chat-GPT-Image-Jun-4-2026-02-47-03-PM.png' },
-    { name: ex.catHealthy, bg: '#FED7AA', img: 'https://i.ibb.co/Fd0pV30/Chat-GPT-Image-Jun-4-2026-02-46-59-PM.png' },
-    { name: ex.catStoryTime, bg: '#FEF9C3', img: 'https://i.ibb.co/HDhQ9Wxk/Chat-GPT-Image-Jun-4-2026-02-47-50-PM.png' },
-  ]
-
   return (
     <div className={cfg.pageBg ?? 'bg-white'}>
       <section
@@ -241,6 +236,8 @@ export function AgeHomepage(props: AgeHomepageProps) {
         </div>
       </section>
 
+      {afterHero}
+
       {cfg.features && cfg.features.length > 0 && (
         <section className={cfg.featureStripCls ?? 'bg-white border-b border-border'}>
           <div className="mx-auto max-w-7xl px-6 py-5">
@@ -252,72 +249,6 @@ export function AgeHomepage(props: AgeHomepageProps) {
                     {f.title}
                   </span>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {isExplorer && (
-        <section style={{ background: '#FFFFFF', width: '100%' }}>
-          <div style={{ width: '100%', padding: '28px 40px', boxSizing: 'border-box' }}>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'center',
-                gap: '16px',
-                flexWrap: 'nowrap',
-                width: '100%',
-              }}
-            >
-              {explorerCategories.map((cat) => (
-                <Link
-                  key={cat.name}
-                  to="/about"
-                  style={{
-                    flex: '1 1 0',
-                    minWidth: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: '16px 12px',
-                    cursor: 'pointer',
-                    background: cat.bg,
-                    borderRadius: '20px',
-                    textDecoration: 'none',
-                    transition: 'transform 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.05)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)'
-                  }}
-                >
-                  <img
-                    src={cat.img}
-                    alt={cat.name}
-                    style={{
-                      width: '120px',
-                      height: '120px',
-                      objectFit: 'cover',
-                      borderRadius: '16px',
-                      marginBottom: '10px',
-                    }}
-                  />
-                  <div
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      color: '#1B2F5E',
-                      textAlign: 'center',
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {cat.name}
-                  </div>
-                </Link>
               ))}
             </div>
           </div>
