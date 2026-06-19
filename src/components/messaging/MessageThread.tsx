@@ -2,6 +2,7 @@ import { FormEvent, useMemo, useState } from 'react'
 import { getMessageStatus, statusLabel } from '@/lib/messaging/constants'
 import type { ConversationDetail, DirectMessageRow } from '@/lib/messaging/types'
 import { formatDateTime } from '@/lib/admin/utils'
+import { SITE_EMAILS } from '@/lib/constants'
 
 interface MessageThreadProps {
   detail: ConversationDetail
@@ -22,7 +23,7 @@ function senderMeta(
     return {
       name: participant?.profile?.full_name ?? 'Yaqza Team',
       role: 'Admin',
-      email: participant?.profile?.email ?? 'team@yaqzakids.com',
+      email: participant?.profile?.email ?? SITE_EMAILS.contact,
     }
   }
   const parent = detail.parent
