@@ -149,6 +149,8 @@ export function isParentPath(path: string): boolean {
     path.startsWith('/account/settings') ||
     path.startsWith('/children') ||
     path.startsWith('/support') ||
+    path === '/parent/messages' ||
+    path.startsWith('/parent/messages') ||
     path.startsWith('/messages') ||
     path.startsWith('/admin')
   )

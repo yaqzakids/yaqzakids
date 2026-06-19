@@ -114,8 +114,14 @@ export default function SupportPage() {
     }
 
     if (attachment) {
-      if (!SUPPORT_ALLOWED_ATTACHMENT_TYPES.includes(attachment.type)) {
-        setFormError('Attachment type not allowed. Use JPG, PNG, PDF, or plain text.')
+      const ext = attachment.name.split('.').pop()?.toLowerCase() ?? ''
+      const allowedExt = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf', 'txt', 'doc', 'docx']
+      const typeOk =
+        !attachment.type ||
+        SUPPORT_ALLOWED_ATTACHMENT_TYPES.includes(attachment.type) ||
+        allowedExt.includes(ext)
+      if (!typeOk) {
+        setFormError('Attachment type not allowed. Use JPG, PNG, PDF, Word (.doc/.docx), or plain text.')
         return
       }
       if (attachment.size > SUPPORT_MAX_ATTACHMENT_BYTES) {
@@ -297,7 +303,7 @@ export default function SupportPage() {
                     onChange={(e) => setAttachment(e.target.files?.[0] ?? null)}
                     className="text-sm text-navy"
                   />
-                  <p className="text-xs text-muted mt-1 mb-0">Max 5 MB — JPG, PNG, WebP, GIF, PDF, or TXT</p>
+                  <p className="text-xs text-muted mt-1 mb-0">Max 5 MB — JPG, PNG, WebP, GIF, PDF, Word, or TXT</p>
                 </div>
 
                 <button

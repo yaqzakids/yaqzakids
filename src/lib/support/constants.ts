@@ -72,4 +72,6 @@ export const SUPPORT_ALLOWED_ATTACHMENT_TYPES = [
   'image/gif',
   'application/pdf',
   'text/plain',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ]

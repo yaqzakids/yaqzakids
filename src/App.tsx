@@ -286,7 +286,7 @@ export default function App() {
           <Route path="/parent" element={<Navigate to="/parent/dashboard" replace />} />
           <Route path="/parent/dashboard" element={<ParentRoute><Dashboard /></ParentRoute>} />
           <Route path="/parent/progress" element={<Navigate to="/parent/dashboard" replace />} />
-          <Route path="/parent/messages" element={<Navigate to="/messages" replace />} />
+          <Route path="/parent/messages" element={<ParentRoute><MessagesPage /></ParentRoute>} />
           <Route path="/parent/subscription" element={<Navigate to="/account/settings" replace />} />
           <Route path="/parent/settings" element={<Navigate to="/account/settings" replace />} />
           <Route path="/parent/support" element={<Navigate to="/support" replace />} />
@@ -294,7 +294,7 @@ export default function App() {
           <Route path="/account/settings" element={<ParentRoute><ParentAccountSettingsPage /></ParentRoute>} />
           <Route path="/dashboard" element={<Navigate to="/parent/dashboard" replace />} />
           <Route path="/support" element={<ParentRoute><SupportPage /></ParentRoute>} />
-          <Route path="/messages" element={<ParentRoute><MessagesPage /></ParentRoute>} />
+          <Route path="/messages" element={<Navigate to="/parent/messages" replace />} />
           <Route path="/child-dashboard" element={<ProtectedRoute><ChildDashboard /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/welcome" replace />} />
           </Route>

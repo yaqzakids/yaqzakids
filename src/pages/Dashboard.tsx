@@ -303,7 +303,7 @@ export default function Dashboard() {
         <section className="mb-10 bg-white rounded-2xl border border-gray-200 p-6">
           <div className="flex items-center justify-between gap-4 mb-4">
             <h2 className="font-display text-xl font-bold text-navy">Parent Messages & Announcements</h2>
-            <ParentGateLink to="/messages" className="text-teal text-sm font-extrabold no-underline">
+            <ParentGateLink to="/parent/messages" className="text-teal text-sm font-extrabold no-underline">
               View all →
             </ParentGateLink>
           </div>

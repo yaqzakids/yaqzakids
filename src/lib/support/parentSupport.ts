@@ -34,10 +34,20 @@ export async function uploadSupportAttachment(
   const { error } = await supabase.storage.from(SUPPORT_ATTACHMENT_BUCKET).upload(path, file, {
     cacheControl: '3600',
     upsert: false,
-    contentType: file.type,
+    contentType: file.type || 'application/octet-stream',
   })
 
-  if (error) throw error
+  if (error) {
+    if (
+      error.message.toLowerCase().includes('row-level security') ||
+      error.message.toLowerCase().includes('policy')
+    ) {
+      throw new Error(
+        'Could not upload your attachment. Ask your admin to run supabase/apply_support_attachment_storage_fix.sql in Supabase SQL Editor.'
+      )
+    }
+    throw error
+  }
   return path
 }
 
@@ -45,6 +55,27 @@ export async function createSupportTicket(
   parentId: string,
   input: CreateSupportTicketInput
 ): Promise<{ ticket_number: string; id: string }> {
+  const { data: rpcData, error: rpcError } = await supabase.rpc('create_parent_support_ticket', {
+    p_subject: input.subject.trim(),
+    p_category: input.category,
+    p_priority: input.priority,
+    p_message: input.message.trim(),
+    p_attachment_url: input.attachmentUrl ?? null,
+  })
+
+  if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData[0]) {
+    const row = rpcData[0] as { id: string; ticket_number: string }
+    await enqueueNotification('ticket_created', row.id, parentId, {
+      ticket_number: row.ticket_number,
+      subject: input.subject,
+    })
+    return { id: row.id, ticket_number: row.ticket_number }
+  }
+
+  if (rpcError && rpcError.code !== 'PGRST202') {
+    throw rpcError
+  }
+
   const { data, error } = await supabase
     .from('support_tickets')
     .insert({

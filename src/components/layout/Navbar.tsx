@@ -6,6 +6,9 @@ import { LEARNING_PATHS } from '@/lib/learningPaths'
 import { GAMES, gameHref } from '@/lib/games'
 import { appHomePath, PUBLIC_HOME_PATH } from '@/lib/navigation'
 import { childNavPaths } from '@/lib/navLinks'
+import { useParentGate } from '@/context/ParentGateContext'
+import { isParentUnlocked } from '@/lib/parentGate'
+import { useFamilyNotificationCount } from '@/lib/messaging/useFamilyNotificationCount'
 import UserAvatar from '@/components/UserAvatar'
 import BrandLogo from '@/components/BrandLogo'
 
@@ -55,6 +58,9 @@ export default function Navbar() {
       document.removeEventListener('click', handleClick)
     }
   }, [pathsOpen, gamesOpen, avatarOpen])
+
+  const { openParentGate } = useParentGate()
+  const { count: notificationCount } = useFamilyNotificationCount(30000)
 
   const handleSignOut = async () => {
     clearActiveChild()
@@ -686,7 +692,56 @@ export default function Navbar() {
               aria-hidden
             />
           ) : (
-            renderProfileDropdown(profileChild)
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  if (profileChild && user && !isParentUnlocked()) {
+                    openParentGate('/parent/messages')
+                    return
+                  }
+                  navigate('/parent/messages')
+                }}
+                title="Family messages and notifications"
+                aria-label={`Notifications${notificationCount > 0 ? `, ${notificationCount} unread` : ''}`}
+                style={{
+                  position: 'relative',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  padding: '6px 8px',
+                  borderRadius: '999px',
+                  lineHeight: 1,
+                }}
+              >
+                🔔
+                {notificationCount > 0 && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      right: 0,
+                      minWidth: 18,
+                      height: 18,
+                      padding: '0 4px',
+                      borderRadius: 999,
+                      background: '#E85D4A',
+                      color: '#fff',
+                      fontSize: 10,
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontFamily: 'Nunito, sans-serif',
+                    }}
+                  >
+                    {notificationCount > 99 ? '99+' : notificationCount}
+                  </span>
+                )}
+              </button>
+              {renderProfileDropdown(profileChild)}
+            </>
           )}
 
           <button

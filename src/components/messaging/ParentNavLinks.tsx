@@ -1,4 +1,4 @@
-import { useUnreadMessageCount } from '@/lib/messaging/useUnreadMessageCount'
+import { useFamilyNotificationCount } from '@/lib/messaging/useFamilyNotificationCount'
 import ParentGateLink from '@/components/parent/ParentGateLink'
 
 interface ParentNavLinksProps {
@@ -6,7 +6,7 @@ interface ParentNavLinksProps {
 }
 
 export default function ParentNavLinks({ active }: ParentNavLinksProps) {
-  const { count } = useUnreadMessageCount()
+  const { count } = useFamilyNotificationCount()
 
   const linkClass = (key: 'messages' | 'support' | 'dashboard') =>
     `text-sm font-bold no-underline transition-colors ${
@@ -21,7 +21,7 @@ export default function ParentNavLinks({ active }: ParentNavLinksProps) {
       <ParentGateLink to="/support" className={linkClass('support')}>
         Support
       </ParentGateLink>
-      <ParentGateLink to="/messages" className={`${linkClass('messages')} inline-flex items-center gap-1.5`}>
+      <ParentGateLink to="/parent/messages" className={`${linkClass('messages')} inline-flex items-center gap-1.5`}>
         <span aria-hidden>🔔</span>
         Messages
         {count > 0 && (
