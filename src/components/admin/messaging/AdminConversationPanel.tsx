@@ -17,6 +17,7 @@ interface AdminConversationPanelProps {
   onAction: (
     action: 'archive' | 'unarchive' | 'trash' | 'restore' | 'important' | 'unimportant' | 'todo' | 'untodo'
   ) => Promise<void>
+  onDeletePermanently?: () => Promise<void>
   onNotesChange: (notes: string) => Promise<void>
 }
 
@@ -27,6 +28,7 @@ export default function AdminConversationPanel({
   sending,
   onSend,
   onAction,
+  onDeletePermanently,
   onNotesChange,
 }: AdminConversationPanelProps) {
   const [notes, setNotes] = useState('')
@@ -46,6 +48,9 @@ export default function AdminConversationPanel({
   }
 
   const parent = detail.parent
+  const isTrashed =
+    detail.status === 'trashed' ||
+    Boolean(detail.participants?.find((p) => p.user_id === currentUserId)?.trashed_at)
   const parentSince = parent?.created_at
     ? new Date(parent.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
     : '—'
@@ -132,11 +137,23 @@ export default function AdminConversationPanel({
                       className="block w-full text-left px-3 py-2 text-xs font-bold border-0 bg-transparent cursor-pointer hover:bg-gray-50 text-red-600"
                       onClick={() => {
                         setShowMenu(false)
-                        void onAction(detail.status === 'trashed' ? 'restore' : 'trash')
+                        void onAction(isTrashed ? 'restore' : 'trash')
                       }}
                     >
-                      {detail.status === 'trashed' ? 'Restore' : 'Move to Trash'}
+                      {isTrashed ? 'Restore' : 'Move to Trash'}
                     </button>
+                    {isTrashed && onDeletePermanently && (
+                      <button
+                        type="button"
+                        className="block w-full text-left px-3 py-2 text-xs font-bold border-0 bg-transparent cursor-pointer hover:bg-red-50 text-red-700"
+                        onClick={() => {
+                          setShowMenu(false)
+                          void onDeletePermanently()
+                        }}
+                      >
+                        Delete permanently
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -207,11 +224,20 @@ export default function AdminConversationPanel({
             </button>
             <button
               type="button"
-              onClick={() => void onAction(detail.status === 'trashed' ? 'restore' : 'trash')}
+              onClick={() => void onAction(isTrashed ? 'restore' : 'trash')}
               className="w-full text-left text-xs font-bold text-red-600 py-2 px-3 rounded-lg border border-gray-200 bg-white cursor-pointer"
             >
-              {detail.status === 'trashed' ? '♻️ Restore from Trash' : '🗑 Move to Trash'}
+              {isTrashed ? '♻️ Restore from Trash' : '🗑 Move to Trash'}
             </button>
+            {isTrashed && onDeletePermanently && (
+              <button
+                type="button"
+                onClick={() => void onDeletePermanently()}
+                className="w-full text-left text-xs font-bold text-red-700 py-2 px-3 rounded-lg border border-red-200 bg-red-50 cursor-pointer"
+              >
+                🗑 Delete permanently
+              </button>
+            )}
           </div>
         </section>
 

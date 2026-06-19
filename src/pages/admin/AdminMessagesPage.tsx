@@ -12,6 +12,7 @@ import {
   fetchAdminConversations,
   fetchAdminFolderCounts,
   markAdminConversationRead,
+  permanentlyDeleteAdminConversation,
   sendAdminReply,
   setAdminConversationFolder,
   updateAdminConversation,
@@ -170,6 +171,28 @@ export default function AdminMessagesPage() {
     }
   }
 
+  const handleDeletePermanently = async (conversationId?: string) => {
+    const targetId = conversationId ?? selectedId
+    if (!targetId) return
+    if (
+      !window.confirm(
+        'Permanently delete this conversation and all its messages? This cannot be undone.'
+      )
+    ) {
+      return
+    }
+    try {
+      await permanentlyDeleteAdminConversation(targetId, user?.id)
+      if (targetId === selectedId) {
+        setSelectedId(null)
+        setDetail(null)
+      }
+      await loadList()
+    } catch (err) {
+      setError(formatSupabaseError(err))
+    }
+  }
+
   const handleNotesChange = async (notes: string) => {
     if (!selectedId) return
     await updateAdminConversation(selectedId, { internal_notes: notes })
@@ -201,9 +224,11 @@ export default function AdminMessagesPage() {
           selectedId={selectedId}
           loading={loading}
           search={search}
+          folder={folder}
           onSearchChange={setSearch}
           onSelect={setSelectedId}
           onTrash={(id) => void handleAction('trash', id)}
+          onDeletePermanently={(id) => void handleDeletePermanently(id)}
         />
 
         {!selectedId ? (
@@ -218,6 +243,7 @@ export default function AdminMessagesPage() {
             sending={sending}
             onSend={handleSend}
             onAction={handleAction}
+            onDeletePermanently={() => handleDeletePermanently()}
             onNotesChange={handleNotesChange}
           />
         )}

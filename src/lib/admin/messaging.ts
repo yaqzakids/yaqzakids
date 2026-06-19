@@ -489,6 +489,58 @@ export async function setAdminConversationFolder(
   }
 }
 
+export async function permanentlyDeleteAdminConversation(
+  conversationId: string,
+  adminId?: string
+): Promise<void> {
+  const { data: conversation, error: fetchError } = await supabase
+    .from('conversations')
+    .select('id, status, broadcast_id')
+    .eq('id', conversationId)
+    .maybeSingle()
+
+  if (fetchError) throw fetchError
+  if (!conversation) throw new Error('Conversation not found')
+  if (conversation.broadcast_id) {
+    throw new Error('Broadcast conversations cannot be deleted from the inbox.')
+  }
+
+  let isTrashed = conversation.status === 'trashed'
+  if (!isTrashed && adminId) {
+    const { data: participant } = await supabase
+      .from('conversation_participants')
+      .select('trashed_at')
+      .eq('conversation_id', conversationId)
+      .eq('user_id', adminId)
+      .maybeSingle()
+    isTrashed = Boolean(participant?.trashed_at)
+  }
+
+  if (!isTrashed) {
+    throw new Error('Move this conversation to Trash before deleting it permanently.')
+  }
+
+  const { error: rpcError } = await supabase.rpc('admin_delete_conversation', {
+    p_conversation_id: conversationId,
+  })
+
+  if (!rpcError) return
+
+  if (rpcError.code !== 'PGRST202') {
+    throw rpcError
+  }
+
+  const { error: deleteError } = await supabase.from('conversations').delete().eq('id', conversationId)
+
+  if (deleteError) {
+    throw new Error(
+      deleteError.message.includes('policy') || deleteError.code === '42501'
+        ? 'Permanent delete requires a database update. Run supabase/apply_admin_delete_conversation.sql in Supabase SQL Editor.'
+        : deleteError.message
+    )
+  }
+}
+
 async function ensureAdminParticipant(conversationId: string, adminId: string): Promise<void> {
   const { error } = await supabase.from('conversation_participants').upsert(
     {

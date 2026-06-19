@@ -5,13 +5,20 @@ import { isParentPath, isPublicPath, sanitizeRedirectPath } from '@/lib/navigati
 import { getChildProfilesReliably } from '@/lib/supabase'
 import { persistActiveChildSelection } from '@/lib/activeChild'
 
+export const ADD_CHILD_PATH = '/children/new'
+
 const BLOCKED_POST_LOGIN_PATHS = [
   '/verify-email',
   '/onboarding/parent',
   '/onboarding/passcode',
   '/onboarding/choose-path',
-  '/children/new',
+  ADD_CHILD_PATH,
 ]
+
+function clearStoredChildSelection(): void {
+  localStorage.removeItem(STORAGE_KEYS.activeChild)
+  localStorage.removeItem(STORAGE_KEYS.selectedChildId)
+}
 
 function sanitizePostLoginRedirect(redirectTo: string | null): string | null {
   const safe = sanitizeRedirectPath(redirectTo)
@@ -40,7 +47,7 @@ function readStoredChildId(): string | null {
   )
 }
 
-/** Default destination after sign-in — profile or child picker, never add-child onboarding. */
+/** Default destination after sign-in — add child for new accounts, otherwise profile or picker. */
 export async function navigateToChildExperienceAfterLogin(
   userId: string,
   navigate: NavigateFunction,
@@ -56,20 +63,14 @@ export async function navigateToChildExperienceAfterLogin(
   try {
     children = await getChildProfilesReliably(userId)
   } catch {
-    if (readStoredChildId()) {
-      navigate('/profile', { replace: true })
-      return
-    }
-    navigate('/children', { replace: true })
+    clearStoredChildSelection()
+    navigate(ADD_CHILD_PATH, { replace: true })
     return
   }
 
   if (children.length === 0) {
-    if (readStoredChildId()) {
-      navigate('/profile', { replace: true })
-      return
-    }
-    navigate('/children', { replace: true })
+    clearStoredChildSelection()
+    navigate(ADD_CHILD_PATH, { replace: true })
     return
   }
 

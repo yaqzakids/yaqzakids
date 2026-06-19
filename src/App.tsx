@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { ProtectedRoute, useAuth } from './components/ProtectedRoute'
-import { SelectedChildProvider } from './context/SelectedChildContext'
+import { SelectedChildProvider, useSelectedChild } from './context/SelectedChildContext'
 import { ParentGateProvider } from './context/ParentGateContext'
 import ParentGateRoute from './components/parent/ParentGateRoute'
 import { VoiceSettingsProvider } from './context/VoiceSettingsContext'
@@ -103,16 +103,16 @@ import {
   hasAuthCallbackInUrl,
   authCallbackRouteWithCallback,
 } from './lib/auth/authCallback'
-import { STORAGE_KEYS as ADVENTURE_STORAGE_KEYS } from './lib/adventure/constants'
 
 function HomeRedirect() {
-  const { user, loading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
+  const { selectedChild, loading: childLoading } = useSelectedChild()
 
   if (hasAuthCallbackInUrl()) {
     return <Navigate to={authCallbackRouteWithCallback()} replace />
   }
 
-  if (loading) {
+  if (authLoading || childLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg">
         <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin-slow" />
@@ -124,11 +124,7 @@ function HomeRedirect() {
     return <Navigate to="/welcome" replace />
   }
 
-  const activeChildId =
-    localStorage.getItem(ADVENTURE_STORAGE_KEYS.activeChild) ??
-    localStorage.getItem(ADVENTURE_STORAGE_KEYS.selectedChildId)
-
-  if (!activeChildId) {
+  if (!selectedChild) {
     return <Navigate to="/children" replace />
   }
 

@@ -1,5 +1,6 @@
 import UserAvatar from '@/components/UserAvatar'
 import { CategoryTag } from '@/components/admin/messaging/AdminInboxSidebar'
+import type { AdminInboxFolder } from '@/lib/messaging/constants'
 import type { ConversationSummary } from '@/lib/messaging/types'
 import { formatDateTime } from '@/lib/admin/utils'
 
@@ -8,9 +9,11 @@ interface AdminConversationListProps {
   selectedId: string | null
   loading: boolean
   search: string
+  folder: AdminInboxFolder
   onSearchChange: (value: string) => void
   onSelect: (id: string) => void
   onTrash?: (id: string) => void
+  onDeletePermanently?: (id: string) => void
 }
 
 function formatTime(iso: string): string {
@@ -31,9 +34,11 @@ export default function AdminConversationList({
   selectedId,
   loading,
   search,
+  folder,
   onSearchChange,
   onSelect,
   onTrash,
+  onDeletePermanently,
 }: AdminConversationListProps) {
   return (
     <div className="flex flex-col h-full bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -87,18 +92,32 @@ export default function AdminConversationList({
                           </div>
                           <div className="shrink-0 text-right flex flex-col items-end gap-1">
                             <p className="text-[10px] text-gray-400 m-0">{formatTime(c.updated_at)}</p>
-                            {onTrash && (
+                            {folder === 'trash' && onDeletePermanently ? (
                               <button
                                 type="button"
-                                title="Move to trash"
+                                title="Delete permanently"
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  onTrash(c.id)
+                                  onDeletePermanently(c.id)
                                 }}
-                                className="text-[10px] font-bold text-red-500 border-0 bg-transparent cursor-pointer p-0 hover:underline"
+                                className="text-[10px] font-bold text-red-600 border-0 bg-transparent cursor-pointer p-0 hover:underline"
                               >
-                                Delete
+                                Delete forever
                               </button>
+                            ) : (
+                              onTrash && (
+                                <button
+                                  type="button"
+                                  title="Move to trash"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    onTrash(c.id)
+                                  }}
+                                  className="text-[10px] font-bold text-red-500 border-0 bg-transparent cursor-pointer p-0 hover:underline"
+                                >
+                                  Delete
+                                </button>
+                              )
                             )}
                             {c.unread_count > 0 && (
                               <span className="inline-block mt-1 bg-[#E85D4A] text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
