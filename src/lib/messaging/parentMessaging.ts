@@ -29,33 +29,51 @@ export async function fetchParentConversations(
 ): Promise<PaginatedResult<ConversationSummary>> {
   const page = options.page ?? 1
   const pageSize = options.pageSize ?? 15
+  const archived = options.filter === 'archived'
 
-  let participantQuery = supabase
-    .from('conversation_participants')
-    .select('conversation_id, last_read_at, archived_at')
-    .eq('user_id', userId)
+  let conversationIds: string[] = []
 
-  if (options.filter === 'archived') {
-    participantQuery = participantQuery.not('archived_at', 'is', null)
+  const { data: rpcIds, error: rpcError } = await supabase.rpc('get_parent_conversation_ids', {
+    p_user_id: userId,
+    p_archived: archived,
+  })
+
+  if (!rpcError && Array.isArray(rpcIds)) {
+    conversationIds = rpcIds as string[]
   } else {
-    participantQuery = participantQuery.is('archived_at', null)
+    let participantQuery = supabase
+      .from('conversation_participants')
+      .select('conversation_id, last_read_at, archived_at')
+      .eq('user_id', userId)
+
+    if (archived) {
+      participantQuery = participantQuery.not('archived_at', 'is', null)
+    } else {
+      participantQuery = participantQuery.is('archived_at', null)
+    }
+
+    const { data: memberships, error: memberError } = await participantQuery
+    if (memberError) throw memberError
+    conversationIds = (memberships ?? []).map((m) => m.conversation_id)
   }
 
-  const { data: memberships, error: memberError } = await participantQuery
-  if (memberError) throw memberError
-
-  const conversationIds = (memberships ?? []).map((m) => m.conversation_id)
   if (conversationIds.length === 0) {
     return { data: [], total: 0, page, pageSize }
   }
 
   const { data: conversations, error } = await supabase
     .from('conversations')
-    .select('*', { count: 'exact' })
+    .select('*')
     .in('id', conversationIds)
     .order('updated_at', { ascending: false })
 
   if (error) throw error
+
+  const { data: memberships } = await supabase
+    .from('conversation_participants')
+    .select('conversation_id, last_read_at, archived_at')
+    .eq('user_id', userId)
+    .in('conversation_id', conversationIds)
 
   let convList = conversations ?? []
   if (options.filter === 'announcements') {

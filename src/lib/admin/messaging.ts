@@ -321,6 +321,10 @@ export async function sendAdminReply(
   message: string,
   recipientUserId?: string | null
 ): Promise<void> {
+  if (recipientUserId) {
+    await ensureParentParticipant(conversationId, recipientUserId)
+  }
+
   const { error } = await supabase.from('messages').insert({
     conversation_id: conversationId,
     sender_id: adminId,
@@ -332,6 +336,34 @@ export async function sendAdminReply(
 
   if (error) throw error
   await logAdminAction('message_sent', 'conversation', conversationId)
+}
+
+/** Guarantee the parent has a participant row (admin RPC can skip on conflict). */
+export async function ensureParentParticipant(
+  conversationId: string,
+  parentUserId: string
+): Promise<void> {
+  const { data: existing } = await supabase
+    .from('conversation_participants')
+    .select('id, user_type')
+    .eq('conversation_id', conversationId)
+    .eq('user_id', parentUserId)
+    .maybeSingle()
+
+  if (existing?.user_type === 'parent') return
+
+  const { error } = await supabase.from('conversation_participants').upsert(
+    {
+      conversation_id: conversationId,
+      user_id: parentUserId,
+      user_type: 'parent',
+    },
+    { onConflict: 'conversation_id,user_id' }
+  )
+
+  if (error) {
+    throw new Error(`Could not add parent to conversation: ${error.message}`)
+  }
 }
 
 export async function markAdminConversationRead(
@@ -516,7 +548,7 @@ export async function adminCreateConversation(
     const conversationId = data as string
     if (!firstConversationId) firstConversationId = conversationId
 
-    // Enrich row when migration 032 columns exist (ignored before migration)
+    await ensureParentParticipant(conversationId, recipientId)
     const { error: patchConvError } = await supabase
       .from('conversations')
       .update({
@@ -549,10 +581,34 @@ export async function adminCreateConversation(
 }
 
 export async function fetchParentsForSelect(search?: string) {
+  const { data: childRows, error: childError } = await supabase
+    .from('child_profiles')
+    .select('parent_id, name')
+
+  if (childError) throw childError
+
+  const parentIds = [...new Set((childRows ?? []).map((c) => c.parent_id))]
+  if (parentIds.length === 0) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .eq('role', 'parent')
+      .order('full_name')
+      .limit(50)
+    if (error) throw error
+    return data ?? []
+  }
+
+  const childrenByParent: Record<string, string[]> = {}
+  for (const row of childRows ?? []) {
+    if (!childrenByParent[row.parent_id]) childrenByParent[row.parent_id] = []
+    childrenByParent[row.parent_id].push(row.name)
+  }
+
   let query = supabase
     .from('profiles')
     .select('id, full_name, email')
-    .eq('role', 'parent')
+    .in('id', parentIds)
     .order('full_name')
 
   if (search?.trim()) {
@@ -562,7 +618,11 @@ export async function fetchParentsForSelect(search?: string) {
 
   const { data, error } = await query.limit(50)
   if (error) throw error
-  return data ?? []
+
+  return (data ?? []).map((p) => ({
+    ...p,
+    child_names: childrenByParent[p.id] ?? [],
+  }))
 }
 
 export async function fetchChildrenForParent(parentId: string) {

@@ -7,6 +7,7 @@ interface ParentOption {
   id: string
   full_name: string
   email: string | null
+  child_names?: string[]
 }
 
 interface AdminNewMessageModalProps {
@@ -99,6 +100,11 @@ export default function AdminNewMessageModal({
               <div className="mt-2 p-3 rounded-lg bg-[#EEF4FF] border border-[#E2EBF8]">
                 <p className="font-bold text-sm text-[#1B2F5E] m-0">{selectedParent.full_name}</p>
                 <p className="text-xs text-[#2AAFA0] m-0">{selectedParent.email ?? 'No email'}</p>
+                {selectedParent.child_names && selectedParent.child_names.length > 0 && (
+                  <p className="text-[11px] text-gray-600 m-0 mt-1">
+                    Children: {selectedParent.child_names.join(', ')}
+                  </p>
+                )}
                 <button
                   type="button"
                   className="text-xs text-gray-500 mt-1 border-0 bg-transparent cursor-pointer p-0"
@@ -122,6 +128,11 @@ export default function AdminNewMessageModal({
                     >
                       <span className="font-bold">{p.full_name}</span>
                       <span className="text-gray-500 ml-2 text-xs">{p.email}</span>
+                      {p.child_names && p.child_names.length > 0 && (
+                        <span className="block text-[11px] text-teal mt-0.5">
+                          Children: {p.child_names.join(', ')}
+                        </span>
+                      )}
                     </button>
                   </li>
                 ))}
