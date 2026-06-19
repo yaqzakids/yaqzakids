@@ -489,20 +489,63 @@ export async function adminCreateConversation(
 ): Promise<string> {
   if (recipientIds.length === 0) throw new Error('Select at least one recipient')
 
-  const { data, error } = await supabase.rpc('admin_create_conversation', {
-    p_subject: subject.trim(),
-    p_message: message.trim(),
-    p_recipient_ids: recipientIds,
-    p_sender_id: adminId,
-    p_child_profile_id: options.childProfileId ?? null,
-    p_category: options.category ?? 'general',
-  })
+  let firstConversationId: string | null = null
 
-  if (error) throw error
-  await logAdminAction('conversation_created', 'conversation', data as string, {
+  // One RPC call per parent — works with both old and new DB functions
+  for (const recipientId of recipientIds) {
+    const baseArgs = {
+      p_subject: subject.trim(),
+      p_message: message.trim(),
+      p_recipient_ids: [recipientId],
+      p_sender_id: adminId,
+    }
+
+    let { data, error } = await supabase.rpc('admin_create_conversation', {
+      ...baseArgs,
+      p_child_profile_id: options.childProfileId ?? null,
+      p_category: options.category ?? 'general',
+    })
+
+    // Production may still have the 4-parameter function until migration 032 is applied
+    if (error?.code === 'PGRST202') {
+      ;({ data, error } = await supabase.rpc('admin_create_conversation', baseArgs))
+    }
+
+    if (error) throw error
+
+    const conversationId = data as string
+    if (!firstConversationId) firstConversationId = conversationId
+
+    // Enrich row when migration 032 columns exist (ignored before migration)
+    const { error: patchConvError } = await supabase
+      .from('conversations')
+      .update({
+        parent_user_id: recipientId,
+        child_profile_id: options.childProfileId ?? null,
+        category: options.category ?? 'general',
+        last_message_at: new Date().toISOString(),
+      })
+      .eq('id', conversationId)
+
+    if (patchConvError) {
+      console.warn('Conversation metadata patch skipped:', patchConvError.message)
+    }
+
+    const { error: patchMsgError } = await supabase
+      .from('messages')
+      .update({ recipient_user_id: recipientId })
+      .eq('conversation_id', conversationId)
+      .eq('sender_id', adminId)
+
+    if (patchMsgError) {
+      console.warn('Message recipient patch skipped:', patchMsgError.message)
+    }
+  }
+
+  await logAdminAction('conversation_created', 'conversation', firstConversationId!, {
     recipient_count: recipientIds.length,
   })
-  return data as string
+  return firstConversationId!
 }
 
 export async function fetchParentsForSelect(search?: string) {
