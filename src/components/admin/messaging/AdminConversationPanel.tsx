@@ -210,7 +210,7 @@ export default function AdminConversationPanel({
               onClick={() => void onAction(detail.status === 'trashed' ? 'restore' : 'trash')}
               className="w-full text-left text-xs font-bold text-red-600 py-2 px-3 rounded-lg border border-gray-200 bg-white cursor-pointer"
             >
-              🗑 Move to Trash
+              {detail.status === 'trashed' ? '♻️ Restore from Trash' : '🗑 Move to Trash'}
             </button>
           </div>
         </section>

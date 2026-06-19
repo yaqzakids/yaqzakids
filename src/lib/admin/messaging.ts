@@ -92,35 +92,33 @@ function matchesFolder(
   const last = conv.last_message
   const adminParticipant = conv.participants?.find((p) => p.user_id === adminId)
   const status = conv.status ?? 'open'
+  const isTrashed = status === 'trashed' || Boolean(adminParticipant?.trashed_at)
+  const isArchived = status === 'archived' || Boolean(adminParticipant?.archived_at)
 
   if (conv.broadcast_id) return false
 
   switch (folder) {
     case 'trash':
-      return status === 'trashed' || Boolean(adminParticipant?.trashed_at)
+      return isTrashed
     case 'archived':
-      return status === 'archived' || Boolean(adminParticipant?.archived_at)
+      return isArchived && !isTrashed
     case 'important':
-      return conv.priority === 'important' && status !== 'trashed'
+      return conv.priority === 'important' && !isTrashed
     case 'todo':
-      return Boolean(conv.is_todo) && status !== 'trashed'
+      return Boolean(conv.is_todo) && !isTrashed
     case 'scheduled':
-      return Boolean(last?.scheduled_for && last.scheduled_for > new Date().toISOString())
+      return Boolean(last?.scheduled_for && last.scheduled_for > new Date().toISOString()) && !isTrashed
     case 'sent':
       return (
-        status !== 'trashed' &&
-        status !== 'archived' &&
-        !adminParticipant?.archived_at &&
-        !adminParticipant?.trashed_at &&
+        !isTrashed &&
+        !isArchived &&
         last?.sender_type === 'admin'
       )
     case 'inbox':
     default:
       return (
-        status !== 'trashed' &&
-        status !== 'archived' &&
-        !adminParticipant?.archived_at &&
-        !adminParticipant?.trashed_at &&
+        !isTrashed &&
+        !isArchived &&
         (last?.sender_type === 'parent' || (conv.unread_count ?? 0) > 0 || !last)
       )
   }
@@ -406,6 +404,21 @@ export async function setAdminConversationFolder(
   conversationId: string,
   action: 'archive' | 'unarchive' | 'trash' | 'restore' | 'important' | 'unimportant' | 'todo' | 'untodo'
 ): Promise<void> {
+  const { error: rpcError } = await supabase.rpc('admin_set_conversation_folder', {
+    p_conversation_id: conversationId,
+    p_action: action,
+    p_admin_id: adminId,
+  })
+
+  if (!rpcError) return
+
+  if (rpcError.code !== 'PGRST202') {
+    throw rpcError
+  }
+
+  // Fallback before migration 034 is applied
+  await ensureAdminParticipant(conversationId, adminId)
+
   if (action === 'important' || action === 'unimportant') {
     await updateAdminConversation(conversationId, {
       priority: action === 'important' ? 'important' : 'normal',
@@ -418,47 +431,74 @@ export async function setAdminConversationFolder(
     return
   }
 
+  const participantPatch: Record<string, string | null> = {}
+  let statusPatch: string | undefined
+
   if (action === 'archive') {
-    await supabase
+    statusPatch = 'archived'
+    participantPatch.archived_at = new Date().toISOString()
+    participantPatch.trashed_at = null
+  } else if (action === 'unarchive') {
+    statusPatch = 'open'
+    participantPatch.archived_at = null
+  } else if (action === 'trash') {
+    statusPatch = 'trashed'
+    participantPatch.trashed_at = new Date().toISOString()
+    participantPatch.archived_at = null
+  } else if (action === 'restore') {
+    statusPatch = 'open'
+    participantPatch.trashed_at = null
+    participantPatch.archived_at = null
+  }
+
+  if (statusPatch) {
+    const { error: statusError } = await supabase
       .from('conversations')
-      .update({ status: 'archived' })
+      .update({ status: statusPatch })
       .eq('id', conversationId)
-    await supabase
-      .from('conversation_participants')
-      .update({ archived_at: new Date().toISOString() })
-      .eq('conversation_id', conversationId)
-      .eq('user_id', adminId)
-    return
+
+    if (!statusError) {
+      // Status column is enough for inbox folders when RPC / trashed_at are unavailable.
+      return
+    }
+
+    if (!statusError.message.includes('column')) {
+      throw statusError
+    }
   }
 
-  if (action === 'unarchive') {
-    await supabase.from('conversations').update({ status: 'open' }).eq('id', conversationId)
-    await supabase
-      .from('conversation_participants')
-      .update({ archived_at: null })
-      .eq('conversation_id', conversationId)
-      .eq('user_id', adminId)
-    return
+  const participantPatchKeys = Object.keys(participantPatch)
+  if (participantPatchKeys.length === 0) {
+    throw new Error(
+      'Trash requires a database update. In Supabase SQL Editor, run supabase/apply_messaging_inbox_v2.sql then supabase/apply_admin_conversation_folders.sql.'
+    )
   }
 
-  if (action === 'trash') {
-    await supabase.from('conversations').update({ status: 'trashed' }).eq('id', conversationId)
-    await supabase
-      .from('conversation_participants')
-      .update({ trashed_at: new Date().toISOString() })
-      .eq('conversation_id', conversationId)
-      .eq('user_id', adminId)
-    return
-  }
+  const { error: participantError } = await supabase
+    .from('conversation_participants')
+    .update(participantPatch)
+    .eq('conversation_id', conversationId)
+    .eq('user_id', adminId)
 
-  if (action === 'restore') {
-    await supabase.from('conversations').update({ status: 'open' }).eq('id', conversationId)
-    await supabase
-      .from('conversation_participants')
-      .update({ trashed_at: null, archived_at: null })
-      .eq('conversation_id', conversationId)
-      .eq('user_id', adminId)
+  if (participantError) {
+    throw new Error(
+      participantError.message.includes('trashed_at')
+        ? 'Trash requires a database update. In Supabase SQL Editor, run supabase/apply_messaging_inbox_v2.sql then supabase/apply_admin_conversation_folders.sql.'
+        : participantError.message
+    )
   }
+}
+
+async function ensureAdminParticipant(conversationId: string, adminId: string): Promise<void> {
+  const { error } = await supabase.from('conversation_participants').upsert(
+    {
+      conversation_id: conversationId,
+      user_id: adminId,
+      user_type: 'admin',
+    },
+    { onConflict: 'conversation_id,user_id' }
+  )
+  if (error) throw error
 }
 
 export async function resolveRecipientIds(audience: AdminSendAudience, selectedIds: string[] = []): Promise<string[]> {

@@ -145,13 +145,26 @@ export default function AdminMessagesPage() {
   }
 
   const handleAction = async (
-    action: 'archive' | 'unarchive' | 'trash' | 'restore' | 'important' | 'unimportant' | 'todo' | 'untodo'
+    action: 'archive' | 'unarchive' | 'trash' | 'restore' | 'important' | 'unimportant' | 'todo' | 'untodo',
+    conversationId?: string
   ) => {
-    if (!user || !selectedId) return
+    const targetId = conversationId ?? selectedId
+    if (!user || !targetId) return
     try {
-      await setAdminConversationFolder(user.id, selectedId, action)
-      await loadDetail()
+      await setAdminConversationFolder(user.id, targetId, action)
+      if (action === 'trash') {
+        setSelectedId(null)
+        setFolder('trash')
+      } else if (action === 'archive') {
+        setSelectedId(null)
+        setFolder('archived')
+      } else if (action === 'restore') {
+        setFolder('inbox')
+      }
       await loadList()
+      if (targetId === selectedId && action !== 'trash' && action !== 'archive') {
+        await loadDetail()
+      }
     } catch (err) {
       setError(formatSupabaseError(err))
     }
@@ -190,6 +203,7 @@ export default function AdminMessagesPage() {
           search={search}
           onSearchChange={setSearch}
           onSelect={setSelectedId}
+          onTrash={(id) => void handleAction('trash', id)}
         />
 
         {!selectedId ? (

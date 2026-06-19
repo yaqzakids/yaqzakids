@@ -10,6 +10,7 @@ interface AdminConversationListProps {
   search: string
   onSearchChange: (value: string) => void
   onSelect: (id: string) => void
+  onTrash?: (id: string) => void
 }
 
 function formatTime(iso: string): string {
@@ -32,6 +33,7 @@ export default function AdminConversationList({
   search,
   onSearchChange,
   onSelect,
+  onTrash,
 }: AdminConversationListProps) {
   return (
     <div className="flex flex-col h-full bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -83,8 +85,21 @@ export default function AdminConversationList({
                               {parent?.email ?? 'No email on file'}
                             </p>
                           </div>
-                          <div className="shrink-0 text-right">
+                          <div className="shrink-0 text-right flex flex-col items-end gap-1">
                             <p className="text-[10px] text-gray-400 m-0">{formatTime(c.updated_at)}</p>
+                            {onTrash && (
+                              <button
+                                type="button"
+                                title="Move to trash"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  onTrash(c.id)
+                                }}
+                                className="text-[10px] font-bold text-red-500 border-0 bg-transparent cursor-pointer p-0 hover:underline"
+                              >
+                                Delete
+                              </button>
+                            )}
                             {c.unread_count > 0 && (
                               <span className="inline-block mt-1 bg-[#E85D4A] text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                                 {c.unread_count}
