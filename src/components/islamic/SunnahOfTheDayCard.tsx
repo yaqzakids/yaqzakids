@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getSunnahForDate, type SunnahOfTheDayEntry } from '@/lib/islamic/dailyReminders'
+import { useLanguage, useT } from '@/i18n'
+import { getSunnahForDate, getSunnahLocalized, type SunnahOfTheDayEntry } from '@/lib/islamic/dailyReminders'
 import {
   isSunnahCompleted,
   markSunnahCompleted,
@@ -16,7 +17,10 @@ export default function SunnahOfTheDayCard({
   childId?: string | null
   showMarkComplete?: boolean
 }) {
+  const { language } = useLanguage()
+  const t = useT()
   const sunnah = entry ?? getSunnahForDate(date)
+  const localized = getSunnahLocalized(sunnah, language)
   const [completed, setCompleted] = useState(false)
 
   useEffect(() => {
@@ -44,7 +48,7 @@ export default function SunnahOfTheDayCard({
           🕌
         </div>
         <p className="text-white text-sm font-extrabold tracking-[0.12em] uppercase m-0">
-          Sunnah of the Day
+          {t.faithPractice.sunnahOfTheDay}
         </p>
       </header>
 
@@ -56,17 +60,32 @@ export default function SunnahOfTheDayCard({
           >
             {sunnah.emoji}
           </div>
-          <h3 className="font-display text-xl font-bold text-[#1B2F5E] m-0">{sunnah.title}</h3>
+          <h3 className="font-display text-xl font-bold text-[#1B2F5E] m-0">{localized.title}</h3>
         </div>
 
-        <div className="rounded-xl border-2 border-[#F5A623]/50 bg-white/70 px-4 py-3 text-center relative">
-          <span className="absolute left-3 top-1 text-3xl text-[#F5A623]/50 font-serif leading-none" aria-hidden>
+        <div className="rounded-xl border-2 border-[#F5A623]/50 bg-white/70 px-4 py-3 relative">
+          <span
+            className="absolute left-3 top-1 text-3xl text-[#F5A623]/50 font-serif leading-none"
+            aria-hidden
+          >
             “
           </span>
-          <p className="text-sm md:text-base font-semibold text-[#1B2F5E] leading-relaxed px-4 m-0">
-            {sunnah.hadith}
-          </p>
-          <p className="text-xs text-[#D4820A] font-bold mt-2 mb-0">— {sunnah.reference}</p>
+          <div className="px-3 text-center space-y-2">
+            <p
+              className="text-right text-lg md:text-xl font-bold text-[#1B2F5E] leading-relaxed m-0"
+              dir="rtl"
+              lang="ar"
+            >
+              {sunnah.arabic}
+            </p>
+            <p className="text-[11px] text-[#6B7280] italic m-0">{sunnah.transliteration}</p>
+            {localized.hadithTranslation && (
+              <p className="text-sm md:text-base font-semibold text-[#1B2F5E] leading-relaxed m-0">
+                {localized.hadithTranslation}
+              </p>
+            )}
+            <p className="text-xs text-[#D4820A] font-bold mt-1 mb-0">— {localized.reference}</p>
+          </div>
         </div>
 
         <div className="flex items-start gap-2 px-1">
@@ -75,9 +94,9 @@ export default function SunnahOfTheDayCard({
           </span>
           <div>
             <p className="text-[10px] font-extrabold text-[#D4820A] uppercase tracking-wide mb-0.5">
-              Try it today!
+              {t.faithPractice.tryItToday}
             </p>
-            <p className="text-xs md:text-sm text-[#1B2F5E] m-0">{sunnah.actionText}</p>
+            <p className="text-xs md:text-sm text-[#1B2F5E] m-0">{localized.actionText}</p>
           </div>
         </div>
 
@@ -86,7 +105,9 @@ export default function SunnahOfTheDayCard({
             <span className="text-xl" aria-hidden>
               ⭐
             </span>
-            <p className="font-extrabold text-[#1B2F5E] text-sm m-0">+{sunnah.rewardPoints} Bonus Stars</p>
+            <p className="font-extrabold text-[#1B2F5E] text-sm m-0">
+              {t.faithPractice.bonusStars.replace('{points}', String(sunnah.rewardPoints))}
+            </p>
           </div>
           <span className="text-2xl" aria-hidden>
             🎁
@@ -104,7 +125,7 @@ export default function SunnahOfTheDayCard({
                 : 'bg-[#F5A623] text-white hover:opacity-90'
             }`}
           >
-            {completed ? 'Completed ✓' : 'Mark Complete'}
+            {completed ? t.faithPractice.completed : t.faithPractice.markComplete}
           </button>
         )}
       </div>

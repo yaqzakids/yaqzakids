@@ -212,6 +212,13 @@ const ar: TranslationKeys = {
     planCtaYearly: 'اشتراك سنوي',
     planCtaSchool: 'تواصل معنا',
   },
+  faithPractice: {
+    sunnahOfTheDay: 'سنة اليوم',
+    tryItToday: 'جرّبها اليوم!',
+    markComplete: 'تم الإنجاز',
+    completed: 'أُنجزت ✓',
+    bonusStars: '+{points} نجوم إضافية',
+  },
 }
 
 export default ar

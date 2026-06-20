@@ -215,6 +215,13 @@ const en = {
     planFeatReports: 'Classroom reports',
     planFeatSupport: 'Priority support',
   },
+  faithPractice: {
+    sunnahOfTheDay: 'Sunnah of the Day',
+    tryItToday: 'Try it today!',
+    markComplete: 'Mark Complete',
+    completed: 'Completed ✓',
+    bonusStars: '+{points} Bonus Stars',
+  },
 } as const
 
 export type TranslationKeys = {

@@ -217,6 +217,13 @@ const fr: TranslationKeys = {
     planFeatReports: 'Rapports de classe',
     planFeatSupport: 'Support prioritaire',
   },
+  faithPractice: {
+    sunnahOfTheDay: 'Sunnah du jour',
+    tryItToday: "À essayer aujourd'hui !",
+    markComplete: 'Marquer comme fait',
+    completed: 'Terminé ✓',
+    bonusStars: '+{points} étoiles bonus',
+  },
 }
 
 export default fr
