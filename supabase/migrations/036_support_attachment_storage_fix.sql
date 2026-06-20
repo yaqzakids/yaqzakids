@@ -45,17 +45,8 @@ CREATE POLICY support_attachments_admin_all ON storage.objects
   USING (bucket_id = 'support-attachments' AND public.is_admin())
   WITH CHECK (bucket_id = 'support-attachments' AND public.is_admin());
 
-DROP POLICY IF EXISTS "support_attachments_parent_insert" ON storage.objects;
-DROP POLICY IF EXISTS "support_attachments_parent_select" ON storage.objects;
-DROP POLICY IF EXISTS "support_attachments_admin_all" ON storage.objects;
-
 DROP POLICY IF EXISTS support_tickets_parent_insert ON public.support_tickets;
 CREATE POLICY support_tickets_parent_insert ON public.support_tickets
-  FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = parent_id);
-
-DROP POLICY IF EXISTS "support_tickets_parent_insert" ON public.support_tickets;
-CREATE POLICY "support_tickets_parent_insert" ON public.support_tickets
   FOR INSERT TO authenticated
   WITH CHECK (auth.uid() = parent_id);
 

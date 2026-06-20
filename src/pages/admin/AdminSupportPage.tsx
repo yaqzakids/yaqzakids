@@ -58,6 +58,7 @@ export default function AdminSupportPage() {
 
   const [agents, setAgents] = useState<{ id: string; full_name: string }[]>([])
   const [reply, setReply] = useState('')
+  const [needsParentReply, setNeedsParentReply] = useState(false)
   const [internalNote, setInternalNote] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
   const [refundOpen, setRefundOpen] = useState(false)
@@ -131,8 +132,9 @@ export default function AdminSupportPage() {
     if (!user || !selectedId || !reply.trim()) return
     setActionLoading(true)
     try {
-      await sendAdminTicketReply(selectedId, user.id, reply)
+      await sendAdminTicketReply(selectedId, user.id, reply, { needsParentReply })
       setReply('')
+      setNeedsParentReply(false)
       await refreshAll()
     } catch (err) {
       setError(formatSupabaseError(err))
@@ -456,6 +458,14 @@ export default function AdminSupportPage() {
             <form onSubmit={(e) => void handleReply(e)} className="mb-6">
               <label className="block text-sm font-semibold mb-1">Reply to Parent</label>
               <textarea style={adminTextarea} value={reply} onChange={(e) => setReply(e.target.value)} />
+              <label className="flex items-center gap-2 mt-2 text-sm text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={needsParentReply}
+                  onChange={(e) => setNeedsParentReply(e.target.checked)}
+                />
+                Request a reply from the parent
+              </label>
               <button type="submit" style={{ ...adminBtn.primary, marginTop: 8 }} disabled={actionLoading}>
                 Send Reply
               </button>

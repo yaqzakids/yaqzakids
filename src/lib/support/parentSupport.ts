@@ -210,17 +210,10 @@ export async function replyToTicketAsParent(
 
   if (error) throw error
 
-  if (ticket.status === 'pending_parent' || ticket.status === 'resolved') {
-    await supabase
-      .from('support_tickets')
-      .update({ status: 'open', updated_at: new Date().toISOString() })
-      .eq('id', ticketId)
-  } else {
-    await supabase
-      .from('support_tickets')
-      .update({ updated_at: new Date().toISOString() })
-      .eq('id', ticketId)
-  }
+  await supabase
+    .from('support_tickets')
+    .update({ status: 'open', updated_at: new Date().toISOString() })
+    .eq('id', ticketId)
 }
 
 export async function getSignedAttachmentUrl(storagePath: string): Promise<string | null> {

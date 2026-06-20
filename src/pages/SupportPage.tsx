@@ -17,10 +17,10 @@ import {
   SUPPORT_MAX_ATTACHMENT_BYTES,
   SUPPORT_PRIORITIES,
   categoryLabel,
+  parentStatusLabel,
   priorityBadgeVariant,
   priorityLabel,
   statusBadgeVariant,
-  statusLabel,
   type SupportCategory,
   type SupportPriority,
 } from '@/lib/support/constants'
@@ -50,6 +50,7 @@ export default function SupportPage() {
   const [attachment, setAttachment] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submittedNumber, setSubmittedNumber] = useState<string | null>(null)
+  const [submittedTicketId, setSubmittedTicketId] = useState<string | null>(null)
 
   const [tickets, setTickets] = useState<SupportTicketSummary[]>([])
   const [ticketTotal, setTicketTotal] = useState(0)
@@ -146,6 +147,7 @@ export default function SupportPage() {
       })
 
       setSubmittedNumber(created.ticket_number)
+      setSubmittedTicketId(created.id)
       setSubject('')
       setMessage('')
       setAttachment(null)
@@ -228,6 +230,9 @@ export default function SupportPage() {
                   onClick={() => {
                     setSubmittedNumber(null)
                     setTab('tickets')
+                    setStatusTab('active')
+                    setSelectedId(submittedTicketId)
+                    setSubmittedTicketId(null)
                   }}
                   className="bg-gold text-white rounded-full px-6 py-3 font-extrabold border-0 cursor-pointer hover:bg-gold-dark"
                 >
@@ -364,7 +369,7 @@ export default function SupportPage() {
                         >
                           <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                             <span className="text-xs font-extrabold text-teal">{t.ticket_number}</span>
-                            <StatusBadge label={statusLabel(t.status)} variant={statusBadgeVariant(t.status)} />
+                            <StatusBadge label={parentStatusLabel(t.status)} variant={statusBadgeVariant(t.status)} />
                           </div>
                           <p className="font-bold text-navy text-sm m-0 mb-1">{t.subject}</p>
                           <p className="text-xs text-muted m-0">
@@ -397,7 +402,7 @@ export default function SupportPage() {
                   <div className="mb-4 pb-4 border-b border-gray-100">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       <span className="text-sm font-extrabold text-teal">{detail.ticket_number}</span>
-                      <StatusBadge label={statusLabel(detail.status)} variant={statusBadgeVariant(detail.status)} />
+                      <StatusBadge label={parentStatusLabel(detail.status)} variant={statusBadgeVariant(detail.status)} />
                       <StatusBadge label={priorityLabel(detail.priority)} variant={priorityBadgeVariant(detail.priority)} />
                     </div>
                     <h2 className="font-display text-lg font-bold text-navy m-0 mb-1">{detail.subject}</h2>

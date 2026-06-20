@@ -107,7 +107,7 @@ export default function ProfilePage() {
               to="/profile/avatar"
               className="inline-block mt-6 text-sm font-extrabold text-teal hover:underline"
             >
-              Customize avatar →
+              Choose avatar →
             </Link>
           </div>
 

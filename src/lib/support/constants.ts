@@ -24,8 +24,11 @@ export const SUPPORT_STATUSES = [
 ] as const
 
 export const PARENT_TICKET_TABS = [
-  { value: 'open', label: 'Open', statuses: ['open'] },
-  { value: 'pending', label: 'Pending', statuses: ['pending_parent', 'in_progress'] },
+  {
+    value: 'active',
+    label: 'Active',
+    statuses: ['open', 'pending_parent', 'in_progress'],
+  },
   { value: 'resolved', label: 'Resolved', statuses: ['resolved'] },
   { value: 'closed', label: 'Closed', statuses: ['closed'] },
 ] as const
@@ -45,6 +48,16 @@ export function priorityLabel(value: string): string {
 
 export function statusLabel(value: string): string {
   return SUPPORT_STATUSES.find((s) => s.value === value)?.label ?? value.replace(/_/g, ' ')
+}
+
+/** Parent-facing labels — clearer than internal admin status names. */
+export function parentStatusLabel(value: string): string {
+  if (value === 'open') return 'Awaiting Support'
+  if (value === 'pending_parent') return 'Reply Needed'
+  if (value === 'in_progress') return 'In Progress'
+  if (value === 'resolved') return 'Resolved'
+  if (value === 'closed') return 'Closed'
+  return statusLabel(value)
 }
 
 export function statusBadgeVariant(

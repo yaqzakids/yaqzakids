@@ -1,5 +1,7 @@
 -- Fix parent support ticket submission (RLS on storage + reliable ticket RPC)
--- Run in Supabase → SQL Editor
+-- Run in Supabase → SQL Editor (project cgvzeydhhkwosphixznd)
+-- Safe to re-run. If you ran an older copy of this script, run it again — a bug
+-- had dropped storage policies immediately after creating them.
 
 -- ── Storage bucket ───────────────────────────────────────────────────────
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -48,19 +50,9 @@ CREATE POLICY support_attachments_admin_all ON storage.objects
   USING (bucket_id = 'support-attachments' AND public.is_admin())
   WITH CHECK (bucket_id = 'support-attachments' AND public.is_admin());
 
--- Legacy quoted policy names (from older migrations)
-DROP POLICY IF EXISTS "support_attachments_parent_insert" ON storage.objects;
-DROP POLICY IF EXISTS "support_attachments_parent_select" ON storage.objects;
-DROP POLICY IF EXISTS "support_attachments_admin_all" ON storage.objects;
-
 -- ── Ticket insert policies (ensure parents can create tickets) ───────────
 DROP POLICY IF EXISTS support_tickets_parent_insert ON public.support_tickets;
 CREATE POLICY support_tickets_parent_insert ON public.support_tickets
-  FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = parent_id);
-
-DROP POLICY IF EXISTS "support_tickets_parent_insert" ON public.support_tickets;
-CREATE POLICY "support_tickets_parent_insert" ON public.support_tickets
   FOR INSERT TO authenticated
   WITH CHECK (auth.uid() = parent_id);
 

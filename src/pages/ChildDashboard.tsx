@@ -6,6 +6,7 @@ import { fetchChildStreak } from '../lib/adventure/engagement'
 import type { ChildProfile, Progress } from '../lib/types'
 import XPProgress from '../components/dashboard/XPProgress'
 import MissionCard from '../components/dashboard/MissionCard'
+import IslamicWorldviewGrowthSection from '../components/dashboard/IslamicWorldviewGrowthSection'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function ChildDashboard() {
@@ -107,6 +108,8 @@ export default function ChildDashboard() {
           <p className="font-display text-xl font-bold">Adventure Paths</p>
           <p className="text-sm text-white/90 mt-1">Explore paths, earn Stars, collect badges & hero cards</p>
         </Link>
+
+        <IslamicWorldviewGrowthSection className="mt-8" titleClassName="font-display text-xl font-bold text-navy mb-4" />
 
         <section className="mt-8">
           <h2 className="font-display text-xl font-bold text-navy mb-4">Recent Activity</h2>

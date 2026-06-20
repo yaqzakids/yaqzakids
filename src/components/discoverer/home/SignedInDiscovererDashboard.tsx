@@ -17,6 +17,7 @@ import { SIGNED_IN_RECOMMENDED, type DiscovererStoryCard } from '@/lib/discovere
 import type { AdventureArticle } from '@/lib/adventure/types'
 import { learningPathDetailUrl } from '@/lib/learningPaths'
 import type { PathWithProgress } from '@/lib/adventure/types'
+import IslamicWorldviewGrowthSection from '@/components/dashboard/IslamicWorldviewGrowthSection'
 
 export interface SignedInDiscovererDashboardProps {
   childName: string
@@ -291,6 +292,11 @@ export default function SignedInDiscovererDashboard({
           </div>
         </DashboardCard>
       </div>
+
+      <IslamicWorldviewGrowthSection
+        className="mt-4"
+        titleClassName="font-display text-xl font-bold text-[#1B2F5E] mb-4"
+      />
 
       {/* Continue · Paths · Recommended */}
       <div className="grid lg:grid-cols-12 gap-4">

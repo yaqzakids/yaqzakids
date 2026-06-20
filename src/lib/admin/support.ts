@@ -235,7 +235,7 @@ export async function sendAdminTicketReply(
   ticketId: string,
   adminId: string,
   message: string,
-  options?: { setPendingParent?: boolean; attachmentUrl?: string | null }
+  options?: { needsParentReply?: boolean; attachmentUrl?: string | null }
 ): Promise<void> {
   const { error } = await supabase.from('support_messages').insert({
     ticket_id: ticketId,
@@ -247,7 +247,7 @@ export async function sendAdminTicketReply(
   })
   if (error) throw error
 
-  const status = options?.setPendingParent === false ? 'in_progress' : 'pending_parent'
+  const status = options?.needsParentReply ? 'pending_parent' : 'in_progress'
   await updateSupportTicketAdmin(ticketId, { status })
 
   const { data: ticket } = await supabase

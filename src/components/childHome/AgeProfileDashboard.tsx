@@ -6,6 +6,7 @@ import ContinueLearningSection from '@/components/discoverer/home/ContinueLearni
 import LearningPathsSection from '@/components/learningPaths/LearningPathsSection'
 import { useSignedInChildHomeData } from '@/hooks/useSignedInChildHomeData'
 import DailyDuaCard from '@/components/parent/DailyDuaCard'
+import IslamicWorldviewGrowthSection from '@/components/dashboard/IslamicWorldviewGrowthSection'
 import { AGE_GROUP_META, childHomePathForAgeGroup } from '@/lib/childProfiles'
 import type { AgeGroup, ChildProfile } from '@/lib/types'
 
@@ -72,6 +73,8 @@ export default function AgeProfileDashboard({ ageGroup, selectedChild, userId }:
         activePath={activePath}
         pathLabel={pathLabel}
       />
+
+      <IslamicWorldviewGrowthSection className="mt-10" titleClassName="font-display text-xl font-bold text-[#1B2F5E] mb-4" />
 
       <div className="mt-10">
         <DailyDuaCard />
