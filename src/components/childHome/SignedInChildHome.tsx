@@ -5,6 +5,7 @@ import LearningPathsSection from '@/components/learningPaths/LearningPathsSectio
 import ContinueLearningSection from '@/components/discoverer/home/ContinueLearningSection'
 import DiscoverNewTodaySection from '@/components/discoverer/home/DiscoverNewTodaySection'
 import FeaturedStorySection from '@/components/discoverer/home/FeaturedStorySection'
+import DailyDuaCard from '@/components/parent/DailyDuaCard'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { useSignedInChildHomeData } from '@/hooks/useSignedInChildHomeData'
 import { AGE_GROUP_META } from '@/lib/childProfiles'
@@ -93,6 +94,10 @@ export default function SignedInChildHome({ ageGroup, selectedChild, userId }: S
         activePath={activePath}
         pathLabel={pathLabel}
       />
+
+      <div className="mb-10">
+        <DailyDuaCard />
+      </div>
 
       <DiscoverNewTodaySection
         articles={homeData.recommendedArticles}
