@@ -7,7 +7,7 @@ import TealProgressBar from '@/components/discoverer/TealProgressBar'
 import { useSelectedChild } from '@/context/SelectedChildContext'
 import { fetchChildStats } from '@/lib/discoverer'
 import { getLevelProgress, STAR_LEVELS } from '@/lib/adventure/levels'
-import DailyDuaCard from '@/components/parent/DailyDuaCard'
+import DailyFaithPracticeSection from '@/components/islamic/DailyFaithPracticeSection'
 
 function levelNumber(totalStars: number): number {
   let idx = 0
@@ -123,7 +123,7 @@ export default function ProfilePage() {
               ))}
             </div>
 
-            <DailyDuaCard />
+            <DailyFaithPracticeSection childId={selectedChild.id} />
 
             <div>
               <h3 className="font-display text-lg font-bold text-navy mb-4">Quick links</h3>

@@ -15,6 +15,7 @@ import ParentLayout from '@/components/layout/ParentLayout'
 import Breadcrumbs from '@/components/navigation/Breadcrumbs'
 import ParentPasscodeGate from '@/components/parent/ParentPasscodeGate'
 import ParentGateLink from '@/components/parent/ParentGateLink'
+import DailyFaithPracticeSection from '@/components/islamic/DailyFaithPracticeSection'
 import { AGE_GROUP_META } from '@/lib/childProfiles'
 import { getLevelProgress } from '@/lib/adventure/levels'
 import { formatSupabaseError } from '../lib/supabaseErrors'
@@ -281,6 +282,17 @@ export default function Dashboard() {
             </div>
           )}
         </section>
+
+        {/* Daily faith practice for the family */}
+        {children.length > 0 && (
+          <section className="mb-10">
+            <h2 className="font-display text-2xl font-bold text-navy mb-5">Faith at Home</h2>
+            <DailyFaithPracticeSection
+              childId={selectedChild?.id ?? children[0]?.id ?? null}
+              showMarkComplete={false}
+            />
+          </section>
+        )}
 
         {/* E. Messages & Announcements */}
         <section className="mb-10 bg-white rounded-2xl border border-gray-200 p-6">
